@@ -1,0 +1,22 @@
+$NetBSD: README,v 1.1 2001/02/07 01:20:54 bjh21 Exp $
+
+This is a pile of programs to allow a NetBSD system to act as a very basic
+AUN (Acorn Universal Networking) fileserver.  This release is intended to
+be just about good enough to get a NetBSD/arm26 system booting from it.
+
+Hints:
+
+copy aund.conf to /etc
+edit /etc/aund.conf, notably the "urd" line.
+populate the URD with !ArmBoot,feb, BBBB,ffb and netbsd.
+# ifconfig fxp0 alias 1.0.128.254
+$ aund
+*Configure FileSystem Net
+*Configure Boot
+*Configure BootNet on
+*Configure FS 254
+
+If you have problems using aund to boot NetBSD/arm26, talk to
+<port-arm26@netbsd.org>.  For all other stuff relating to aund, try
+<bjh21@netbsd.org>.  Note, though, that support effort available for this
+code is minimal.
