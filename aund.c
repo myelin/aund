@@ -1,4 +1,4 @@
-/* $NetBSD: aund.c,v 1.2 2001/02/07 01:14:57 bjh21 Exp $ */
+/* $NetBSD: aund.c,v 1.3 2001/02/07 01:46:21 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include "aun.h"
@@ -86,6 +87,8 @@ main(argc, argv)
 	if (!debug)
 		if (daemon(0, 0) != 0)
 			err(1, "daemon");
+	openlog("aund", LOG_PID | (debug ? LOG_PERROR : 0), LOG_DAEMON);
+	syslog(LOG_NOTICE, "started");
 	for (;!painful_death;) {
 		ssize_t msgsize;
 		unsigned char buf[65536];
