@@ -1,4 +1,4 @@
-/* $NetBSD: fileserver.c,v 1.1 2001/02/06 23:54:46 bjh21 Exp $ */
+/* $NetBSD: fileserver.c,v 1.2 2001/08/12 15:54:45 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include "aun.h"
@@ -201,6 +202,7 @@ fs_new_client(from)
 	client->dir_cache.ftsp = NULL;
 	client->dir_cache.f = NULL;
 	LIST_INSERT_HEAD(&fs_clients, client, link);
+	syslog(LOG_INFO, "login from %s", inet_ntoa(client->host));
 	return client;
 }
 
@@ -228,5 +230,6 @@ fs_delete_client(client)
 	free(client->login);
 	if (client->dir_cache.ftsp)
 		fts_close(client->dir_cache.ftsp);
+	syslog(LOG_INFO, "logout from %s", inet_ntoa(client->host));
 	free(client);
 }
