@@ -1,4 +1,4 @@
-/* $NetBSD: aund.c,v 1.3 2001/02/07 01:46:21 bjh21 Exp $ */
+/* $NetBSD: aund.c,v 1.4 2001/05/27 22:58:51 abs Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -191,7 +191,7 @@ aun_xmit(sock, pkt, len, to)
 	static u_int32_t sequence = 2;
 	struct aun_packet buf;
 	struct sockaddr_in from;
-	size_t fromlen;
+	socklen_t fromlen;
 	int i;
 	ssize_t retval;
 
