@@ -1,4 +1,4 @@
-/* $NetBSD: fs_util.c,v 1.1 2001/02/06 23:54:46 bjh21 Exp $ */
+/* $NetBSD: fs_util.c,v 1.2 2001/02/08 15:55:54 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -120,7 +120,7 @@ fs_read_val(p, len)
 	u_int8_t *p;
 	size_t len;
 {
-	u_int64_t value, mask;
+	u_int64_t value;
 
 	value = 0;
 	p += len - 1;
@@ -144,6 +144,7 @@ fs_write_val(p, value, len)
 	max = (1ULL << (len * 8)) - 1;
 	if (value > max) value = max;
 	while (len) {
+		/* LINTED no loss of accuracy */
 		*p = value & 0xff;
 		p++;
 		len--;
@@ -171,8 +172,10 @@ fs_get_meta(f, meta)
  		rawinfo[23] = '\0';
 		if (readlink(metapath, rawinfo, 23) == 23) {
 			for (i = 0; i < 4; i++)
+				/* LINTED strtoul result < 0x100 */
 				meta->load_addr[i] = strtoul(rawinfo+i*3, NULL, 16);
 			for (i = 0; i < 4; i++)
+				/* LINTED strtoul result < 0x100 */
 				meta->exec_addr[i] = strtoul(rawinfo+12+i*3, NULL, 16);
 			return;
 		}
@@ -183,7 +186,7 @@ fs_get_meta(f, meta)
 		type = fs_guess_type(f);
 		fs_write_val(meta->load_addr,
 			     0xfff00000 | (type << 8) | (stamp >> 32), 4);
-		fs_write_val(meta->exec_addr, stamp & 0x00ffffffff, 4);
+		fs_write_val(meta->exec_addr, stamp & 0x00ffffffffULL, 4);
 	} else {	
 		fs_write_val(meta->load_addr, 0xdeaddead, 4);
 		fs_write_val(meta->exec_addr, 0xdeaddead, 4);

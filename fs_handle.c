@@ -1,4 +1,4 @@
-/* $NetBSD: fs_handle.c,v 1.1 2001/02/06 23:54:46 bjh21 Exp $ */
+/* $NetBSD: fs_handle.c,v 1.2 2001/02/08 15:55:54 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -59,6 +59,7 @@ void fs_check_handles(c)
 	case EC_FS_FUNC_GETBYTE:
 	case EC_FS_FUNC_PUTBYTE:
 		/* And these ones don't pass context at all. */
+		break;
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $NetBSD: fs_examine.c,v 1.1 2001/02/06 23:54:46 bjh21 Exp $ */
+/* $NetBSD: fs_examine.c,v 1.2 2001/02/08 15:55:53 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -58,6 +58,7 @@ void
 fs_examine(c)
 	struct fs_context *c;
 {
+	/* LINTED subclass */
 	struct ec_fs_req_examine *request = (struct ec_fs_req_examine *)(c->req);
 	char *upath;
 	FTSENT *ent;
@@ -73,6 +74,7 @@ fs_examine(c)
 		return;
 	case EC_FS_EXAMINE_ALL: case EC_FS_EXAMINE_NAME:
 	case EC_FS_EXAMINE_SHORTTXT:
+		break;
 	}
 	upath = fs_unixify_path(c, request->path);
 	if (upath == NULL) {
@@ -132,7 +134,7 @@ bye:
 	reply->std_tx.return_code = EC_FS_RC_OK;
 	switch (request->arg) {
 	case EC_FS_EXAMINE_LONGTXT: case EC_FS_EXAMINE_SHORTTXT:
-		((char*)reply)[reply_size] = 0x80; /* space for this is reserved */
+		((unsigned char*)reply)[reply_size] = 0x80; /* space for this is reserved */
 		reply_size++;
 	}
 	fs_reply(c, &(reply->std_tx), reply_size);
@@ -144,7 +146,6 @@ bye:
 		fts_close(c->client->dir_cache.ftsp); c->client->dir_cache.ftsp = NULL;
 		free(c->client->dir_cache.path); c->client->dir_cache.path = NULL;
 	}
-abort:
 	free(reply);
 	free(upath);
 }
