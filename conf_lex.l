@@ -1,5 +1,5 @@
 /* -*- fundamental -*- */
-/* $NetBSD: conf_lex.l,v 1.1 2001/02/06 23:54:46 bjh21 Exp $ */
+/* $NetBSD: conf_lex.l,v 1.2 2001/02/07 01:14:57 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -146,7 +146,7 @@ static int cfylex __P((int start, void *thing));
 void
 conf_init()
 {
-	conf_read_file("aund.conf");
+	conf_read_file("/etc/aund.conf");
 }
 
 static void
@@ -156,7 +156,7 @@ conf_read_file(path)
         FILE *f;
 
 	f = fopen(path, "r");
-	if (f == NULL) err(1, "conf_read_file");
+	if (f == NULL) err(1, "%s", path);
 	cfyin = f;
 	switch (cfylex(INITIAL, NULL)) {
 	case CF_ODDWORD:

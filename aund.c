@@ -1,4 +1,4 @@
-/* $NetBSD: aund.c,v 1.1 2001/02/06 23:54:45 bjh21 Exp $ */
+/* $NetBSD: aund.c,v 1.2 2001/02/07 01:14:57 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -36,8 +36,10 @@
 
 #include <netinet/in.h>
 
+#include <err.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -74,17 +76,16 @@ main(argc, argv)
 	fs_init();
 	conf_init();
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
-	if (sock < 0) {
-		perror("aund: socket");
-		exit(1);
-	}
+	if (sock < 0)
+		err(1, "socket");
 	name.sin_family = AF_INET;
 	name.sin_addr.s_addr = INADDR_ANY;
 	name.sin_port = htons(PORT_AUN);
-	if (bind(sock, (struct sockaddr*)&name, sizeof(name))) {
-		perror("aund: bind");
-		exit(1);
-	}
+	if (bind(sock, (struct sockaddr*)&name, sizeof(name)))
+		err(1, "bind");
+	if (!debug)
+		if (daemon(0, 0) != 0)
+			err(1, "daemon");
 	for (;!painful_death;) {
 		ssize_t msgsize;
 		unsigned char buf[65536];
@@ -93,10 +94,8 @@ main(argc, argv)
 		int fromlen = sizeof(from);
 		int i;
 		msgsize = recvfrom(sock, buf, 65536, 0, (struct sockaddr *)&from, &fromlen);
-		if (msgsize == -1) {
-			perror("aund: recvfrom");
-			exit(1);
-		}
+		if (msgsize == -1)
+			err(1, "recvfrom");
 		if (0) {
 			printf("Rx");
 			for (i = 0; i < msgsize; i++) {
@@ -120,8 +119,7 @@ main(argc, argv)
 					   (struct sockaddr*)&from,
 					   sizeof(from))
 				    == -1) {
-					perror("aund: sendto(echo reply)");
-					exit(1);
+					err(1, "sendto(echo reply)");
 				}
 				if (debug) printf(" (echo request)");
 			}
@@ -176,7 +174,7 @@ aun_ack(sock, pkt, from)
 	ack.retrans = 0;
 	for (i=0;i<4;i++) ack.seq[i] = pkt->seq[i];
 	if (sendto(sock, &ack, sizeof(ack), 0, (struct sockaddr *)from, sizeof(*from)) == -1) {
-		perror ("aund: sendto (ack)");
+		err(1, "sendto (ack)");
 	}
 }
 
