@@ -1,4 +1,4 @@
-/* $NetBSD: fs_misc.c,v 1.1 2001/02/06 23:54:46 bjh21 Exp $ */
+/* $NetBSD: fs_misc.c,v 1.2 2001/08/12 16:11:22 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -157,6 +157,25 @@ fs_get_info(c)
 		reply.dir_access = FS_DIR_ACCESS_PUBLIC; /* XXX should check */
 		reply.cycle = 0; /* XXX should fake */
 		fs_reply(c, &(reply.std_tx), sizeof(reply));
+	}
+	break;
+	case EC_FS_GET_INFO_UID:
+	{
+		struct ec_fs_reply_info_uid reply;
+
+		reply.std_tx.return_code = EC_FS_RC_OK;
+		reply.std_tx.command_code = EC_FS_CC_DONE;
+		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+			reply.type = 0;
+		} else {
+			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
+			fs_write_val(reply.sin, f->fts_statp->st_ino,
+			    sizeof(reply.sin));
+			reply.disc = 0;
+			fs_write_val(reply.size, f->fts_statp->st_size,
+			    sizeof(reply.size));
+			fs_reply(c, &(reply.std_tx), sizeof(reply));
+		}
 	}
 	break;
 	default:
