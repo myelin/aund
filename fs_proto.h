@@ -1,4 +1,4 @@
-/* $NetBSD: fs_proto.h,v 1.2 2001/08/12 16:11:22 bjh21 Exp $ */
+/* $NetBSD: fs_proto.h,v 1.3 2001/08/12 22:10:57 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -480,11 +480,10 @@ struct ec_fs_reply_info_dir {
 #define EC_FS_GET_INFO_UID	7
 struct ec_fs_reply_info_uid {
 	struct ec_fs_reply std_tx;
-	/* This is derived from awServer */
 	u_int8_t type;
-	u_int8_t sin[2];
+	u_int8_t sin[3];
 	u_int8_t disc;
-	u_int8_t size[3];
+	u_int8_t fsnum[2];
 };
 
 /* Set file info - code 19 */

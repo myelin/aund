@@ -1,4 +1,4 @@
-/* $NetBSD: fs_misc.c,v 1.2 2001/08/12 16:11:22 bjh21 Exp $ */
+/* $NetBSD: fs_misc.c,v 1.3 2001/08/12 22:10:57 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -172,8 +172,8 @@ fs_get_info(c)
 			fs_write_val(reply.sin, f->fts_statp->st_ino,
 			    sizeof(reply.sin));
 			reply.disc = 0;
-			fs_write_val(reply.size, f->fts_statp->st_size,
-			    sizeof(reply.size));
+			fs_write_val(reply.fsnum, f->fts_statp->st_dev,
+			    sizeof(reply.fsnum));
 			fs_reply(c, &(reply.std_tx), sizeof(reply));
 		}
 	}
