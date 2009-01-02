@@ -1,4 +1,4 @@
-/* $NetBSD: fs_cli.c,v 1.2 2009/01/02 23:23:14 bjh21 Exp $ */
+/* $NetBSD: fs_cli.c,v 1.3 2009/01/02 23:33:04 bjh21 Exp $ */
 /* Berkeley copyright because of fs_cmd_info(), which is basically ls(1) */
 /*
  * Copyright (c) 1989, 1993
@@ -143,7 +143,7 @@ fs_cli_match(word, cmd)
 {
 	char *p;
 	for (p = word; *p!='\0'; p++)
-		*p = toupper(*p);
+		*p = toupper((unsigned char)*p);
 	p--;
 	if (*p == '.') {
 		/* Abbreviated command */

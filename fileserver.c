@@ -1,4 +1,4 @@
-/* $NetBSD: fileserver.c,v 1.3 2009/01/02 19:38:57 bjh21 Exp $ */
+/* $NetBSD: fileserver.c,v 1.4 2009/01/02 23:33:04 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 
 #include <err.h>
@@ -77,6 +78,7 @@ fs_init()
 	discname[16] = '\0';
 }
 
+#if 0
 static void dump_handles __P((struct fs_client *));
 
 static void dump_handles(client)
@@ -94,6 +96,7 @@ static void dump_handles(client)
 		printf("\n");
 	}
 }
+#endif
 
 void
 file_server(sock, pkt, len, from)

@@ -1,4 +1,4 @@
-/* $NetBSD: fs_fileio.c,v 1.1 2001/02/06 23:54:46 bjh21 Exp $ */
+/* $NetBSD: fs_fileio.c,v 1.2 2009/01/02 23:33:04 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -40,6 +40,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -202,7 +203,7 @@ fs_set_args(c)
 	}
 	request = (struct ec_fs_req_set_args *)(c->req);
 	val = fs_read_val(request->val, sizeof(request->val));
-	if (debug) printf("set args [%d, %d := %qx]\n", request->handle, request->arg, val);
+	if (debug) printf("set args [%d, %d := %jx]\n", request->handle, request->arg, (uintmax_t)val);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		c->client->handles[h]->sequence ^= 1;
 		fd = c->client->handles[h]->fd;
@@ -238,7 +239,7 @@ fs_getbytes(c)
 	request = (struct ec_fs_req_getbytes *)(c->req);
 	size = fs_read_val(request->nbytes, sizeof(request->nbytes));
 	off = fs_read_val(request->offset, sizeof(request->offset));
-	if (debug) printf("getbytes [%d, %d%s%qd]\n", request->handle, size, request->use_ptr ? "!" : "@", off);
+	if (debug) printf("getbytes [%d, %zu%s%ju]\n", request->handle, size, request->use_ptr ? "!" : "@", (uintmax_t)off);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		fd = c->client->handles[h]->fd;
 		if (!request->use_ptr)

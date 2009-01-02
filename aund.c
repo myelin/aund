@@ -1,4 +1,4 @@
-/* $NetBSD: aund.c,v 1.4 2001/05/27 22:58:51 abs Exp $ */
+/* $NetBSD: aund.c,v 1.5 2009/01/02 23:33:04 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -94,7 +94,7 @@ main(argc, argv)
 		unsigned char buf[65536];
 		struct aun_packet *pkt;
 		struct sockaddr_in from;
-		int fromlen = sizeof(from);
+		socklen_t fromlen = sizeof(from);
 		int i;
 		msgsize = recvfrom(sock, buf, 65536, 0, (struct sockaddr *)&from, &fromlen);
 		if (msgsize == -1)
