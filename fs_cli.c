@@ -1,4 +1,4 @@
-/* $NetBSD: fs_cli.c,v 1.1 2001/02/06 23:54:46 bjh21 Exp $ */
+/* $NetBSD: fs_cli.c,v 1.2 2009/01/02 23:23:14 bjh21 Exp $ */
 /* Berkeley copyright because of fs_cmd_info(), which is basically ls(1) */
 /*
  * Copyright (c) 1989, 1993
@@ -322,6 +322,30 @@ fs_cmd_info(c, tail)
 	struct ec_fs_reply *reply;
 	char mode_buf[12];
 	char *frag1, *frag2;
+
+	/*
+	 * XXX
+	 *
+	 * According to the RISC OS 3 PRM, this should return (in ASCII):
+	 * Byte  Meaning
+	 * 1-2   standard Rx Header (command code = 4)
+	 * 3-12  object name, padded with spaces
+	 * 13    space
+	 * 14-21 load address, padded with zeros
+	 * 22    space
+	 * 23-30 execution address, padded with zeros
+	 * 31-33 spaces
+	 * 34-39 length padded with zeros
+	 * 40-42 spaces
+	 * 43-48 access details (eg LWR/WR), padded with spaces
+	 * 49-53 spaces
+	 * 54-61 date (DD:MM:YY)
+	 * 62    space
+	 * 63-68 System Internal Name (SIN), padded with zeros
+	 * 69    Terminating negative byte (&80)
+	 *
+	 * awServer puts all numeric values in hex.
+	 */
 
 	upath = fs_unixify_path(c, fs_cli_getarg(&tail)); /* Free it! */
 	if (lstat(upath, &st) == -1) {
