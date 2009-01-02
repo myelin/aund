@@ -1,4 +1,4 @@
-/* $NetBSD: fileserver.c,v 1.2 2001/08/12 15:54:45 bjh21 Exp $ */
+/* $NetBSD: fileserver.c,v 1.3 2009/01/02 19:38:57 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -26,6 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sys/param.h>
 #include <sys/queue.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -68,9 +69,11 @@ int opt4 = 0;
 void
 fs_init()
 {
-	discname = malloc(17);
-	if (gethostname(discname, 16) == -1)
+	discname = malloc(MAXHOSTNAMELEN > 17 ? MAXHOSTNAMELEN : 17);
+	if (gethostname(discname, MAXHOSTNAMELEN) == -1)
 		err(1, "gethostname");
+	/* Chomp at the first '.' or 16 characters, whichever is sooner. */
+	discname[strcspn(discname, ".")] = '\0';
 	discname[16] = '\0';
 }
 
