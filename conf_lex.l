@@ -1,5 +1,5 @@
 /* -*- fundamental -*- */
-/* $NetBSD: conf_lex.l,v 1.2 2001/02/07 01:14:57 bjh21 Exp $ */
+/* $NetBSD: conf_lex.l,v 1.3 2009/01/02 19:21:54 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -42,6 +42,7 @@
 #include <sys/stat.h>
 
 #include <err.h>
+#include <string.h>
 
 #include "extern.h"
 #include "fileserver.h"

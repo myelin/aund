@@ -1,4 +1,4 @@
-/* $NetBSD: fs_handle.c,v 1.2 2001/02/08 15:55:54 bjh21 Exp $ */
+/* $NetBSD: fs_handle.c,v 1.3 2009/01/02 19:21:54 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
@@ -32,6 +32,7 @@
 #include <err.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "fileserver.h"
