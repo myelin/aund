@@ -58,6 +58,8 @@ int debug = 1;
 int using_syslog = 1;
 volatile int painful_death = 0;
 
+static void *aun_setup(void);
+static struct aun_packet *aun_recv(void *vctx, ssize_t *outsize, struct sockaddr_in *from);
 static void aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from);
 
 int main __P((int, char*[]));
@@ -71,11 +73,11 @@ main(argc, argv)
 	char *argv[];
 {
 	int sock;
-	struct sockaddr_in name;
 	const char *conffile = "/etc/aund.conf";
 	int c;
 	int override_debug = -1;
 	int override_syslog = -1;
+	void *aun_ctx;
 
 	while ((c = getopt(argc, argv, "f:dDsS")) != -1) {
 		switch (c) {
@@ -114,14 +116,8 @@ main(argc, argv)
 
 	if (debug) setlinebuf(stdout);
 
-	sock = socket(AF_INET, SOCK_DGRAM, 0);
-	if (sock < 0)
-		err(1, "socket");
-	name.sin_family = AF_INET;
-	name.sin_addr.s_addr = INADDR_ANY;
-	name.sin_port = htons(PORT_AUN);
-	if (bind(sock, (struct sockaddr*)&name, sizeof(name)))
-		err(1, "bind");
+	aun_ctx = aun_setup();
+
 	if (!debug)
 		if (daemon(0, 0) != 0)
 			err(1, "daemon");
@@ -132,54 +128,17 @@ main(argc, argv)
 	}
 	for (;!painful_death;) {
 		ssize_t msgsize;
-		unsigned char buf[65536];
 		struct aun_packet *pkt;
 		struct sockaddr_in from;
-		socklen_t fromlen = sizeof(from);
-		int i;
-		msgsize = recvfrom(sock, buf, 65536, 0, (struct sockaddr *)&from, &fromlen);
-		if (msgsize == -1)
-			err(1, "recvfrom");
-		if (0) {
-			printf("Rx");
-			for (i = 0; i < msgsize; i++) {
-				printf(" %02x", buf[i]);
-			}
-			printf(" from UDP port %hu", ntohs(from.sin_port));
-		}
-		/* Replies seem always to go to port 32768 */
-		from.sin_port = htons(PORT_AUN);
-		pkt = (struct aun_packet *)buf;
-		switch (pkt->type) {
-		case AUN_TYPE_IMMEDIATE:
-			if (pkt->flag == 8) {
-				/* Echo request? */
-				pkt->type = AUN_TYPE_IMM_REPLY;
-				pkt->data[0] = MACHINE_MODEL;
-				pkt->data[1] = MACHINE_MAKE;
-				pkt->data[2] = ECONET_SW_VERSION_MINOR;
-				pkt->data[3] = ECONET_SW_VERSION_MAJOR;
-				if (sendto(sock, buf, 12, 0,
-					   (struct sockaddr*)&from,
-					   sizeof(from))
-				    == -1) {
-					err(1, "sendto(echo reply)");
-				}
-				if (debug) printf(" (echo request)");
-			}
+
+		pkt = aun_recv(aun_ctx, &msgsize, &from);
+
+		switch (pkt->dest_port) {
+		    case EC_PORT_FS:
+			if (debug) printf("\n\t(file server: ");
+			file_server(sock, pkt, msgsize, &from);
+			if (debug) printf(")");
 			break;
-		case AUN_TYPE_UNICAST:
-			aun_ack(sock, pkt, &from);
-			/* FALLTHROUGH */
-		case AUN_TYPE_BROADCAST:
-			/* Random packet */
-			switch (pkt->dest_port) {
-			case EC_PORT_FS:
-				if (debug) printf("\n\t(file server: ");
-				file_server(sock, pkt, msgsize, &from);
-				if (debug) printf(")");
-				break;
-			}
 		}
 		if (debug) printf("\n");
 	}
@@ -202,6 +161,81 @@ sigcatcher(s)
 	int s;
 {
 	painful_death = 1;
+}
+
+struct aun_ctx {
+	int sock;
+	unsigned char buf[65536];
+};
+
+static void *
+aun_setup(void)
+{
+	struct aun_ctx *ctx = malloc(sizeof(struct aun_ctx));
+	struct sockaddr_in name;
+
+	if (!ctx)
+		errx(1, "out of memory");
+	ctx->sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (ctx->sock < 0)
+		err(1, "socket");
+	name.sin_family = AF_INET;
+	name.sin_addr.s_addr = INADDR_ANY;
+	name.sin_port = htons(PORT_AUN);
+	if (bind(ctx->sock, (struct sockaddr*)&name, sizeof(name)))
+		err(1, "bind");
+	return ctx;
+}
+
+static struct aun_packet *
+aun_recv(void *vctx, ssize_t *outsize, struct sockaddr_in *from)
+{
+	ssize_t msgsize;
+	struct aun_ctx *ctx = vctx;
+	struct aun_packet *pkt = (struct aun_packet *)ctx->buf;
+
+	while (1) {
+		socklen_t fromlen = sizeof(*from);
+		int i;
+		msgsize = recvfrom(ctx->sock, pkt, sizeof(ctx->buf), 0, (struct sockaddr *)from, &fromlen);
+		if (msgsize == -1)
+			err(1, "recvfrom");
+		if (0) {
+			printf("Rx");
+			for (i = 0; i < msgsize; i++) {
+				printf(" %02x", ctx->buf[i]);
+			}
+			printf(" from UDP port %hu", ntohs(from->sin_port));
+		}
+		/* Replies seem always to go to port 32768 */
+		from->sin_port = htons(PORT_AUN);
+		switch (pkt->type) {
+		case AUN_TYPE_IMMEDIATE:
+			if (pkt->flag == 8) {
+				/* Echo request? */
+				pkt->type = AUN_TYPE_IMM_REPLY;
+				pkt->data[0] = MACHINE_MODEL;
+				pkt->data[1] = MACHINE_MAKE;
+				pkt->data[2] = ECONET_SW_VERSION_MINOR;
+				pkt->data[3] = ECONET_SW_VERSION_MAJOR;
+				if (sendto(ctx->sock, ctx->buf, 12, 0,
+					   (struct sockaddr*)from,
+					   sizeof(*from))
+				    == -1) {
+					err(1, "sendto(echo reply)");
+				}
+				if (debug) printf(" (echo request)");
+			}
+			break;
+		case AUN_TYPE_UNICAST:
+			aun_ack(ctx->sock, pkt, from);
+			/* FALLTHROUGH */
+		case AUN_TYPE_BROADCAST:
+			/* Real packet; return it. */
+			*outsize = msgsize;
+			return pkt;
+		}
+	}
 }
 
 static void
