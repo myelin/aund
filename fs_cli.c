@@ -48,7 +48,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <tzfile.h>
 #include <unistd.h>
 #include <utmp.h>
 
@@ -392,7 +391,7 @@ printtime(ftime)
 	for (i = 4; i < 11; ++i)
 		shortstring[j++] = longstring[i];
 
-#define	SIXMONTHS	((DAYSPERNYEAR / 2) * SECSPERDAY)
+#define	SIXMONTHS	(365*24*60*60/2)
 	if (ftime + SIXMONTHS > time((time_t *)NULL))
 		for (i = 11; i < 16; ++i)
 			shortstring[j++] = longstring[i];
