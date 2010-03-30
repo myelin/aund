@@ -71,11 +71,22 @@ main(argc, argv)
 {
 	int sock;
 	struct sockaddr_in name;
+	const char *conffile = "/etc/aund.conf";
+	int c;
+
+	while ((c = getopt(argc, argv, "f:")) != -1) {
+		switch (c) {
+		    case '?':
+			return 1;      /* getopt parsing error */
+		    case 'f':
+			conffile = optarg;
+		}
+	}
 
 	if (debug) setlinebuf(stdout);
 	sig_init();
 	fs_init();
-	conf_init("/etc/aund.conf");
+	conf_init(conffile);
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0)
 		err(1, "socket");
