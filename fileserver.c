@@ -208,7 +208,8 @@ fs_new_client(from)
 	client->dir_cache.ftsp = NULL;
 	client->dir_cache.f = NULL;
 	LIST_INSERT_HEAD(&fs_clients, client, link);
-	syslog(LOG_INFO, "login from %s", inet_ntoa(client->host));
+	if (using_syslog)
+		syslog(LOG_INFO, "login from %s", inet_ntoa(client->host));
 	return client;
 }
 
@@ -236,6 +237,7 @@ fs_delete_client(client)
 	free(client->login);
 	if (client->dir_cache.ftsp)
 		fts_close(client->dir_cache.ftsp);
-	syslog(LOG_INFO, "logout from %s", inet_ntoa(client->host));
+	if (using_syslog)
+		syslog(LOG_INFO, "logout from %s", inet_ntoa(client->host));
 	free(client);
 }

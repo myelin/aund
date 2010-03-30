@@ -44,3 +44,4 @@ extern void fs_init __P((void));
 extern void file_server __P((int, struct aun_packet *, ssize_t, struct sockaddr_in *));
 extern ssize_t aun_xmit(int sock, struct aun_packet *pkt, size_t len, struct sockaddr_in *to);
 extern int debug;
+extern int using_syslog;

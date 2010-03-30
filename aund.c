@@ -55,6 +55,7 @@
 #define EC_PORT_FS 0x99
 
 int debug = 1;
+int using_syslog = 1;
 volatile int painful_death = 0;
 
 static void aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from);
@@ -73,13 +74,21 @@ main(argc, argv)
 	struct sockaddr_in name;
 	const char *conffile = "/etc/aund.conf";
 	int c;
+	int override_syslog = -1;
 
-	while ((c = getopt(argc, argv, "f:")) != -1) {
+	while ((c = getopt(argc, argv, "f:sS")) != -1) {
 		switch (c) {
 		    case '?':
 			return 1;      /* getopt parsing error */
 		    case 'f':
 			conffile = optarg;
+			break;
+		    case 's':
+			override_syslog = 1;
+			break;
+		    case 'S':
+			override_syslog = 0;
+			break;
 		}
 	}
 
@@ -87,6 +96,14 @@ main(argc, argv)
 	sig_init();
 	fs_init();
 	conf_init(conffile);
+
+	/*
+	 * Override specifications from the configuration file with
+	 * those from the command line.
+	 */
+	if (override_syslog != -1)
+		using_syslog = override_syslog;
+
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0)
 		err(1, "socket");
@@ -98,8 +115,11 @@ main(argc, argv)
 	if (!debug)
 		if (daemon(0, 0) != 0)
 			err(1, "daemon");
-	openlog("aund", LOG_PID | (debug ? LOG_PERROR : 0), LOG_DAEMON);
-	syslog(LOG_NOTICE, "started");
+	if (using_syslog) {
+		openlog("aund", LOG_PID | (debug ? LOG_PERROR : 0),
+			LOG_DAEMON);
+		syslog(LOG_NOTICE, "started");
+	}
 	for (;!painful_death;) {
 		ssize_t msgsize;
 		unsigned char buf[65536];
