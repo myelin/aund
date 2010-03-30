@@ -1,13 +1,21 @@
-# $NetBSD: Makefile,v 1.2 2001/02/08 15:55:53 bjh21 Exp $
+AUND = aund.o conf_lex.o fileserver.o fs_cli.o fs_examine.o fs_fileio.o \
+	fs_misc.o fs_handle.o fs_util.o fs_error.o fs_nametrans.o \
+	fs_filetype.o
 
-PROG=aund
-NOMAN=noman
-WARNS=0
-SRCS = aund.c conf_lex.l fileserver.c fs_cli.c fs_examine.c fs_fileio.c \
-	fs_misc.c fs_handle.c fs_util.c fs_error.c fs_nametrans.c \
-	fs_filetype.c
+aund: $(AUND)
+	gcc -o $@ $(AUND)
 
-# I know I use GCC extensions, and I'm suitably ashamed.
-LINTFLAGS+=	-X 20,39
+.l.c:
+	flex -t $*.l > $*.c
 
-.include <bsd.prog.mk>
+.c.o:
+	gcc -MM $*.c > $*.d && gcc -g -O0 -c $*.c
+
+-include *.d
+
+clean:
+	rm -f *.o conf_lex.c aund
+
+spotless: clean
+	rm -f *.d
+
