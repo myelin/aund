@@ -145,9 +145,10 @@ static int cfylex __P((int start, void *thing));
 %%
 
 void
-conf_init()
+conf_init(path)
+	const char *path;
 {
-	conf_read_file("/etc/aund.conf");
+	conf_read_file(path);
 }
 
 static void

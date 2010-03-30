@@ -75,7 +75,7 @@ main(argc, argv)
 	if (debug) setlinebuf(stdout);
 	sig_init();
 	fs_init();
-	conf_init();
+	conf_init("/etc/aund.conf");
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0)
 		err(1, "socket");
