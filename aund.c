@@ -136,7 +136,7 @@ main(argc, argv)
 			case EC_PORT_FS:
 				if (debug) printf("\n\t(file server: ");
 				file_server(sock, pkt, msgsize, &from);
-				printf(")");
+				if (debug) printf(")");
 				break;
 			}
 		}
