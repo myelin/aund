@@ -74,14 +74,21 @@ main(argc, argv)
 	struct sockaddr_in name;
 	const char *conffile = "/etc/aund.conf";
 	int c;
+	int override_debug = -1;
 	int override_syslog = -1;
 
-	while ((c = getopt(argc, argv, "f:sS")) != -1) {
+	while ((c = getopt(argc, argv, "f:dDsS")) != -1) {
 		switch (c) {
 		    case '?':
 			return 1;      /* getopt parsing error */
 		    case 'f':
 			conffile = optarg;
+			break;
+		    case 'd':
+			override_debug = 1;
+			break;
+		    case 'D':
+			override_debug = 0;
 			break;
 		    case 's':
 			override_syslog = 1;
@@ -92,7 +99,6 @@ main(argc, argv)
 		}
 	}
 
-	if (debug) setlinebuf(stdout);
 	sig_init();
 	fs_init();
 	conf_init(conffile);
@@ -101,8 +107,12 @@ main(argc, argv)
 	 * Override specifications from the configuration file with
 	 * those from the command line.
 	 */
+	if (override_debug != -1)
+		debug = override_debug;
 	if (override_syslog != -1)
 		using_syslog = override_syslog;
+
+	if (debug) setlinebuf(stdout);
 
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0)
