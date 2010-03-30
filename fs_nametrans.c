@@ -243,9 +243,10 @@ fs_type_path(path)
 		leaf = basename(path);
 		len = strlen(leaf);
 		while ((dp = readdir(parent)) != NULL) {
-                	if (dp->d_namlen == len + 4 &&
+                	if (len + 4 < sizeof(dp->d_name) &&
 			    dp->d_name[len] == ',' &&
-			    strncmp(dp->d_name, leaf, len) == 0) {
+			    strncmp(dp->d_name, leaf, len) == 0 &&
+			    strlen(dp->d_name + len) == 4) {
 				path = realloc(path, strlen(path)+5);
 				strcat(path, dp->d_name + len);
 				break;
