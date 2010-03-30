@@ -1,0 +1,6 @@
+*.o
+*.d
+conf_lex.c
+aund
+my.conf
+root/
