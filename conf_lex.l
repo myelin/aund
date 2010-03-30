@@ -82,6 +82,7 @@
 
 static void conf_read_file __P((const char *));
 static void conf_cmd_debug __P((void));
+static void conf_cmd_syslog __P((void));
 static void conf_cmd_urd __P((void));
 static void conf_cmd_opt4 __P((void));
 static void conf_cmd_typemap_name __P((void));
@@ -115,6 +116,7 @@ static int cfylex __P((int start, void *thing));
 <INITIAL>{
   typemap	BEGIN(TYPEMAP);
   debug		BEGIN(BORING); conf_cmd_debug();
+  syslog	BEGIN(BORING); conf_cmd_syslog();
   urd		BEGIN(BORING); conf_cmd_urd();
   opt4		BEGIN(BORING); conf_cmd_opt4();
 }
@@ -172,6 +174,13 @@ conf_cmd_debug()
 {
 	if (cfylex(BOOLEAN, &debug) != CF_BOOLEAN)
 		errx(1, "no boolean for debug");
+}
+
+static void
+conf_cmd_syslog()
+{
+	if (cfylex(BOOLEAN, &using_syslog) != CF_BOOLEAN)
+		errx(1, "no boolean for syslog");
 }
 
 static void
