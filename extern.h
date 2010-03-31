@@ -48,7 +48,7 @@ extern void print_status(struct aun_packet *, ssize_t, struct aun_srcaddr *);
 extern void print_job(struct aun_packet *, ssize_t, struct aun_srcaddr *);
 extern void conf_init __P((const char *));
 extern void fs_init __P((void));
-extern void file_server __P((int, struct aun_packet *, ssize_t, struct aun_srcaddr *));
+extern void file_server __P((struct aun_packet *, ssize_t, struct aun_srcaddr *));
 
 extern int debug;
 extern int using_syslog;
@@ -57,7 +57,7 @@ struct aun_funcs {
 	void (*setup)(void);
 	struct aun_packet *(*recv)(ssize_t *outsize,
 				   struct aun_srcaddr *from);
-	ssize_t (*xmit)(int sock, struct aun_packet *pkt,
+	ssize_t (*xmit)(struct aun_packet *pkt,
 			size_t len, struct aun_srcaddr *to);
 	char *(*ntoa)(struct aun_srcaddr *addr);
 };

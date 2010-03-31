@@ -42,7 +42,6 @@
 #include "fs_proto.h"
 
 struct fs_context {
-	int sock;			/* Socket for replies */
 	struct ec_fs_req *req;		/* Request being handled */
 	size_t req_len;			/* Size of request */
 	struct aun_srcaddr *from;	/* Source of request */

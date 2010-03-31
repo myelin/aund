@@ -96,8 +96,7 @@ static void dump_handles(client)
 #endif
 
 void
-file_server(sock, pkt, len, from)
-	int sock;
+file_server(pkt, len, from)
 	struct aun_packet *pkt;
 	ssize_t len;
 	struct aun_srcaddr *from;
@@ -105,7 +104,6 @@ file_server(sock, pkt, len, from)
 	struct fs_context cont;
 	struct fs_context *c = &cont;
 
-	c->sock = sock;
 	c->req = (struct ec_fs_req *)pkt;
 	c->req_len = len;
 	c->from = from;
@@ -173,7 +171,7 @@ fs_reply(c, reply, len)
 	reply->aun.type = AUN_TYPE_UNICAST;
 	reply->aun.dest_port = c->req->reply_port;
 	reply->aun.flag = c->req->aun.flag;
-	if (aunfuncs->xmit(c->sock, &(reply->aun), len, c->from) == -1)
+	if (aunfuncs->xmit(&(reply->aun), len, c->from) == -1)
 		warn("Tx reply");
 }
 

@@ -151,8 +151,7 @@ aun_ack(sock, pkt, from)
 }
 
 static ssize_t
-aun_xmit(sock, pkt, len, vto)
-	int sock;
+aun_xmit(pkt, len, vto)
 	struct aun_packet *pkt;
 	size_t len;
 	struct aun_srcaddr *vto;

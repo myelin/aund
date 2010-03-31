@@ -68,7 +68,6 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	int sock;
 	const char *conffile = "/etc/aund.conf";
 	int c;
 	int override_debug = -1;
@@ -131,7 +130,7 @@ main(argc, argv)
 		switch (pkt->dest_port) {
 		    case EC_PORT_FS:
 			if (debug) printf("\n\t(file server: ");
-			file_server(sock, pkt, msgsize, &from);
+			file_server(pkt, msgsize, &from);
 			if (debug) printf(")");
 			break;
 		}
