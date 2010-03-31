@@ -48,8 +48,8 @@
 #include "aun.h"
 #include "fs_proto.h"
 #include "fs_errors.h"
-#include "fileserver.h"
 #include "extern.h"
+#include "fileserver.h"
 
 void fs_open __P((struct fs_context *));
 void fs_close __P((struct fs_context *));

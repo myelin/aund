@@ -45,7 +45,7 @@ struct fs_context {
 	int sock;			/* Socket for replies */
 	struct ec_fs_req *req;		/* Request being handled */
 	size_t req_len;			/* Size of request */
-	struct sockaddr_in *from;	/* Source of request */
+	struct aun_srcaddr *from;	/* Source of request */
 	struct fs_client *client;	/* Pointer to client structure, or NULL if not logged in */
 };
 
@@ -67,7 +67,7 @@ struct fs_dir_cache {
 
 struct fs_client {
 	LIST_ENTRY(fs_client) link;
-	struct in_addr host;
+	struct aun_srcaddr host;
 	int nhandles;
 	struct fs_handle **handles; /* array of handles for this client */
 	/* XXX Need to know what user (how should we store this?) */
@@ -97,9 +97,9 @@ extern void fs_close_handle __P((struct fs_client *, int));
 extern int fs_alloc_handle __P((struct fs_client *));
 extern void fs_free_handle __P((struct fs_client *, int));
 
-extern struct fs_client *fs_new_client __P((struct sockaddr_in *));
+extern struct fs_client *fs_new_client __P((struct aun_srcaddr *));
 extern void fs_delete_client __P((struct fs_client *));
-extern struct fs_client *fs_find_client __P((struct sockaddr_in *));
+extern struct fs_client *fs_find_client __P((struct aun_srcaddr *));
 
 extern char *strpad __P((char *, int, size_t));
 extern u_int8_t fs_mode_to_type __P((mode_t));

@@ -45,8 +45,8 @@
 #include "aun.h"
 #include "fs_proto.h"
 #include "fs_errors.h"
-#include "fileserver.h"
 #include "extern.h"
+#include "fileserver.h"
 
 void fs_get_discs __P((struct fs_context *));
 void fs_get_info __P((struct fs_context *));

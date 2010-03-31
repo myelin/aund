@@ -37,8 +37,6 @@
  */
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 #include <ctype.h>
 #include <grp.h>
@@ -54,8 +52,8 @@
 #include "aun.h"
 #include "fs_proto.h"
 #include "fs_errors.h"
-#include "fileserver.h"
 #include "extern.h"
+#include "fileserver.h"
 
 #include "bsd_libc.h"
 

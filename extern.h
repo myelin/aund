@@ -37,11 +37,18 @@
 
 #include "aun.h"
 
-extern void print_status(struct aun_packet *, ssize_t, struct sockaddr_in *);
-extern void print_job(struct aun_packet *, ssize_t, struct sockaddr_in *);
+/*
+ * Opaque structure holding a source address.
+ */
+struct aun_srcaddr {
+	u_int8_t bytes[4];
+};
+
+extern void print_status(struct aun_packet *, ssize_t, struct aun_srcaddr *);
+extern void print_job(struct aun_packet *, ssize_t, struct aun_srcaddr *);
 extern void conf_init __P((const char *));
 extern void fs_init __P((void));
-extern void file_server __P((int, struct aun_packet *, ssize_t, struct sockaddr_in *));
+extern void file_server __P((int, struct aun_packet *, ssize_t, struct aun_srcaddr *));
 
 extern int debug;
 extern int using_syslog;
@@ -49,9 +56,10 @@ extern int using_syslog;
 struct aun_funcs {
 	void (*setup)(void);
 	struct aun_packet *(*recv)(ssize_t *outsize,
-				   struct sockaddr_in *from);
+				   struct aun_srcaddr *from);
 	ssize_t (*xmit)(int sock, struct aun_packet *pkt,
-			size_t len, struct sockaddr_in *to);
+			size_t len, struct aun_srcaddr *to);
+	char *(*ntoa)(struct aun_srcaddr *addr);
 };
 
 extern const struct aun_funcs *aunfuncs;

@@ -35,6 +35,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "extern.h"
 #include "fileserver.h"
 
 #define MAX_HANDLES 256

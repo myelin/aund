@@ -31,10 +31,7 @@
  */	
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/time.h>
-
-#include <netinet/in.h>
 
 #include <err.h>
 #include <signal.h>
@@ -127,7 +124,7 @@ main(argc, argv)
 	for (;!painful_death;) {
 		ssize_t msgsize;
 		struct aun_packet *pkt;
-		struct sockaddr_in from;
+		struct aun_srcaddr from;
 
 		pkt = aunfuncs->recv(&msgsize, &from);
 

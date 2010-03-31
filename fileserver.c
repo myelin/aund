@@ -30,9 +30,6 @@
 #include <sys/queue.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 #include <err.h>
 #include <errno.h>
@@ -45,8 +42,8 @@
 
 #include "aun.h"
 #include "fs_proto.h"
-#include "fileserver.h"
 #include "extern.h"
+#include "fileserver.h"
 
 typedef void fs_func_impl __P((struct fs_context *));
 extern fs_func_impl fs_cli;
@@ -103,7 +100,7 @@ file_server(sock, pkt, len, from)
 	int sock;
 	struct aun_packet *pkt;
 	ssize_t len;
-	struct sockaddr_in *from;
+	struct aun_srcaddr *from;
 {
 	struct fs_context cont;
 	struct fs_context *c = &cont;
@@ -182,7 +179,7 @@ fs_reply(c, reply, len)
 
 struct fs_client *
 fs_new_client(from)
-	struct sockaddr_in *from;
+	struct aun_srcaddr *from;
 {
 	struct fs_client *client;
 	client = calloc(1, sizeof(*client));
@@ -202,24 +199,24 @@ fs_new_client(from)
 		return NULL;
 	}
 	client->nhandles = 4;
-	memcpy(&(client->host), &(from->sin_addr), sizeof(struct in_addr));
+	client->host = *from;
 	client->login = NULL;
 	client->dir_cache.path = NULL;
 	client->dir_cache.ftsp = NULL;
 	client->dir_cache.f = NULL;
 	LIST_INSERT_HEAD(&fs_clients, client, link);
 	if (using_syslog)
-		syslog(LOG_INFO, "login from %s", inet_ntoa(client->host));
+		syslog(LOG_INFO, "login from %s", aunfuncs->ntoa(from));
 	return client;
 }
 
 struct fs_client *
 fs_find_client(from)
-	struct sockaddr_in* from;
+	struct aun_srcaddr *from;
 {
 	struct fs_client *c;
 	for (c = fs_clients.lh_first; c != NULL; c = c->link.le_next)
-		if (memcmp(&(from->sin_addr), &(c->host), sizeof(struct in_addr)) == 0)
+		if (memcmp(from, &(c->host), sizeof(struct aun_srcaddr)) == 0)
 			break;
 	return c;
 }
@@ -238,6 +235,6 @@ fs_delete_client(client)
 	if (client->dir_cache.ftsp)
 		fts_close(client->dir_cache.ftsp);
 	if (using_syslog)
-		syslog(LOG_INFO, "logout from %s", inet_ntoa(client->host));
+		syslog(LOG_INFO, "logout from %s", aunfuncs->ntoa(&client->host));
 	free(client);
 }

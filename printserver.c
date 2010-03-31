@@ -27,8 +27,6 @@
  */
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <string.h>
 #include "aun.h"
 #include "printserver.h"
@@ -36,7 +34,7 @@ void
 print_status(pkt, len, from)
 	struct aun_packet *pkt;
 	ssize_t len;
-	struct sockaddr_in *from;
+	struct aun_srcaddr *from;
 {
 	struct ec_ps_status_enq *question = (struct ec_ps_status_enq *)pkt->data;
 	printf("name %6s, reason %d", question->name, question->reason);
@@ -62,7 +60,7 @@ void
 print_job(pkt, len, from)
 	struct aun_packet *pkt;
 	ssize_t len;
-	struct sockaddr_in *from;
+	struct aun_srcaddr *from;
 {
 	/* XXX Where do I get the flag byte? */
 	unsigned char flag;
