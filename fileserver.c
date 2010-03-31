@@ -176,7 +176,7 @@ fs_reply(c, reply, len)
 	reply->aun.type = AUN_TYPE_UNICAST;
 	reply->aun.dest_port = c->req->reply_port;
 	reply->aun.flag = c->req->aun.flag;
-	if (aun_xmit(c->sock, &(reply->aun), len, c->from) == -1)
+	if (aunfuncs->xmit(c->sock, &(reply->aun), len, c->from) == -1)
 		warn("Tx reply");
 }
 

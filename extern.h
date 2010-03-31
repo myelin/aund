@@ -42,6 +42,16 @@ extern void print_job(struct aun_packet *, ssize_t, struct sockaddr_in *);
 extern void conf_init __P((const char *));
 extern void fs_init __P((void));
 extern void file_server __P((int, struct aun_packet *, ssize_t, struct sockaddr_in *));
-extern ssize_t aun_xmit(int sock, struct aun_packet *pkt, size_t len, struct sockaddr_in *to);
+
 extern int debug;
 extern int using_syslog;
+
+struct aun_funcs {
+	void (*setup)(void);
+	struct aun_packet *(*recv)(ssize_t *outsize,
+				   struct sockaddr_in *from);
+	ssize_t (*xmit)(int sock, struct aun_packet *pkt,
+			size_t len, struct sockaddr_in *to);
+};
+
+extern const struct aun_funcs *aunfuncs;

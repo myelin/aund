@@ -308,7 +308,7 @@ fs_data_send(c, fd, size)
 		pkt->type = AUN_TYPE_UNICAST;
 		pkt->dest_port = c->req->urd;
 		pkt->flag = 0;
-		if (aun_xmit(c->sock, pkt, sizeof(*pkt) + this, c->from) == -1)
+		if (aunfuncs->xmit(c->sock, pkt, sizeof(*pkt) + this, c->from) == -1)
 			warn("send data");
 		size -= this;
 	}
