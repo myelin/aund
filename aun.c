@@ -52,8 +52,6 @@
 #define ECONET_SW_VERSION_MAJOR 0
 #define ECONET_SW_VERSION_MINOR 1
 
-#define EC_PORT_FS 0x99
-
 static void aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from);
 
 int sock;
