@@ -219,7 +219,7 @@ fs_unhat_path(path)
 }
 
 /*
- * If <pathname> doesn't exist, try <pathname>,???
+ * If <pathname> doesn't exist, try <pathname>,??? or case-mangling
  * May realloc the path.
  */
 static char *
@@ -243,9 +243,15 @@ fs_type_path(path)
 		leaf = basename(path);
 		len = strlen(leaf);
 		while ((dp = readdir(parent)) != NULL) {
+			if (len < sizeof(dp->d_name) &&
+			    dp->d_name[len] == '\0' &&
+			    strcasecmp(dp->d_name, leaf) == 0) {
+				strcpy(path + strlen(path) - len, dp->d_name);
+				break;
+                	}
                 	if (len + 4 < sizeof(dp->d_name) &&
 			    dp->d_name[len] == ',' &&
-			    strncmp(dp->d_name, leaf, len) == 0 &&
+			    strncasecmp(dp->d_name, leaf, len) == 0 &&
 			    strlen(dp->d_name + len) == 4) {
 				path = realloc(path, strlen(path)+5);
 				strcat(path, dp->d_name + len);
