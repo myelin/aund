@@ -285,7 +285,7 @@ fs_data_send(c, fd, size)
 	size_t this, done;
 	int faking;
 
-	if ((pkt = malloc(sizeof(*pkt) + (size > AUN_MAX_BLOCK ? AUN_MAX_BLOCK : size))) == NULL) { 
+	if ((pkt = malloc(sizeof(*pkt) + (size > aunfuncs->max_block ? aunfuncs->max_block : size))) == NULL) { 
 		fs_err(c, EC_FS_E_NOMEM);
 		return -1;
 	}
@@ -293,7 +293,7 @@ fs_data_send(c, fd, size)
 	faking = 0;
 	done = 0;
 	while (size) {
-		this = size > AUN_MAX_BLOCK ? AUN_MAX_BLOCK : size;
+		this = size > aunfuncs->max_block ? aunfuncs->max_block : size;
 		if (!faking) {
 			result = read(fd, buf, this);
 			if (result > 0) {

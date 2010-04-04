@@ -219,6 +219,7 @@ aun_ntoa(struct aun_srcaddr *vfrom)
 }
 
 const struct aun_funcs aun = {
+	AUN_MAX_BLOCK,
 	aun_setup,
 	aun_recv,
         aun_xmit,

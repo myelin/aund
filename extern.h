@@ -58,6 +58,7 @@ extern int using_syslog;
 extern char *beebem_cfg_file;
 
 struct aun_funcs {
+	int max_block;
 	void (*setup)(void);
 	struct aun_packet *(*recv)(ssize_t *outsize,
 				   struct aun_srcaddr *from);

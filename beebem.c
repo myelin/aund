@@ -416,6 +416,7 @@ beebem_ntoa(struct aun_srcaddr *vfrom)
 }
 
 const struct aun_funcs beebem = {
+	512,
 	beebem_setup,
 	beebem_recv,
         beebem_xmit,
