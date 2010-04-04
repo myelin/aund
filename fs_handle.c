@@ -84,9 +84,10 @@ int fs_check_handle(client, h)
  * Open a new handle for a client.  path gives the Unix path of the
  * file or directory to open.
  */
-int fs_open_handle(client, path)
+int fs_open_handle(client, path, must_exist)
 	struct fs_client *client;
 	char *path;
+	int must_exist;
 {
 	struct stat sb;
 	char *newpath;
@@ -95,9 +96,13 @@ int fs_open_handle(client, path)
 	h = fs_alloc_handle(client);
 	if (h == 0) return h;
 	if (stat(path, &sb) == -1) {
-		warn("fs_open_handle");
-		fs_free_handle(client, h);
-		return 0;
+		if (must_exist) {
+			warn("fs_open_handle");
+			fs_free_handle(client, h);
+			return 0;
+		} else {
+			sb.st_mode = S_IFREG;
+		}
 	}
 	if (S_ISDIR(sb.st_mode))
 		client->handles[h]->type = FS_HANDLE_DIR;

@@ -93,7 +93,7 @@ extern void fs_error __P((struct fs_context *, u_int8_t, const char *));
 
 extern void fs_check_handles __P((struct fs_context *));
 extern int fs_check_handle __P((struct fs_client *, int));
-extern int fs_open_handle __P((struct fs_client *, char *));
+extern int fs_open_handle __P((struct fs_client *, char *, int));
 extern void fs_close_handle __P((struct fs_client *, int));
 extern int fs_alloc_handle __P((struct fs_client *));
 extern void fs_free_handle __P((struct fs_client *, int));

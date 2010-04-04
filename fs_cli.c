@@ -272,9 +272,9 @@ fs_cmd_i_am(c, tail)
 	reply.std_tx.command_code = EC_FS_CC_LOGON;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	/* Initial user environment.  Note that we can't use the same handle twice. */
-	reply.urd = fs_open_handle(c->client, oururd);
-	reply.csd = fs_open_handle(c->client, oururd);
-	reply.lib = fs_open_handle(c->client, lib);
+	reply.urd = fs_open_handle(c->client, oururd, 1);
+	reply.csd = fs_open_handle(c->client, oururd, 1);
+	reply.lib = fs_open_handle(c->client, lib, 1);
 	reply.opt4 = opt4;
 	if (debug) printf("returning: urd=%d, csd=%d, lib=%d, opt4=%d\n",
 			  reply.urd, reply.csd, reply.lib, reply.opt4);
@@ -327,9 +327,9 @@ fs_cmd_sdisc(c, tail)
 	fs_close_handle(c->client, c->req->urd);
 	fs_close_handle(c->client, c->req->csd);
 	fs_close_handle(c->client, c->req->lib);
-	reply.urd = fs_open_handle(c->client, "/home/bjh21");
-	reply.csd = fs_open_handle(c->client, "/home/bjh21");
-	reply.lib = fs_open_handle(c->client, "/");
+	reply.urd = fs_open_handle(c->client, "/home/bjh21", 1);
+	reply.csd = fs_open_handle(c->client, "/home/bjh21", 1);
+	reply.lib = fs_open_handle(c->client, "/", 1);
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
 }
 
@@ -348,7 +348,7 @@ fs_cmd_lib(c, tail)
 		goto burn;
 	}
 	fs_close_handle(c->client, c->req->lib);
-	reply.new_handle = fs_open_handle(c->client, upath);
+	reply.new_handle = fs_open_handle(c->client, upath, 1);
 	if (reply.new_handle == 0) {
 		fs_err(c, EC_FS_E_MANYOPEN);
 		goto burn;

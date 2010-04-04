@@ -51,6 +51,8 @@
 #include "extern.h"
 #include "fileserver.h"
 
+#define OUR_DATA_PORT 0x97
+
 void fs_open __P((struct fs_context *));
 void fs_close __P((struct fs_context *));
 void fs_get_args __P((struct fs_context *));
@@ -58,6 +60,7 @@ void fs_set_args __P((struct fs_context *));
 void fs_getbytes __P((struct fs_context *));
 
 static ssize_t fs_data_send __P((struct fs_context *, int, size_t));
+static ssize_t fs_data_recv __P((struct fs_context *, int, size_t));
 
 void
 fs_open(c)
@@ -82,18 +85,18 @@ fs_open(c)
 		fs_err(c, EC_FS_E_NOMEM);
 		return;
 	}
-	if ((h = fs_open_handle(c->client, upath)) == 0) {
+	if ((h = fs_open_handle(c->client, upath, request->must_exist)) == 0) {
 		fs_errno(c);
 		free(upath);
 		return;
 	}
 	openopt = 0;
 	if (!request->must_exist) openopt |= O_CREAT;
-/*	if (request->read_only)*/
+	if (request->read_only)
 		openopt |= O_RDONLY;
-/*	else
-		openopt |= O_RDWR;*/
-	if ((fd = open(upath, openopt, 0x666)) == -1) {
+	else
+		openopt |= O_RDWR;
+	if ((fd = open(upath, openopt, 0666)) == -1) {
 		fs_errno(c);
 		fs_close_handle(c->client, h);
 		free(upath);
@@ -222,6 +225,35 @@ fs_set_args(c)
 }
 
 void
+fs_putbyte(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply reply;
+	struct ec_fs_req_putbyte *request;
+	int h, fd;
+	off_t off, saved_off = 0;
+	size_t size, got;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_putbyte *)(c->req);
+	if (debug) printf("putbyte [%d, 0x%02x]\n", request->handle, request->byte);
+	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
+		fd = c->client->handles[h]->fd;
+		if (write(fd, &request->byte, 1) < 0) {
+			fs_errno(c);
+			return;
+		}
+		reply.command_code = EC_FS_CC_DONE;
+		reply.return_code = EC_FS_RC_OK;
+		fs_reply(c, &reply, sizeof(reply));
+	}
+	
+}
+
+void
 fs_getbytes(c)
 	struct fs_context *c;
 {
@@ -271,6 +303,59 @@ fs_getbytes(c)
 		}
 	}
 	
+}
+
+void
+fs_putbytes(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_putbytes1 reply1;
+	struct ec_fs_reply_putbytes2 reply2;
+	struct ec_fs_req_putbytes *request;
+	int h, fd, replyport;
+	off_t off, saved_off = 0;
+	size_t size, got;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	replyport = c->req->reply_port;
+	request = (struct ec_fs_req_putbytes *)(c->req);
+	size = fs_read_val(request->nbytes, sizeof(request->nbytes));
+	off = fs_read_val(request->offset, sizeof(request->offset));
+	if (debug) printf("putbytes [%d, %zu%s%ju]\n", request->handle, size, request->use_ptr ? "!" : "@", (uintmax_t)off);
+	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
+		fd = c->client->handles[h]->fd;
+		if (!request->use_ptr)
+			if ((saved_off = lseek(fd, 0, SEEK_CUR)) == -1 ||
+			    lseek(fd, off, SEEK_SET) == -1) {
+				fs_errno(c);
+				return;
+			}
+		reply1.std_tx.command_code = EC_FS_CC_DONE;
+		reply1.std_tx.return_code = EC_FS_RC_OK;
+		reply1.data_port = OUR_DATA_PORT;
+	        fs_write_val(reply1.block_size, aunfuncs->max_block,
+			     sizeof(reply1.block_size));
+		fs_reply(c, &(reply1.std_tx), sizeof(reply1));
+		reply2.std_tx.command_code = EC_FS_CC_DONE;
+		reply2.std_tx.return_code = EC_FS_RC_OK;
+		got = fs_data_recv(c, fd, size);
+		if (!request->use_ptr && lseek(fd, saved_off, SEEK_SET) == -1) {
+			fs_errno(c);
+			return;
+		}
+		if (got == -1) {
+			/* Error */
+			fs_errno(c);
+		} else {
+			reply2.zero = 0;
+			fs_write_val(reply2.nbytes, got, sizeof(reply2.nbytes));
+			c->req->reply_port = replyport;
+			fs_reply(c, &(reply2.std_tx), sizeof(reply2));
+		}
+	}
 }
 
 void
@@ -327,6 +412,62 @@ fs_load(c)
 	fts_close(ftsp);
 }
 
+void
+fs_save(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_save1 reply1;
+	struct ec_fs_reply_save2 reply2;
+	struct ec_fs_req_save *request;
+	char *upath, *path_argv[2];
+	int fd, replyport;
+	size_t size, got;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_save *)(c->req);
+	request->path[strcspn(request->path, "\r")] = '\0';
+	replyport = c->req->reply_port;
+	if (debug) printf("save [%s]\n", request->path);
+	size = fs_read_val(request->size, sizeof(request->size));
+	upath = fs_unixify_path(c, request->path);
+	if (upath == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return;
+	}
+	if ((fd = open(upath, O_CREAT|O_TRUNC|O_RDWR, 0666)) == -1) {
+		fs_errno(c);
+		free(upath);
+		return;
+	}
+	/*
+	 * FIXME: read metadata from request and put it somewhere
+	 * useful
+	 */
+	reply1.std_tx.command_code = EC_FS_CC_DONE;
+	reply1.std_tx.return_code = EC_FS_RC_OK;
+	reply1.data_port = OUR_DATA_PORT;
+	fs_write_val(reply1.block_size, aunfuncs->max_block,
+		     sizeof(reply1.block_size));
+	fs_reply(c, &(reply1.std_tx), sizeof(reply1));
+	reply2.std_tx.command_code = EC_FS_CC_DONE;
+	reply2.std_tx.return_code = EC_FS_RC_OK;
+	got = fs_data_recv(c, fd, size);
+	if (got == -1) {
+		/* Error */
+		fs_errno(c);
+	} else {
+		/*
+		 * FIXME: fill in date for second reply
+		 */
+		c->req->reply_port = replyport;
+		fs_reply(c, &(reply2.std_tx), sizeof(reply2));
+	}
+	close(fd);
+}
+
 static ssize_t
 fs_data_send(c, fd, size)
 	struct fs_context *c;
@@ -369,4 +510,34 @@ fs_data_send(c, fd, size)
 	free(pkt);
 	return done;
 }
-		
+
+static ssize_t
+fs_data_recv(c, fd, size)
+	struct fs_context *c;
+	int fd;
+	size_t size;
+{
+	struct aun_packet *pkt;
+	void *buf;
+	ssize_t msgsize, result;
+	struct aun_srcaddr from;
+	size_t this, done;
+
+	done = 0;
+	while (size) {
+		pkt = aunfuncs->recv(&msgsize, &from);
+		msgsize -= sizeof(struct aun_packet);
+		if (pkt->dest_port != OUR_DATA_PORT ||
+		    memcmp(&from, c->from, sizeof(from))) {
+			fs_error(c, 0xFF, "I'm confused");
+			return -1;
+		}
+		result = write(fd, pkt->data, msgsize);
+		if (result < 0) {
+			fs_errno(c);
+			return -1;
+		}
+		size -= msgsize;
+	}
+	return done;
+}

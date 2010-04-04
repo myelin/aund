@@ -289,7 +289,7 @@ struct ec_fs_req_getbyte {
 	/* Note incomplete header */
 	u_int8_t handle;
 };
-struct ec_fs_reply_getybyte {
+struct ec_fs_reply_getbyte {
 	struct ec_fs_reply std_tx;
 	u_int8_t byte;
 	u_int8_t flag;
@@ -325,10 +325,7 @@ struct ec_fs_reply_getbytes2 {
 };
 #define EC_FS_FUNC_PUTBYTES	11
 struct ec_fs_req_putbytes {
-	struct aun_packet pkt;
-	u_int8_t reply_port;
-	u_int8_t function;
-	u_int8_t ack_port;
+	struct ec_fs_req std_rx; /* Whatever the manual says */
 	u_int8_t handle;
 	u_int8_t use_ptr;
 	u_int8_t nbytes[3];

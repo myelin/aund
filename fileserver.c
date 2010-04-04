@@ -50,7 +50,9 @@ extern fs_func_impl fs_cli;
 extern fs_func_impl fs_examine;
 extern fs_func_impl fs_open;
 extern fs_func_impl fs_close;
+extern fs_func_impl fs_putbyte;
 extern fs_func_impl fs_getbytes;
+extern fs_func_impl fs_putbytes;
 extern fs_func_impl fs_load;
 extern fs_func_impl fs_get_args;
 extern fs_func_impl fs_set_args;
@@ -121,6 +123,9 @@ file_server(pkt, len, from)
 	case EC_FS_FUNC_LOAD_COMMAND:  /* as yet we don't distinguish these */
 		fs_load(c);
 		break;
+	case EC_FS_FUNC_SAVE:
+		fs_save(c);
+		break;
 	case EC_FS_FUNC_EXAMINE:
 		fs_examine(c);
 		break;
@@ -130,8 +135,14 @@ file_server(pkt, len, from)
 	case EC_FS_FUNC_CLOSE:
 		fs_close(c);
 		break;
+	case EC_FS_FUNC_PUTBYTE:
+		fs_putbyte(c);
+		break;
 	case EC_FS_FUNC_GETBYTES:
 		fs_getbytes(c);
+		break;
+	case EC_FS_FUNC_PUTBYTES:
+		fs_putbytes(c);
 		break;
 	case EC_FS_FUNC_GET_ARGS:
 		fs_get_args(c);
