@@ -155,6 +155,7 @@ static ssize_t beebem_listen(unsigned *addr)
 		/* Who's it from? */
 		their_addr = 256 * buf[PKTOFF+3] + buf[PKTOFF+2];
 
+#if 0 /* apparently this doesn't work */
 		/* Is it _really_ from them? */
 		if (!ec2ip[their_addr].port ||
 		    from.sin_addr.s_addr != ec2ip[their_addr].addr.s_addr ||
@@ -162,9 +163,10 @@ static ssize_t beebem_listen(unsigned *addr)
 			if (debug)
 				printf("failed ingress filter from %s:%d (claimed to be %d.%d)\n",
 				       inet_ntoa(from.sin_addr), ntohs(from.sin_port),
-				       buf[PKTOFF+1], buf[PKTOFF]);
+				       buf[PKTOFF+3], buf[PKTOFF+2]);
 			continue;
 		}
+#endif
 
 		*addr = their_addr;
 		return msgsize;
