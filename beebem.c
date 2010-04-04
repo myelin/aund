@@ -157,7 +157,7 @@ static ssize_t beebem_listen(unsigned *addr, int forever)
 		FD_ZERO(&r);
 		FD_SET(sock, &r);
 		timeout.tv_sec = 0;
-		timeout.tv_usec = 1000;   /* 1ms */
+		timeout.tv_usec = 100000;   /* 100ms */
 		i = select(sock+1, &r, NULL, NULL, forever ? NULL : &timeout);
 		if (i == 0)
 			return 0;      /* nothing turned up */
