@@ -312,7 +312,7 @@ struct ec_fs_req_putbyte {
 #define EC_FS_FUNC_GETBYTES	10
 struct ec_fs_req_getbytes {
 	/* std_tx.urd is actually the reply port */
-	struct ec_fs_req std_tx; /* Whatever the manual says */
+	struct ec_fs_req std_rx; /* Whatever the manual says */
 	u_int8_t handle;
 	u_int8_t use_ptr;
 	u_int8_t nbytes[3];
@@ -543,7 +543,7 @@ struct ec_fs_reply_get_uenv {
 /* Set user option - code 22 */
 #define EC_FS_FUNC_SET_OPT4	22
 struct ec_fs_req_set_opt4 {
-	struct ec_fs_req std_tx;
+	struct ec_fs_req std_rx;
 	u_int8_t opt4;
 };
 
