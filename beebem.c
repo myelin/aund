@@ -228,7 +228,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 	union internal_addr *afrom = (union internal_addr *)vfrom;
 	int scoutaddr, mainaddr;
 	int destport;
-	unsigned char ack[4];
+	unsigned char ack[8];
 
 	while (1) {
 		/*
@@ -243,16 +243,14 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		ack[2] = our_econet_addr & 0xFF;
 		ack[3] = our_econet_addr >> 8;
 
-		if (msgsize == 10) {
+		if (msgsize > 6 && buf[PKTOFF+5] == 0) {
 			/*
-			 * FIXME: I seem to be receiving occasional
-			 * ten-byte packets with no preceding scout,
-			 * which I don't understand. I'm going to
-			 * assume for the moment that they're some
-			 * sort of pingoid, and ACK them without
-			 * further action.
+			 * I think this is a Machine Type packet.
+			 * Respond by claiming to be a file server.
 			 */
-			beebem_send(ack, 4);
+			ack[4] = 254;
+			ack[5] = ack[6] = ack[7] = 0;
+			beebem_send(ack, 8);
 			continue;
 		}
 		if (msgsize != 6) {
