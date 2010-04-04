@@ -76,7 +76,7 @@ int pw_close_rename(void)
 	if (newfp) {
 		fclose(newfp);
 		newfp = NULL;
-		if (!rename(pwtmp, pwfile)) {
+		if (rename(pwtmp, pwfile) < 0) {
 			warn("%s -> %s: rename", pwfile, pwtmp);
 			return 0;
 		}

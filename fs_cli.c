@@ -70,6 +70,7 @@ static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
 static fs_cmd_impl fs_cmd_lib;
 static fs_cmd_impl fs_cmd_sdisc;
+static fs_cmd_impl fs_cmd_pass;
 
 static int fs_cli_match __P((char *word, const struct fs_cmd *cmd));
 static void fs_cli_unrec __P((struct fs_context *, char *));
@@ -80,6 +81,7 @@ static const struct fs_cmd cmd_tab[] = {
 	{"I", 		"I",	fs_cmd_i_am,	}, /* Odd case */
 	{"INFO",	"INFO",	fs_cmd_info,	},
 	{"LIB",		"LIB",	fs_cmd_lib,	},
+	{"PASS",      	"PASS",	fs_cmd_pass,	},
 	{"SDISC",      	"SDIS",	fs_cmd_sdisc,	},
 };
 
@@ -265,6 +267,34 @@ fs_cmd_i_am(c, tail)
 	if (debug) printf("returning: urd=%d, csd=%d, lib=%d, opt4=%d\n",
 			  reply.urd, reply.csd, reply.lib, reply.opt4);
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
+}
+
+static void
+fs_cmd_pass(c, tail)
+	struct fs_context *c;
+	char *tail;
+{
+	struct ec_fs_reply reply;
+	char *oldpw, *newpw, *oururd;
+	oldpw = fs_cli_getarg(&tail);
+	newpw = fs_cli_getarg(&tail);
+	if (debug) printf(" -> change password\n");
+	if (c->client == NULL) {
+		fs_error(c, 0xff, "Who are you?");
+		return;
+	}
+	if (pwfile) {
+		if (!pw_change(c->client->login, oldpw, newpw)) {
+			fs_err(c, EC_FS_E_BADPW);
+			return;
+		}
+	} else {
+		fs_err(c, EC_FS_E_LOCKED);
+		return;
+	}
+	reply.command_code = EC_FS_CC_DONE;
+	reply.return_code = EC_FS_RC_OK;
+	fs_reply(c, &reply, sizeof(reply));
 }
 
 static void
