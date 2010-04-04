@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <sys/select.h>
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -18,6 +19,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "aun.h"
 #include "extern.h"
@@ -60,6 +62,7 @@ beebem_setup(void)
 	FILE *fp;
 	char linebuf[512];
 	int lineno;
+	int fl;
 
 	/*
 	 * Start by reading the BeebEm Econet configuration file.
@@ -128,17 +131,37 @@ beebem_setup(void)
 	name.sin_port = htons(ec2ip[our_econet_addr].port);
 	if (bind(sock, (struct sockaddr*)&name, sizeof(name)))
 		err(1, "bind");
+	if ((fl = fcntl(sock, F_GETFL)) < 0)
+		err(1, "fcntl(F_GETFL)");
+        if (fcntl(sock, F_SETFL, fl | O_NONBLOCK) < 0)
+		err(1, "fcntl(F_SETFL)");
 }
 
-static ssize_t beebem_listen(unsigned *addr)
+static ssize_t beebem_listen(unsigned *addr, int forever)
 {
 	ssize_t msgsize;
 	struct sockaddr_in from;
 	unsigned their_addr;
+	fd_set r;
+	struct timeval timeout;
 
 	while (1) {
 		socklen_t fromlen = sizeof(from);
 		int i;
+
+		/*
+		 * We set the socket to nonblocking mode, and must
+		 * therefore always select before we recvfrom. The
+		 * timeout varies depending on 'forever'.
+		 */
+		FD_ZERO(&r);
+		FD_SET(sock, &r);
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 1000;   /* 1ms */
+		i = select(sock+1, &r, NULL, NULL, forever ? NULL : &timeout);
+		if (i == 0)
+			return 0;      /* nothing turned up */
+
 		msgsize = recvfrom(sock, buf + PKTOFF,
 				   sizeof(buf) - PKTOFF,
 				   0, (struct sockaddr *)&from, &fromlen);
@@ -213,7 +236,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		 * long, and the second payload byte should indicate
 		 * the destination port.
 		 */
-		msgsize = beebem_listen(&scoutaddr);
+		msgsize = beebem_listen(&scoutaddr, 1);
 
 		ack[0] = scoutaddr & 0xFF;
 		ack[1] = scoutaddr >> 8;
@@ -242,12 +265,8 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		destport = buf[PKTOFF+5];
 
 		/*
-		 * Send an ACK.
-		 */
-		beebem_send(ack, 4);
-
-		/*
-		 * Listen for the main packet, which should come
+		 * Send an ACK, repeatedly if necessary, and wait
+		 * for the main packet, which should come
 		 * from the same address.
 		 *
 		 * (This is painfully single-threaded, but I'm
@@ -256,7 +275,9 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		 * four-way handshake would tie up the bus for all
 		 * other stations until it had finished.)
 		 */
-		msgsize = beebem_listen(&mainaddr);
+		do
+			beebem_send(ack, 4);
+		while ((msgsize = beebem_listen(&mainaddr, 0)) == 0);
 		if (mainaddr != scoutaddr) {
 			if (debug)
 				printf("expected payload packet from %d.%d,"
@@ -305,7 +326,7 @@ beebem_xmit(pkt, len, vto)
 	}
 
 	/*
-	 * Send the scout packet.
+	 * Send the scout packet, and wait for an ACK.
 	 */
 	buf[0] = ato->eaddr.station;
 	buf[1] = ato->eaddr.network;
@@ -313,14 +334,15 @@ beebem_xmit(pkt, len, vto)
 	buf[3] = our_econet_addr >> 8;
 	buf[4] = 0x80;
 	buf[5] = pkt->dest_port;
-	beebem_send(buf, 6);
+	do
+		beebem_send(buf, 6);
+	while ((msgsize = beebem_listen(&ackaddr, 0)) == 0);
 
 	/*
-	 * Wait for an ACK, which we expect to come from the right
-	 * address. (See 'painfully single-threaded' caveat above.)
+	 * We expect the ACK to have come from the right address.
+	 * (See 'painfully single-threaded' caveat above.)
 	 */
 	theiraddr = ato->eaddr.network * 256 + ato->eaddr.station;
-	msgsize = beebem_listen(&ackaddr);
 	if (ackaddr != theiraddr) {
 		if (debug)
 			printf("expected ack packet from %d.%d,"
@@ -337,7 +359,8 @@ beebem_xmit(pkt, len, vto)
 	}
 
 	/*
-	 * Construct and send the payload packet.
+	 * Construct and send the payload packet, and wait for an
+	 * ACK.
 	 */
 	buf[0] = ato->eaddr.station;
 	buf[1] = ato->eaddr.network;
@@ -345,13 +368,15 @@ beebem_xmit(pkt, len, vto)
 	buf[3] = our_econet_addr >> 8;
 	payloadlen = len - offsetof(struct aun_packet, data);
 	memcpy(buf + 4, pkt->data, payloadlen);
-	beebem_send(buf, payloadlen+4);
+	do
+		beebem_send(buf, payloadlen+4);
+	while ((msgsize = beebem_listen(&ackaddr, 0)) == 0);
 
 	/*
-	 * Wait for a second ACK, exactly as above.
+	 * The second ACK, just as above, should have come from the
+	 * right address.
 	 */
 	theiraddr = ato->eaddr.network * 256 + ato->eaddr.station;
-	msgsize = beebem_listen(&ackaddr);
 	if (ackaddr != theiraddr) {
 		if (debug)
 			printf("expected ack packet from %d.%d,"
