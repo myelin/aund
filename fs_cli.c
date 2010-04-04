@@ -411,8 +411,8 @@ fs_cmd_info(c, tail)
 		    minor(st.st_rdev));
         else
                 asprintf(&frag2, "%9qd ", (long long)st.st_size);
-	reply = malloc(sizeof(reply) + strlen(frag1) + strlen(frag2)
-	    + 13 + strlen(basename(upath)) + 1);
+	reply = malloc(sizeof(*reply) + strlen(frag1) + strlen(frag2)
+	    + 13 + strlen(basename(upath)) + 2);
 	strcpy(reply->data, frag1);
 	strcat(reply->data, frag2);
 	strcat(reply->data, printtime(st.st_mtime));
