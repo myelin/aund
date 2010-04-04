@@ -60,7 +60,7 @@ void fs_set_args __P((struct fs_context *));
 void fs_getbytes __P((struct fs_context *));
 
 static ssize_t fs_data_send __P((struct fs_context *, int, size_t));
-static ssize_t fs_data_recv __P((struct fs_context *, int, size_t));
+static ssize_t fs_data_recv __P((struct fs_context *, int, size_t, int));
 
 void
 fs_open(c)
@@ -341,7 +341,7 @@ fs_putbytes(c)
 		fs_reply(c, &(reply1.std_tx), sizeof(reply1));
 		reply2.std_tx.command_code = EC_FS_CC_DONE;
 		reply2.std_tx.return_code = EC_FS_RC_OK;
-		got = fs_data_recv(c, fd, size);
+		got = fs_data_recv(c, fd, size, c->req->urd);
 		if (!request->use_ptr && lseek(fd, saved_off, SEEK_SET) == -1) {
 			fs_errno(c);
 			return;
@@ -420,7 +420,7 @@ fs_save(c)
 	struct ec_fs_reply_save2 reply2;
 	struct ec_fs_req_save *request;
 	char *upath, *path_argv[2];
-	int fd, replyport;
+	int fd, ackport, replyport;
 	size_t size, got;
 
 	if (c->client == NULL) {
@@ -430,6 +430,8 @@ fs_save(c)
 	request = (struct ec_fs_req_save *)(c->req);
 	request->path[strcspn(request->path, "\r")] = '\0';
 	replyport = c->req->reply_port;
+	ackport = c->req->urd;
+	printf("reply %d, ack %d\n", replyport, ackport);
 	if (debug) printf("save [%s]\n", request->path);
 	size = fs_read_val(request->size, sizeof(request->size));
 	upath = fs_unixify_path(c, request->path);
@@ -454,7 +456,7 @@ fs_save(c)
 	fs_reply(c, &(reply1.std_tx), sizeof(reply1));
 	reply2.std_tx.command_code = EC_FS_CC_DONE;
 	reply2.std_tx.return_code = EC_FS_RC_OK;
-	got = fs_data_recv(c, fd, size);
+	got = fs_data_recv(c, fd, size, ackport);
 	if (got == -1) {
 		/* Error */
 		fs_errno(c);
@@ -512,17 +514,22 @@ fs_data_send(c, fd, size)
 }
 
 static ssize_t
-fs_data_recv(c, fd, size)
+fs_data_recv(c, fd, size, ackport)
 	struct fs_context *c;
 	int fd;
 	size_t size;
+	int ackport;
 {
-	struct aun_packet *pkt;
+	struct aun_packet *pkt, *ack;
 	void *buf;
 	ssize_t msgsize, result;
 	struct aun_srcaddr from;
 	size_t this, done;
 
+	if ((ack = malloc(sizeof(*ack) + 1)) == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return -1;
+	}
 	done = 0;
 	while (size) {
 		pkt = aunfuncs->recv(&msgsize, &from);
@@ -538,6 +545,17 @@ fs_data_recv(c, fd, size)
 			return -1;
 		}
 		size -= msgsize;
+		if (size) {
+			/*
+			 * Send partial ACK.
+			 */
+			ack->type = AUN_TYPE_UNICAST;
+			ack->dest_port = ackport;
+			ack->data[0] = 0;
+			if (aunfuncs->xmit(ack, sizeof(*ack) + 1, c->from) == -1)
+				warn("send data");
+		}
 	}
+	free(ack);
 	return done;
 }
