@@ -273,6 +273,60 @@ fs_getbytes(c)
 	
 }
 
+void
+fs_load(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_load1 reply1;
+	struct ec_fs_reply_load2 reply2;
+	struct ec_fs_req_load *request;
+	char *upath, *path_argv[2];
+	int fd;
+	size_t size, got;
+	FTS *ftsp;
+	FTSENT *f;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_load *)(c->req);
+	request->path[strcspn(request->path, "\r")] = '\0';
+	if (debug) printf("load [%s]\n", request->path);
+	upath = fs_unixify_path(c, request->path);
+	if (upath == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return;
+	}
+	if ((fd = open(upath, O_RDONLY)) == -1) {
+		fs_errno(c);
+		free(upath);
+		return;
+	}
+	path_argv[0] = upath;
+	path_argv[1] = NULL;
+	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+	f = fts_read(ftsp);
+	fs_get_meta(f, &(reply1.meta));
+	fs_write_val(reply1.size, f->fts_statp->st_size, sizeof(reply1.size));
+	reply1.access = fs_mode_to_access(f->fts_statp->st_mode);
+	fs_write_date(&(reply1.date), f->fts_statp->st_ctime);
+	reply1.std_tx.command_code = EC_FS_CC_DONE;
+	reply1.std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &(reply1.std_tx), sizeof(reply1));
+	reply2.std_tx.command_code = EC_FS_CC_DONE;
+	reply2.std_tx.return_code = EC_FS_RC_OK;
+	got = fs_data_send(c, fd, f->fts_statp->st_size);
+	if (got == -1) {
+		/* Error */
+		fs_errno(c);
+	} else {
+		fs_reply(c, &(reply2.std_tx), sizeof(reply2));
+	}
+	close(fd);
+	fts_close(ftsp);
+}
+
 static ssize_t
 fs_data_send(c, fd, size)
 	struct fs_context *c;

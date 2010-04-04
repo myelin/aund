@@ -51,6 +51,7 @@ extern fs_func_impl fs_examine;
 extern fs_func_impl fs_open;
 extern fs_func_impl fs_close;
 extern fs_func_impl fs_getbytes;
+extern fs_func_impl fs_load;
 extern fs_func_impl fs_get_args;
 extern fs_func_impl fs_set_args;
 extern fs_func_impl fs_get_discs;
@@ -115,6 +116,9 @@ file_server(pkt, len, from)
 	switch (c->req->function) {
 	case EC_FS_FUNC_CLI:
 		fs_cli(c);
+		break;
+	case EC_FS_FUNC_LOAD:
+		fs_load(c);
 		break;
 	case EC_FS_FUNC_EXAMINE:
 		fs_examine(c);
