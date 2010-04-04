@@ -108,6 +108,8 @@ fs_examine(c)
 		case FTS_ERR: case FTS_NS: /* FTS_DNR doesn't matter here */
 			continue;
 		}
+		if (!strcmp(ent->fts_name, ".Acorn"))
+			continue;      /* special; don't display */
 		switch (request->arg) {
 		case EC_FS_EXAMINE_ALL:
 			rc = fs_examine_all(ent, &reply, &reply_size);
