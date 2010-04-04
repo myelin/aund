@@ -39,8 +39,9 @@ struct econet_addr {
 };
 
 static int sock;
-static unsigned char buf[65536];
-static struct aun_packet *const pkt = (struct aun_packet *)buf;
+static unsigned char sbuf[65536];
+static unsigned char rbuf[65536];
+static struct aun_packet *const rpkt = (struct aun_packet *)rbuf;
 
 /* Offset of packet payload in struct aun_packet:
  * size of AUN header minus size of Econet header. */
@@ -172,8 +173,8 @@ static ssize_t beebem_listen(unsigned *addr, struct sockaddr_in *ipaddr,
 		if (i == 0)
 			return 0;      /* nothing turned up */
 
-		msgsize = recvfrom(sock, buf + PKTOFF,
-				   sizeof(buf) - PKTOFF,
+		msgsize = recvfrom(sock, rbuf + PKTOFF,
+				   sizeof(rbuf) - PKTOFF,
 				   0, (struct sockaddr *)&from, &fromlen);
 		if (msgsize == -1)
 			err(1, "recvfrom");
@@ -182,11 +183,11 @@ static ssize_t beebem_listen(unsigned *addr, struct sockaddr_in *ipaddr,
 			continue;      /* not big enough for an Econet frame */
 
 		/* Is it for us? */
-		if (256 * buf[PKTOFF+1] + buf[PKTOFF] != our_econet_addr)
+		if (256 * rbuf[PKTOFF+1] + rbuf[PKTOFF] != our_econet_addr)
 			continue;
 
 		/* Who's it from? */
-		their_addr = 256 * buf[PKTOFF+3] + buf[PKTOFF+2];
+		their_addr = 256 * rbuf[PKTOFF+3] + rbuf[PKTOFF+2];
 
 		*addr = their_addr;
 		if (ipaddr)
@@ -243,7 +244,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		ack[2] = our_econet_addr & 0xFF;
 		ack[3] = our_econet_addr >> 8;
 
-		if (msgsize > 6 && buf[PKTOFF+5] == 0) {
+		if (msgsize > 6 && rbuf[PKTOFF+5] == 0) {
 			/*
 			 * I think this is a Machine Type packet.
 			 * Respond by claiming to be a file server.
@@ -260,7 +261,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 			continue;
 		}
 
-		destport = buf[PKTOFF+5];
+		destport = rbuf[PKTOFF+5];
 
 		/*
 		 * Send an ACK, repeatedly if necessary, and wait
@@ -304,24 +305,24 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		/*
 		 * Now fake up an aun_packet structure to return.
 		 */
-		pkt->type = AUN_TYPE_UNICAST;   /* shouldn't matter */
-		pkt->dest_port = destport; 
-		pkt->flag = 0;
-		pkt->retrans = 0;
-		memset(pkt->seq, 0, 4);
+		rpkt->type = AUN_TYPE_UNICAST;   /* shouldn't matter */
+		rpkt->dest_port = destport; 
+		rpkt->flag = 0;
+		rpkt->retrans = 0;
+		memset(rpkt->seq, 0, 4);
 		*outsize = msgsize + PKTOFF;
 		memset(afrom, 0, sizeof(struct aun_srcaddr));
 		afrom->eaddr.network = scoutaddr >> 8;
 		afrom->eaddr.station = scoutaddr & 0xFF;
 		afrom->eaddr.port = ntohs(from.sin_port);
 		afrom->eaddr.addr = from.sin_addr;
-		return pkt;
+		return rpkt;
 	}
 }
 
 static ssize_t
-beebem_xmit(pkt, len, vto)
-	struct aun_packet *pkt;
+beebem_xmit(spkt, len, vto)
+	struct aun_packet *spkt;
 	size_t len;
 	struct aun_srcaddr *vto;
 {
@@ -329,7 +330,7 @@ beebem_xmit(pkt, len, vto)
 	int theiraddr, ackaddr;
 	ssize_t msgsize, payloadlen;
 
-	if (len > sizeof(buf) - 4) {
+	if (len > sizeof(sbuf) - 4) {
 		if (debug)
 			printf("outgoing packet too large (%d)\n", len);
 		return -1;
@@ -338,14 +339,14 @@ beebem_xmit(pkt, len, vto)
 	/*
 	 * Send the scout packet, and wait for an ACK.
 	 */
-	buf[0] = ato->eaddr.station;
-	buf[1] = ato->eaddr.network;
-	buf[2] = our_econet_addr & 0xFF;
-	buf[3] = our_econet_addr >> 8;
-	buf[4] = 0x80;
-	buf[5] = pkt->dest_port;
+	sbuf[0] = ato->eaddr.station;
+	sbuf[1] = ato->eaddr.network;
+	sbuf[2] = our_econet_addr & 0xFF;
+	sbuf[3] = our_econet_addr >> 8;
+	sbuf[4] = 0x80;
+	sbuf[5] = spkt->dest_port;
 	do
-		beebem_send(buf, 6);
+		beebem_send(sbuf, 6);
 	while ((msgsize = beebem_listen(&ackaddr, NULL, 0)) == 0);
 
 	/*
@@ -372,14 +373,14 @@ beebem_xmit(pkt, len, vto)
 	 * Construct and send the payload packet, and wait for an
 	 * ACK.
 	 */
-	buf[0] = ato->eaddr.station;
-	buf[1] = ato->eaddr.network;
-	buf[2] = our_econet_addr & 0xFF;
-	buf[3] = our_econet_addr >> 8;
+	sbuf[0] = ato->eaddr.station;
+	sbuf[1] = ato->eaddr.network;
+	sbuf[2] = our_econet_addr & 0xFF;
+	sbuf[3] = our_econet_addr >> 8;
 	payloadlen = len - offsetof(struct aun_packet, data);
-	memcpy(buf + 4, pkt->data, payloadlen);
+	memcpy(sbuf + 4, spkt->data, payloadlen);
 	do
-		beebem_send(buf, payloadlen+4);
+		beebem_send(sbuf, payloadlen+4);
 	while ((msgsize = beebem_listen(&ackaddr, NULL, 0)) == 0);
 
 	/*
