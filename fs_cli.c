@@ -253,7 +253,7 @@ fs_cmd_i_am(c, tail)
 	/* Initial user environment.  Note that we can't use the same handle twice. */
 	reply.urd = fs_open_handle(c->client, urd);
 	reply.csd = fs_open_handle(c->client, urd);
-	reply.lib = fs_open_handle(c->client, "/");
+	reply.lib = fs_open_handle(c->client, lib);
 	reply.opt4 = opt4;
 	if (debug) printf("returning: urd=%d, csd=%d, lib=%d, opt4=%d\n",
 			  reply.urd, reply.csd, reply.lib, reply.opt4);

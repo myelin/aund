@@ -62,6 +62,7 @@ struct fs_client_head fs_clients = LIST_HEAD_INITIALIZER(fs_clients);
 
 char *discname;
 char *urd = "/"; /* XXX */
+char *lib = "/"; /* XXX */
 int opt4 = 0;
 
 void

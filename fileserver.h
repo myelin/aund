@@ -79,6 +79,7 @@ extern struct fs_client_head fs_clients;
 
 extern char *discname;
 extern char *urd; /* Should really have one per user. */
+extern char *lib;
 extern int opt4; /* ditto */
 
 extern void fs_unrec __P((struct fs_context *));
