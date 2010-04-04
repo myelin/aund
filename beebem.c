@@ -214,6 +214,24 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		 * the destination port.
 		 */
 		msgsize = beebem_listen(&scoutaddr);
+
+		ack[0] = scoutaddr & 0xFF;
+		ack[1] = scoutaddr >> 8;
+		ack[2] = our_econet_addr & 0xFF;
+		ack[3] = our_econet_addr >> 8;
+
+		if (msgsize == 10) {
+			/*
+			 * FIXME: I seem to be receiving occasional
+			 * ten-byte packets with no preceding scout,
+			 * which I don't understand. I'm going to
+			 * assume for the moment that they're some
+			 * sort of pingoid, and ACK them without
+			 * further action.
+			 */
+			beebem_send(ack, 4);
+			continue;
+		}
 		if (msgsize != 6) {
 			if (debug)
 				printf("received wrong-size scout packet (%d) from %d.%d\n",
@@ -226,10 +244,6 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		/*
 		 * Send an ACK.
 		 */
-		ack[0] = scoutaddr & 0xFF;
-		ack[1] = scoutaddr >> 8;
-		ack[2] = our_econet_addr & 0xFF;
-		ack[3] = our_econet_addr >> 8;
 		beebem_send(ack, 4);
 
 		/*
