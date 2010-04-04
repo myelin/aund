@@ -51,6 +51,7 @@ void fs_check_handles(c)
 		c->req->urd = fs_check_handle(c->client, c->req->urd);
 		/* FALLTHROUGH */
 	case EC_FS_FUNC_LOAD:
+	case EC_FS_FUNC_LOAD_COMMAND:
 	case EC_FS_FUNC_SAVE:
 	case EC_FS_FUNC_GETBYTES:
 	case EC_FS_FUNC_PUTBYTES:

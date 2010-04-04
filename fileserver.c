@@ -118,6 +118,7 @@ file_server(pkt, len, from)
 		fs_cli(c);
 		break;
 	case EC_FS_FUNC_LOAD:
+	case EC_FS_FUNC_LOAD_COMMAND:  /* as yet we don't distinguish these */
 		fs_load(c);
 		break;
 	case EC_FS_FUNC_EXAMINE:
