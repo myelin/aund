@@ -34,6 +34,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fts.h>
+#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -163,16 +164,19 @@ fs_get_meta(f, meta)
 	struct ec_fs_meta *meta;
 {
 	struct stat *st, sb;
-	char *metapath, rawinfo[24];
+	char *duppath, *dir, *metapath, rawinfo[24];
 	u_int64_t stamp;
 	int type, i;
 	
 	st = &sb;
 
-	metapath = malloc(strlen(f->fts_accpath) + f->fts_namelen + 7 + 1);
+	duppath = strdup(f->fts_accpath);
+	dir = dirname(duppath);
+	metapath = malloc(strlen(dir) + f->fts_namelen + 8 + 1);
 	if (metapath != NULL) {
-		strcpy(metapath, f->fts_accpath);
-		strcat(metapath, ".Acorn/");
+		strcpy(metapath, dir);
+		free(duppath);
+		strcat(metapath, "/.Acorn/");
 		strcat(metapath, f->fts_name);
  		rawinfo[23] = '\0';
 		if (readlink(metapath, rawinfo, 23) == 23) {
@@ -184,6 +188,8 @@ fs_get_meta(f, meta)
 				meta->exec_addr[i] = strtoul(rawinfo+12+i*3, NULL, 16);
 			return;
 		}
+	} else {
+		free(duppath);
 	}
 	st = f->fts_statp;
 	if (st != NULL) {
