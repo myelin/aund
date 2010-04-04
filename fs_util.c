@@ -105,13 +105,18 @@ fs_access_to_string(buf, access)
 	u_int8_t access;
 {
 	buf[0] = '\0';
+	/*
+	 * FIXME: this should take account of whether you own the
+	 * file. (In an ideal world where file ownership is
+	 * supported, that is.)
+	 */
 	if (access & EC_FS_ACCESS_D) strcat(buf, "D");
 	if (access & EC_FS_ACCESS_L) strcat(buf, "L");
 	if (access & EC_FS_ACCESS_UW) strcat(buf, "W");
 	if (access & EC_FS_ACCESS_UR) strcat(buf, "R");
 	strcat(buf, "/");
-	if (access & EC_FS_ACCESS_OW) strcat(buf, "W");
-	if (access & EC_FS_ACCESS_OR) strcat(buf, "R");
+	if (access & EC_FS_ACCESS_OW) strcat(buf, "w");
+	if (access & EC_FS_ACCESS_OR) strcat(buf, "r");
 	return buf;
 }
 
