@@ -72,7 +72,7 @@ static fs_cmd_impl fs_cmd_lib;
 static fs_cmd_impl fs_cmd_sdisc;
 static fs_cmd_impl fs_cmd_pass;
 
-static int fs_cli_match __P((char *word, const struct fs_cmd *cmd));
+static int fs_cli_match __P((char *word, int len, const struct fs_cmd *cmd));
 static void fs_cli_unrec __P((struct fs_context *, char *));
 
 static char *printtime __P((time_t));
@@ -99,15 +99,25 @@ fs_cli(c)
 {
 	int i;
 	char *head, *tail, *backup;
+	int len;
 	c->req->data[strcspn(c->req->data, "\r")] = '\0';
 	if (debug) printf("cli: [%s]", c->req->data);
 
 	tail = c->req->data;
 	backup = strdup(tail);
 	if (*tail == '*') tail++;
-	head = fs_cli_getarg(&tail);
+	/*
+	 * We can't use fs_cli_getarg, because the leading command
+	 * may end in a dot and then immediately adjoin to the next
+	 * word (e.g. "i.file" as an abbreviation for "INFO file").
+	 */
+	while (*tail && isspace((unsigned char)*tail)) tail++;
+	head = tail;
+	while (*tail && !isspace((unsigned char)*tail) && *tail != '.') tail++;
+	if (*tail == '.') tail++;
+	len = tail - head;
 	for (i = 0; i < NCMDS; i++) {
-		if (fs_cli_match(head, &(cmd_tab[i]))) {
+		if (fs_cli_match(head, len, &(cmd_tab[i]))) {
 			(cmd_tab[i].impl)(c, tail);
 			break;
 		}
@@ -134,30 +144,32 @@ fs_cli_unrec(c, cmd)
 }
 
 /*
- * Work out if word is an acceptable abbreviation for cmd.  Mutilates
- * word in the process.
+ * Work out if word is an acceptable abbreviation for cmd.
  */
 
 static int
-fs_cli_match(word, cmd)
+fs_cli_match(word, len, cmd)
 	char *word;
+	int len;
 	const struct fs_cmd *cmd;
 {
-	char *p;
-	for (p = word; *p!='\0'; p++)
-		*p = toupper((unsigned char)*p);
-	p--;
-	if (*p == '.') {
-		/* Abbreviated command */
-		*p = '\0';
-		if (strstr(cmd->full, word) == cmd->full &&
-		    strstr(word, cmd->min) == word)
-			return 1;
-	} else {
-		if (strcmp(word, cmd->full) == 0)
-			return 1;
+	int i;
+
+	for (i = 0; i < len; i++) {
+		int creal = cmd->full[i];
+		int cthis = toupper((unsigned char)word[i]);
+
+		if (creal == '\0')
+			return 0;      /* real command ended before this */
+		if (i == len-1 && cthis == '.')
+			return 1;      /* abbreviation which matches */
+		if (creal != cthis)
+			return 0;      /* mismatched character */
 	}
-	return 0;
+	/* If we reach the end of this loop, we've run off the end of cthis. */
+	if (!cmd->full[len])
+		return 1;	       /* commands matched all the way along */
+	return 0;		       /* no they didn't */
 }
 
 /*
