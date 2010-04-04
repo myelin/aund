@@ -52,6 +52,7 @@ extern void file_server __P((struct aun_packet *, ssize_t, struct aun_srcaddr *)
 
 extern int debug;
 extern int using_syslog;
+extern char *beebem_cfg_file;
 
 struct aun_funcs {
 	void (*setup)(void);

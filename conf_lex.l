@@ -84,6 +84,7 @@ static void conf_read_file __P((const char *));
 static void conf_cmd_debug __P((void));
 static void conf_cmd_syslog __P((void));
 static void conf_cmd_urd __P((void));
+static void conf_cmd_beebem __P((void));
 static void conf_cmd_opt4 __P((void));
 static void conf_cmd_typemap_name __P((void));
 static void conf_cmd_typemap_perm __P((void));
@@ -119,6 +120,7 @@ static int cfylex __P((int start, void *thing));
   syslog	BEGIN(BORING); conf_cmd_syslog();
   urd		BEGIN(BORING); conf_cmd_urd();
   opt4		BEGIN(BORING); conf_cmd_opt4();
+  beebem	BEGIN(BORING); conf_cmd_beebem();
 }
 <TYPEMAP>{
   name		BEGIN(BORING); conf_cmd_typemap_name(); 
@@ -191,6 +193,16 @@ conf_cmd_urd()
 		errx(1, "no urd specified");
 	urd = malloc(cfyleng + 1);
 	strcpy(urd, cfytext);
+}
+
+static void
+conf_cmd_beebem()
+{
+
+	if (cfylex(BORING, NULL) != CF_WORD)
+		errx(1, "no beebem configuration file specified");
+	beebem_cfg_file = malloc(cfyleng + 1);
+	strcpy(beebem_cfg_file, cfytext);
 }
 
 static void

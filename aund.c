@@ -51,12 +51,14 @@
 
 #define EC_PORT_FS 0x99
 
-extern const struct aun_funcs aun;
+extern const struct aun_funcs aun, beebem;
 
 int debug = 1;
 int using_syslog = 1;
-volatile int painful_death = 0;
+char *beebem_cfg_file = NULL;
 const struct aun_funcs *aunfuncs = &aun;
+
+volatile int painful_death = 0;
 
 int main __P((int, char*[]));
 
@@ -98,6 +100,9 @@ main(argc, argv)
 	sig_init();
 	fs_init();
 	conf_init(conffile);
+
+	if (beebem_cfg_file)
+		aunfuncs = &beebem;
 
 	/*
 	 * Override specifications from the configuration file with
