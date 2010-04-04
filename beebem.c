@@ -228,7 +228,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 	union internal_addr *afrom = (union internal_addr *)vfrom;
 	int scoutaddr, mainaddr;
 	struct sockaddr_in from, from2;
-	int destport;
+	int ctlbyte, destport;
 	unsigned char ack[8];
 
 	while (1) {
@@ -261,6 +261,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 			continue;
 		}
 
+		ctlbyte = rbuf[PKTOFF+4];
 		destport = rbuf[PKTOFF+5];
 
 		/*
@@ -307,7 +308,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		 */
 		rpkt->type = AUN_TYPE_UNICAST;   /* shouldn't matter */
 		rpkt->dest_port = destport; 
-		rpkt->flag = 0;
+		rpkt->flag = ctlbyte;
 		rpkt->retrans = 0;
 		memset(rpkt->seq, 0, 4);
 		*outsize = msgsize + PKTOFF;
@@ -343,7 +344,7 @@ beebem_xmit(spkt, len, vto)
 	sbuf[1] = ato->eaddr.network;
 	sbuf[2] = our_econet_addr & 0xFF;
 	sbuf[3] = our_econet_addr >> 8;
-	sbuf[4] = 0x80;
+	sbuf[4] = 0x80 | spkt->flag;
 	sbuf[5] = spkt->dest_port;
 	do
 		beebem_send(sbuf, 6);
