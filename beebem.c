@@ -27,6 +27,15 @@
 struct econet_addr {
 	u_int8_t station;
 	u_int8_t network;
+	/*
+	 * For minimal network security, I record the source IP
+	 * address here as well as the Econet address, so that any
+	 * attempt to use another station's login will be rejected
+	 * when fs_find_client considers the interloper to have a
+	 * separate identity.
+	 */
+	u_int16_t port;
+	struct in_addr addr;
 };
 
 static int sock;
@@ -137,7 +146,8 @@ beebem_setup(void)
 		err(1, "fcntl(F_SETFL)");
 }
 
-static ssize_t beebem_listen(unsigned *addr, int forever)
+static ssize_t beebem_listen(unsigned *addr, struct sockaddr_in *ipaddr,
+			     int forever)
 {
 	ssize_t msgsize;
 	struct sockaddr_in from;
@@ -178,20 +188,9 @@ static ssize_t beebem_listen(unsigned *addr, int forever)
 		/* Who's it from? */
 		their_addr = 256 * buf[PKTOFF+3] + buf[PKTOFF+2];
 
-#if 0 /* apparently this doesn't work */
-		/* Is it _really_ from them? */
-		if (!ec2ip[their_addr].port ||
-		    from.sin_addr.s_addr != ec2ip[their_addr].addr.s_addr ||
-		    ntohs(from.sin_port) != ec2ip[their_addr].port) {
-			if (debug)
-				printf("failed ingress filter from %s:%d (claimed to be %d.%d)\n",
-				       inet_ntoa(from.sin_addr), ntohs(from.sin_port),
-				       buf[PKTOFF+3], buf[PKTOFF+2]);
-			continue;
-		}
-#endif
-
 		*addr = their_addr;
+		if (ipaddr)
+			*ipaddr = from;
 		return msgsize;
 	}
 }
@@ -227,6 +226,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 	ssize_t msgsize;
 	union internal_addr *afrom = (union internal_addr *)vfrom;
 	int scoutaddr, mainaddr;
+	struct sockaddr_in from, from2;
 	int destport;
 	unsigned char ack[8];
 
@@ -236,7 +236,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		 * long, and the second payload byte should indicate
 		 * the destination port.
 		 */
-		msgsize = beebem_listen(&scoutaddr, 1);
+		msgsize = beebem_listen(&scoutaddr, &from, 1);
 
 		ack[0] = scoutaddr & 0xFF;
 		ack[1] = scoutaddr >> 8;
@@ -275,13 +275,23 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		 */
 		do
 			beebem_send(ack, 4);
-		while ((msgsize = beebem_listen(&mainaddr, 0)) == 0);
+		while ((msgsize = beebem_listen(&mainaddr, &from2, 0)) == 0);
 		if (mainaddr != scoutaddr) {
 			if (debug)
 				printf("expected payload packet from %d.%d,"
 				       " received something from %d.%d instead\n",
 				       scoutaddr>>8, scoutaddr&0xFF,
 				       mainaddr>>8, mainaddr&0xFF);
+			continue;
+		}
+		if (from.sin_addr.s_addr != from2.sin_addr.s_addr ||
+		    from.sin_port != from2.sin_port) {
+			if (debug) {
+				printf("sending IP address switched in mid-handshake (%s:%d ->",
+				       inet_ntoa(from.sin_addr), ntohs(from.sin_port));
+				printf(" %s:%d)\n",
+				       inet_ntoa(from2.sin_addr), ntohs(from2.sin_port));
+			}
 			continue;
 		}
 
@@ -303,6 +313,8 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		memset(afrom, 0, sizeof(struct aun_srcaddr));
 		afrom->eaddr.network = scoutaddr >> 8;
 		afrom->eaddr.station = scoutaddr & 0xFF;
+		afrom->eaddr.port = ntohs(from.sin_port);
+		afrom->eaddr.addr = from.sin_addr;
 		return pkt;
 	}
 }
@@ -334,7 +346,7 @@ beebem_xmit(pkt, len, vto)
 	buf[5] = pkt->dest_port;
 	do
 		beebem_send(buf, 6);
-	while ((msgsize = beebem_listen(&ackaddr, 0)) == 0);
+	while ((msgsize = beebem_listen(&ackaddr, NULL, 0)) == 0);
 
 	/*
 	 * We expect the ACK to have come from the right address.
@@ -368,7 +380,7 @@ beebem_xmit(pkt, len, vto)
 	memcpy(buf + 4, pkt->data, payloadlen);
 	do
 		beebem_send(buf, payloadlen+4);
-	while ((msgsize = beebem_listen(&ackaddr, 0)) == 0);
+	while ((msgsize = beebem_listen(&ackaddr, NULL, 0)) == 0);
 
 	/*
 	 * The second ACK, just as above, should have come from the

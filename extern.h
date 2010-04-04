@@ -41,7 +41,7 @@
  * Opaque structure holding a source address.
  */
 struct aun_srcaddr {
-	u_int8_t bytes[4];
+	u_int8_t bytes[8];
 };
 
 extern void print_status(struct aun_packet *, ssize_t, struct aun_srcaddr *);
