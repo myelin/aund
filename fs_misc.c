@@ -136,6 +136,48 @@ fs_get_info(c)
 		fs_reply(c, &(reply.std_tx), sizeof(reply));
 	}
 	break;
+	case EC_FS_GET_INFO_CTIME: {
+		struct ec_fs_reply_info_ctime reply;
+		
+		reply.std_tx.return_code = EC_FS_RC_OK;
+		reply.std_tx.command_code = EC_FS_CC_DONE;
+		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+			reply.type = 0;
+		} else {
+			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
+			fs_write_date(&(reply.date), f->fts_statp->st_ctime);
+		}
+		fs_reply(c, &(reply.std_tx), sizeof(reply));
+	}
+	break;
+	case EC_FS_GET_INFO_META: {
+		struct ec_fs_reply_info_meta reply;
+		
+		reply.std_tx.return_code = EC_FS_RC_OK;
+		reply.std_tx.command_code = EC_FS_CC_DONE;
+		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+			reply.type = 0;
+		} else {
+			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
+			fs_get_meta(f, &(reply.meta));
+		}
+		fs_reply(c, &(reply.std_tx), sizeof(reply));
+	}
+	break;
+	case EC_FS_GET_INFO_SIZE: {
+		struct ec_fs_reply_info_size reply;
+		
+		reply.std_tx.return_code = EC_FS_RC_OK;
+		reply.std_tx.command_code = EC_FS_CC_DONE;
+		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+			reply.type = 0;
+		} else {
+			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
+			fs_write_val(reply.size, f->fts_statp->st_size, sizeof(reply.size));
+		}
+		fs_reply(c, &(reply.std_tx), sizeof(reply));
+	}
+	break;
 	case EC_FS_GET_INFO_DIR:
 	{
 		struct ec_fs_reply_info_dir reply;
