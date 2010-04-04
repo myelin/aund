@@ -69,8 +69,8 @@ struct fs_client {
 	struct aun_srcaddr host;
 	int nhandles;
 	struct fs_handle **handles; /* array of handles for this client */
-	/* XXX Need to know what user (how should we store this?) */
 	char *login;
+	char *urd;
 	struct fs_dir_cache dir_cache;
 };
 
@@ -78,7 +78,8 @@ LIST_HEAD(fs_client_head, fs_client);
 extern struct fs_client_head fs_clients;
 
 extern char *discname;
-extern char *urd; /* Should really have one per user. */
+extern char *fixedurd;
+extern char *pwfile;
 extern char *lib;
 extern int opt4; /* ditto */
 

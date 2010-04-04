@@ -38,6 +38,7 @@
 
 #include <sys/types.h>
 
+#include <assert.h>
 #include <ctype.h>
 #include <grp.h>
 #include <libgen.h>
@@ -216,7 +217,7 @@ fs_cmd_i_am(c, tail)
 {
 	/* FIXME user authentication would be nice */
 	struct ec_fs_reply_logon reply;
-	char *login, *password;
+	char *login, *password, *oururd;
 	if (strcasecmp(fs_cli_getarg(&tail), "am")) {
 		fs_unrec(c);
 		return;
@@ -224,17 +225,22 @@ fs_cmd_i_am(c, tail)
 	login = fs_cli_getarg(&tail);
 	password = fs_cli_getarg(&tail);
 	if (debug) printf(" -> log on [%s:%s]\n", login, password);
-#if 0
-	/* Silly test authentication */
-	if (strcmp(login, "bjh21")) {
-		fs_err(c, 0xbc);
-		return;
+	if (pwfile) {
+		/*
+		 * If no universal user root directory is set up, we
+		 * instead validate user logins based on a password
+		 * file, and look up the root directory for the
+		 * given user.
+		 */
+		oururd = pw_validate(login, password);
+		if (!oururd) {
+			fs_err(c, EC_FS_E_BADPW);
+			return;
+		}
+	} else {
+		assert(fixedurd);
+		oururd = strdup(fixedurd);
 	}
-	if (strcmp(password, "secret")) {
-		fs_err(c, 0xbb);
-		return;
-	}
-#endif
 	/*
 	 * They're authenticated, so add them to the list of clients.
 	 * First, we see if this client's already logged on, and if
@@ -248,11 +254,12 @@ fs_cmd_i_am(c, tail)
 		return;
 	}
 	c->client->login = strdup(login);
+	c->client->urd = oururd;
 	reply.std_tx.command_code = EC_FS_CC_LOGON;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	/* Initial user environment.  Note that we can't use the same handle twice. */
-	reply.urd = fs_open_handle(c->client, urd);
-	reply.csd = fs_open_handle(c->client, urd);
+	reply.urd = fs_open_handle(c->client, oururd);
+	reply.csd = fs_open_handle(c->client, oururd);
 	reply.lib = fs_open_handle(c->client, lib);
 	reply.opt4 = opt4;
 	if (debug) printf("returning: urd=%d, csd=%d, lib=%d, opt4=%d\n",

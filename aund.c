@@ -43,6 +43,7 @@
 
 #include "aun.h"
 #include "extern.h"
+#include "fileserver.h"
 
 #define MACHINE_MAKE 0
 #define MACHINE_MODEL 0x0e
@@ -100,6 +101,9 @@ main(argc, argv)
 	sig_init();
 	fs_init();
 	conf_init(conffile);
+
+	if (!fixedurd && !pwfile)
+		errx(1, "must specify either 'urd' or 'pwfile' in configuration");
 
 	if (beebem_cfg_file)
 		aunfuncs = &beebem;

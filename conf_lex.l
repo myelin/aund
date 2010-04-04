@@ -84,6 +84,7 @@ static void conf_read_file __P((const char *));
 static void conf_cmd_debug __P((void));
 static void conf_cmd_syslog __P((void));
 static void conf_cmd_urd __P((void));
+static void conf_cmd_pwfile __P((void));
 static void conf_cmd_lib __P((void));
 static void conf_cmd_beebem __P((void));
 static void conf_cmd_opt4 __P((void));
@@ -120,6 +121,7 @@ static int cfylex __P((int start, void *thing));
   debug		BEGIN(BORING); conf_cmd_debug();
   syslog	BEGIN(BORING); conf_cmd_syslog();
   urd		BEGIN(BORING); conf_cmd_urd();
+  pwfile	BEGIN(BORING); conf_cmd_pwfile();
   lib|library	BEGIN(BORING); conf_cmd_lib();
   opt4		BEGIN(BORING); conf_cmd_opt4();
   beebem	BEGIN(BORING); conf_cmd_beebem();
@@ -193,8 +195,18 @@ conf_cmd_urd()
 
 	if (cfylex(BORING, NULL) != CF_WORD)
 		errx(1, "no urd specified");
-	urd = malloc(cfyleng + 1);
-	strcpy(urd, cfytext);
+	fixedurd = malloc(cfyleng + 1);
+	strcpy(fixedurd, cfytext);
+}
+
+static void
+conf_cmd_pwfile()
+{
+
+	if (cfylex(BORING, NULL) != CF_WORD)
+		errx(1, "no urd specified");
+	pwfile = malloc(cfyleng + 1);
+	strcpy(pwfile, cfytext);
 }
 
 static void
