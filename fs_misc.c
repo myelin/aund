@@ -126,6 +126,10 @@ fs_get_info(c)
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
 			reply.type = 0;
+			memset(&(reply.meta), 0, sizeof(reply.meta));
+			memset(&(reply.size), 0, sizeof(reply.size));
+			memset(&(reply.access), 0, sizeof(reply.access));
+			memset(&(reply.date), 0, sizeof(reply.date));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
 			fs_get_meta(f, &(reply.meta));
@@ -143,6 +147,7 @@ fs_get_info(c)
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
 			reply.type = 0;
+			memset(&(reply.date), 0, sizeof(reply.date));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
 			fs_write_date(&(reply.date), f->fts_statp->st_ctime);
@@ -157,6 +162,7 @@ fs_get_info(c)
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
 			reply.type = 0;
+			memset(&(reply.meta), 0, sizeof(reply.meta));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
 			fs_get_meta(f, &(reply.meta));
@@ -171,6 +177,7 @@ fs_get_info(c)
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
 			reply.type = 0;
+			memset(&(reply.size), 0, sizeof(reply.size));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
 			fs_write_val(reply.size, f->fts_statp->st_size, sizeof(reply.size));
@@ -209,6 +216,8 @@ fs_get_info(c)
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
 			reply.type = 0;
+			memset(&(reply.sin), 0, sizeof(reply.sin));
+			memset(&(reply.fsnum), 0, sizeof(reply.fsnum));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
 			fs_write_val(reply.sin, f->fts_statp->st_ino,
