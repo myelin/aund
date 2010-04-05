@@ -58,6 +58,7 @@ extern fs_func_impl fs_get_args;
 extern fs_func_impl fs_set_args;
 extern fs_func_impl fs_get_discs;
 extern fs_func_impl fs_get_info;
+extern fs_func_impl fs_set_info;
 extern fs_func_impl fs_get_uenv;
 extern fs_func_impl fs_logoff;
 extern fs_func_impl fs_delete;
@@ -158,6 +159,9 @@ file_server(pkt, len, from)
 		break;
 	case EC_FS_FUNC_GET_INFO:
 		fs_get_info(c);
+		break;
+	case EC_FS_FUNC_SET_INFO:
+		fs_set_info(c);
 		break;
 	case EC_FS_FUNC_GET_UENV:
 		fs_get_uenv(c);

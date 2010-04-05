@@ -50,6 +50,7 @@
 
 void fs_get_discs __P((struct fs_context *));
 void fs_get_info __P((struct fs_context *));
+void fs_set_info __P((struct fs_context *));
 void fs_get_uenv __P((struct fs_context *));
 void fs_logoff __P((struct fs_context *));
 
@@ -232,6 +233,112 @@ fs_get_info(c)
 	default:
 		fs_err(c, EC_FS_E_BADINFO);
 	}
+	fts_close(ftsp);
+	free(upath);
+}
+
+void
+fs_set_info(c)
+	struct fs_context *c;
+{
+	char *path, *upath, *path_argv[2];
+	struct ec_fs_req_set_info *request;
+	struct ec_fs_reply reply;
+	struct ec_fs_meta meta_in, meta_out;
+	int set_load = 0, set_exec = 0, nyi = 0, bad = 0;
+	FTS *ftsp;
+	FTSENT *f;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_set_info *)c->req;
+	switch (request->arg) {
+	case EC_FS_SET_INFO_ALL: {
+		struct ec_fs_req_set_info_all *req2 =
+			(struct ec_fs_req_set_info_all *)request;
+		memcpy(&meta_in, &(req2->meta), sizeof(meta_in));
+		path = req2->path;
+		set_load = set_exec = 1;
+		/*
+		 * Setting access information NYI, but we can't
+		 * afford to refuse the request on those grounds
+		 * when we're also changing other stuff :-(
+		 */
+		break;
+	}
+	case EC_FS_SET_INFO_LOAD: {
+		struct ec_fs_req_set_info_load *req2 =
+			(struct ec_fs_req_set_info_load *)request;
+		memcpy(&meta_in.load_addr, &(req2->load_addr),
+		       sizeof(meta_in.load_addr));
+		path = req2->path;
+		set_load = 1;
+		break;
+	}
+	case EC_FS_SET_INFO_EXEC: {
+		struct ec_fs_req_set_info_exec *req2 =
+			(struct ec_fs_req_set_info_exec *)request;
+		memcpy(&meta_in.exec_addr, &(req2->exec_addr),
+		       sizeof(meta_in.exec_addr));
+		path = req2->path;
+		set_exec = 1;
+		break;
+	}
+	case EC_FS_SET_INFO_ACCESS: {
+		nyi = 1;
+		return;
+	}
+	default:
+		bad = 1;
+	}
+
+	path[strcspn(path, "\r")] = '\0';
+	if (debug) printf("set info [%d, %s]\n", request->arg, path);
+
+	if (nyi) {
+		fs_error(c, 0xff, "Not yet implemented!");
+		return;
+	} else if (bad) {
+		fs_err(c, EC_FS_E_BADINFO);
+		return;
+	}
+
+	upath = fs_unixify_path(c, path); /* This must be freed */
+	if (upath == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return;
+	}
+	errno = 0;
+	path_argv[0] = upath;
+	path_argv[1] = NULL;
+	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+	f = fts_read(ftsp);
+	if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+		fs_errno(c);
+		fts_close(ftsp);
+		free(upath);
+		return;
+	}
+	if (set_load || set_exec) {
+		fs_get_meta(f, &meta_out);
+		if (set_load)
+			memcpy(meta_out.load_addr, meta_in.load_addr,
+			       sizeof(meta_in.load_addr));
+		if (set_exec)
+			memcpy(meta_out.exec_addr, meta_in.exec_addr,
+			       sizeof(meta_in.exec_addr));
+		if (!fs_set_meta(f, &meta_out)) {
+			fs_errno(c);
+			fts_close(ftsp);
+			free(upath);
+			return;
+		}
+	}
+	reply.return_code = EC_FS_RC_OK;
+	reply.command_code = EC_FS_CC_DONE;
+	fs_reply(c, &reply, sizeof(reply));
 	fts_close(ftsp);
 	free(upath);
 }
