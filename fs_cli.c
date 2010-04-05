@@ -474,16 +474,44 @@ fs_cmd_logoff(c, tail)
 	fs_logoff(c);
 }
 
+void
+fs_long_info(char *string, FTSENT *f)
+{
+	struct ec_fs_meta meta;
+	struct tm tm;
+	unsigned long load, exec;
+	char accstring[8];
+	char *acornname;
+
+	acornname = strdup(f->fts_name);
+	fs_acornify_name(acornname);
+	fs_get_meta(f, &meta);
+	load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
+	exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
+	tm = *localtime(&f->fts_statp->st_mtime);
+	fs_access_to_string(accstring,
+			    fs_mode_to_access(f->fts_statp->st_mode));
+
+	sprintf(string, "%-10.10s %08X %08X   %06X   "
+		"%-6.6s     %02d%.3s%02d  \r\x80",
+		acornname, load, exec, f->fts_statp->st_size,
+		accstring, tm.tm_mday,
+		"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
+		tm.tm_year % 100);
+
+	free(acornname);
+}
+
 static void
 fs_cmd_info(c, tail)
 	struct fs_context *c;
 	char *tail;
 {
 	char *upath;
-	struct stat st;
 	struct ec_fs_reply *reply;
-	char mode_buf[12];
-	char *frag1, *frag2;
+	char *path_argv[2];
+	FTS *ftsp;
+	FTSENT *f;
 
 	/*
 	 * XXX
@@ -510,35 +538,26 @@ fs_cmd_info(c, tail)
 	 */
 
 	upath = fs_unixify_path(c, fs_cli_getarg(&tail)); /* Free it! */
-	if (lstat(upath, &st) == -1) {
-		fs_errno(c);
-		goto burn;
+
+	path_argv[0] = upath;
+	path_argv[1] = NULL;
+	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+	f = fts_read(ftsp);
+	if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+		fts_close(ftsp);
+		free(upath);
+		return;
 	}
 
-	strmode(st.st_mode, mode_buf);
-	asprintf(&frag1, "%s %3lu %-*s %-*s ", mode_buf,
-	    (unsigned long)st.st_nlink,
-	    UT_NAMESIZE, user_from_uid(st.st_uid, 0),
-	    UT_NAMESIZE, group_from_gid(st.st_gid, 0));
-        if (S_ISCHR(st.st_mode) || S_ISBLK(st.st_mode))
-                asprintf(&frag2, "%3d,%5d ", major(st.st_rdev),
-		    minor(st.st_rdev));
-        else
-                asprintf(&frag2, "%9qd ", (long long)st.st_size);
-	reply = malloc(sizeof(*reply) + strlen(frag1) + strlen(frag2)
-	    + 13 + strlen(basename(upath)) + 2);
-	strcpy(reply->data, frag1);
-	strcat(reply->data, frag2);
-	strcat(reply->data, printtime(st.st_mtime));
-	strcat(reply->data, basename(upath));
-	strcat(reply->data, "\x80");
+	reply = malloc(sizeof(*reply) + 100);
+	fs_long_info(reply->data, f);
 	reply->command_code = EC_FS_CC_INFO;
 	reply->return_code = EC_FS_RC_OK;
 	fs_reply(c, reply, sizeof(*reply) + strlen(reply->data));
-	free(frag1);
-	free(frag2);
-burn:
+
+	free(reply);
 	free(upath);
+	fts_close(ftsp);
 }
 
 static char *

@@ -48,7 +48,7 @@
 static int fs_examine_read __P((struct fs_context *, const char *, int));
 
 static int fs_examine_all __P((FTSENT *, struct ec_fs_reply_examine **, size_t *));
-/* static int fs_examine_longtxt __P((FTSENT *, struct ec_fs_reply_examine **, size_t *)); */
+static int fs_examine_longtxt __P((FTSENT *, struct ec_fs_reply_examine **, size_t *));
 static int fs_examine_name __P((FTSENT *, struct ec_fs_reply_examine **, size_t *));
 static int fs_examine_shorttxt __P((FTSENT *, struct ec_fs_reply_examine **, size_t *));
 
@@ -77,7 +77,7 @@ fs_examine(c)
 		fs_error(c, 0xff, "Not yet implemented!");
 		return;
 	case EC_FS_EXAMINE_ALL: case EC_FS_EXAMINE_NAME:
-	case EC_FS_EXAMINE_SHORTTXT:
+	case EC_FS_EXAMINE_SHORTTXT: case EC_FS_EXAMINE_LONGTXT:
 		break;
 	}
 	upath = fs_unixify_path(c, request->path);
@@ -125,9 +125,9 @@ fs_examine(c)
 		case EC_FS_EXAMINE_ALL:
 			rc = fs_examine_all(ent, &reply, &reply_size);
 			break;
-/*		case EC_FS_EXAMINE_LONGTXT:
+		case EC_FS_EXAMINE_LONGTXT:
 			rc = fs_examine_longtxt(ent, &reply, &reply_size);
-			break; */
+			break;
 		case EC_FS_EXAMINE_NAME:
 			rc = fs_examine_name(ent, &reply, &reply_size);
 			break;
@@ -299,6 +299,30 @@ fs_examine_shorttxt(ent, replyp, reply_sizep)
 	fs_access_to_string(accstring, fs_mode_to_access(ent->fts_statp->st_mode));
 	sprintf((char*)(((void *)*replyp) + *reply_sizep), "%-10.10s %-7.7s", ent->fts_name, accstring);
 	*reply_sizep += 10+1+7+1; /* one byte spare to terminate */
+	return 0;
+burn:
+	return -1;
+}
+
+static int
+fs_examine_longtxt(ent, replyp, reply_sizep)
+	FTSENT *ent;
+	struct ec_fs_reply_examine **replyp;
+	size_t *reply_sizep;
+{
+	void *new_reply;
+	char *string;
+	char accstring[8];
+	
+	if ((new_reply = realloc(*replyp, *reply_sizep + 100)) != NULL)
+		*replyp = new_reply;
+	if (new_reply == NULL) {
+		errno = ENOMEM;
+		goto burn;
+	}
+	string = (char*)(((void *)*replyp) + *reply_sizep);
+	fs_long_info(string, ent);
+	*reply_sizep += 1 + strlen(string); /* one byte spare to terminate */
 	return 0;
 burn:
 	return -1;

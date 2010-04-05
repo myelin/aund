@@ -86,6 +86,7 @@ extern int opt4; /* ditto */
 
 extern void fs_unrec __P((struct fs_context *));
 extern char *fs_cli_getarg __P((char **));
+extern void fs_long_info __P((char *string, FTSENT *f));
 extern void fs_reply __P((struct fs_context *, struct ec_fs_reply *, size_t));
 
 extern void fs_errno __P((struct fs_context *));
