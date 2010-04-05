@@ -164,20 +164,22 @@ fs_get_meta(f, meta)
 	struct ec_fs_meta *meta;
 {
 	struct stat *st, sb;
-	char *duppath, *dir, *metapath, rawinfo[24];
+	char *lastslash, *dir, *metapath, rawinfo[24];
 	u_int64_t stamp;
 	int type, i;
 	
 	st = &sb;
 
-	duppath = strdup(f->fts_accpath);
-	dir = dirname(duppath);
-	metapath = malloc(strlen(dir) + f->fts_namelen + 8 + 1);
+	lastslash = strrchr(f->fts_accpath, '/');
+	if (lastslash)
+		lastslash++;
+	else
+		lastslash = f->fts_accpath;
+	metapath = malloc((lastslash - f->fts_accpath) +
+			  f->fts_namelen + 8 + 1);
 	if (metapath != NULL) {
-		strcpy(metapath, dir);
-		free(duppath);
-		strcat(metapath, "/.Acorn/");
-		strcat(metapath, f->fts_name);
+		sprintf(metapath, "%.*s.Acorn/%s", lastslash - f->fts_accpath,
+			f->fts_accpath, f->fts_name);
  		rawinfo[23] = '\0';
 		if (readlink(metapath, rawinfo, 23) == 23) {
 			for (i = 0; i < 4; i++)
@@ -189,8 +191,6 @@ fs_get_meta(f, meta)
 			return;
 		}
 		free(metapath);
-	} else {
-		free(duppath);
 	}
 	st = f->fts_statp;
 	if (st != NULL) {
@@ -210,20 +210,22 @@ fs_set_meta(f, meta)
 	FTSENT *f;
 	struct ec_fs_meta *meta;
 {
-	char *duppath, *dir, *metapath, rawinfo[24];
+	char *lastslash, *metapath, rawinfo[24];
 	int ret;
 
-	duppath = strdup(f->fts_accpath);
-	dir = dirname(duppath);
-	metapath = malloc(strlen(dir) + f->fts_namelen + 8 + 1);
+	lastslash = strrchr(f->fts_accpath, '/');
+	if (lastslash)
+		lastslash++;
+	else
+		lastslash = f->fts_accpath;
+	metapath = malloc((lastslash - f->fts_accpath) +
+			  f->fts_namelen + 8 + 1);
 	if (metapath == NULL) {
 		errno = ENOMEM;
 		return 0;
 	}
-
-	strcpy(metapath, dir);
-	free(duppath);
-	strcat(metapath, "/.Acorn");
+	sprintf(metapath, "%.*s.Acorn", lastslash - f->fts_accpath,
+		f->fts_accpath);
 	ret = rmdir(metapath);
 	if (ret < 0 && errno != ENOENT && errno != ENOTEMPTY)
 		return 0;
@@ -250,17 +252,19 @@ void
 fs_del_meta(f)
 	FTSENT *f;
 {
-	char *duppath, *dir, *metapath, rawinfo[24];
+	char *lastslash, *metapath, rawinfo[24];
 	int dirlen, ret;
 
-	duppath = strdup(f->fts_accpath);
-	dir = dirname(duppath);
-	metapath = malloc(strlen(dir) + f->fts_namelen + 8 + 1);
+	lastslash = strrchr(f->fts_accpath, '/');
+	if (lastslash)
+		lastslash++;
+	else
+		lastslash = f->fts_accpath;
+	metapath = malloc((lastslash - f->fts_accpath) +
+			  f->fts_namelen + 8 + 1);
 	if (metapath != NULL) {
-		strcpy(metapath, dir);
-		free(duppath);
-		strcat(metapath, "/.Acorn/");
-		strcat(metapath, f->fts_name);
+		sprintf(metapath, "%.*s.Acorn/%s", lastslash - f->fts_accpath,
+			f->fts_accpath, f->fts_name);
 		unlink(metapath);
 		free(metapath);
 	}
