@@ -68,6 +68,10 @@ fs_examine(c)
 
 	request->path[strcspn(request->path, "\r")] = '\0';	
 	if (debug) printf("examine [%d, %d/%d, %s]\n", request->arg, request->start, request->nentries, request->path);
+	if (c->client == NULL) {
+		fs_error(c, 0xff, "Who are you?");
+		return;
+	}
 	switch (request->arg) {
 	default:
 		fs_error(c, 0xff, "Not yet implemented!");
