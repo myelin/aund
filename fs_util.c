@@ -188,6 +188,7 @@ fs_get_meta(f, meta)
 				meta->exec_addr[i] = strtoul(rawinfo+12+i*3, NULL, 16);
 			return;
 		}
+		free(metapath);
 	} else {
 		free(duppath);
 	}
@@ -241,6 +242,7 @@ fs_set_meta(f, meta)
 		return 0;
 	if (symlink(rawinfo, metapath) < 0)
 		return 0;
+	free(metapath);
 	return 1;
 }
 
