@@ -62,7 +62,10 @@ fs_acornify_name(name)
 	size_t len;
 	char *p, *q;
 
+	if (debug) printf("fs_acornify_name: [%s]", name);
 	p = q = name;
+	if (*p == '.' && !p[1])
+		p++;			/* map "." to the empty string */
 	if (*p == '.' && p[1] == '.' && p[2] == '.')
 		p += 2;	       /* un-dot-stuff */
 	for (; *p; p++)
@@ -73,6 +76,7 @@ fs_acornify_name(name)
 		name[len-4] = '\0';
 	else
 		name[len] = '\0';
+	if (debug) printf("->[%s]\n", name);
 	return name;
 }
 
