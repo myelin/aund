@@ -88,16 +88,18 @@ fs_unixify_path(c, path)
 {
 	const char *base;
 	int nnames;
+	char *csd, *lib;
 	char *path2;
 	char *path3;
 	char *p, *q;
 
+	csd = c->req->csd ? c->client->handles[c->req->csd]->path : NULL;
+	lib = c->req->lib ? c->client->handles[c->req->lib]->path : NULL;
 	/*
 	 * Plenty of space.
 	 */
-	path2 = malloc(strlen(c->client->urd) +
-		       strlen(c->client->handles[c->req->csd]->path) +
-		       strlen(c->client->handles[c->req->lib]->path) +
+	path2 = malloc(strlen(c->client->urd) + (csd ? strlen(csd) : 0) +
+		       (lib ? strlen(lib) : 0) +
 		       2 * strlen(path) + 100);
 
 	if (debug) printf("fs_unixify_path: [%s]", path);
@@ -115,14 +117,14 @@ fs_unixify_path(c, path)
 		    case '&':
 			base = c->client->urd; break;
 		    case '@':
-			base = c->client->handles[c->req->csd]->path; break;
+			base = csd; break;
 		    case '%':
-			base = c->client->handles[c->req->lib]->path; break;
+			base = lib; break;
 		}
 		path++;
 		if (*path) path++;
 	} else {
-		base = c->client->handles[c->req->csd]->path;
+		base = csd;
 	}
 	if (base) {
 		sprintf(path2, "%s/", base);
