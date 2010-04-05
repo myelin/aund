@@ -160,6 +160,12 @@ bye:
 }
 
 static int
+fs_filename_compare(const FTSENT **a, const FTSENT **b)
+{
+	return strcasecmp((*a)->fts_name, (*b)->fts_name);
+}
+
+static int
 fs_examine_read(c, upath, start)
 	struct fs_context *c;
 	const char *upath;
@@ -190,7 +196,7 @@ fs_examine_read(c, upath, start)
 
 	path_argv[0] = dc->path;
 	path_argv[1] = NULL;
-        dc->ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+        dc->ftsp = fts_open(path_argv, FTS_LOGICAL, fs_filename_compare);
 	if (dc->ftsp == NULL) {
 		free(dc->path); dc->path = NULL;
 		return -1;
