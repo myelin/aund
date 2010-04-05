@@ -48,7 +48,7 @@
 #include "fileserver.h"
 
 static char *fs_unhat_path __P((char *));
-static void fs_typecase_path __P((char *, int));
+static void fs_match_path __P((char *));
 static void fs_trans_simple __P((char *, char *));
 
 /*
@@ -87,16 +87,18 @@ fs_unixify_path(c, path)
 	char *path;
 {
 	const char *base;
-	char *pathret;
-	char *p;
+	int nnames;
+	char *path2;
+	char *path3;
+	char *p, *q;
 
 	/*
 	 * Plenty of space.
 	 */
-	pathret = malloc(strlen(c->client->urd) +
-			 strlen(c->client->handles[c->req->csd]->path) +
-			 strlen(c->client->handles[c->req->lib]->path) +
-			 2 * strlen(path) + 100);
+	path2 = malloc(strlen(c->client->urd) +
+		       strlen(c->client->handles[c->req->csd]->path) +
+		       strlen(c->client->handles[c->req->lib]->path) +
+		       2 * strlen(path) + 100);
 
 	if (debug) printf("fs_unixify_path: [%s]", path);
 
@@ -123,51 +125,59 @@ fs_unixify_path(c, path)
 		base = c->client->handles[c->req->csd]->path;
 	}
 	if (base) {
-		sprintf(pathret, "%s/", base);
+		sprintf(path2, "%s/", base);
 	} else {
-		*pathret = '\0';
+		*path2 = '\0';
 	}
 
 	/*
 	 * Append the supplied pathname to that prefix, performing
 	 * simple translations on the way.
 	 */
-	fs_trans_simple(pathret + strlen(pathret), path);
+	fs_trans_simple(path2 + strlen(path2), path);
 
-	if (debug) printf("->[%s]", pathret);
+	if (debug) printf("->[%s]", path2);
 
 	/*
 	 * Unhat.
 	 */
-	fs_unhat_path(pathret);
+	fs_unhat_path(path2);
 
-	if (debug) printf("->[%s]", pathret);
+	if (debug) printf("->[%s]", path2);
 
 	/*
 	 * References directly to the root dir: turn an empty name
 	 * into ".".
 	 */
-	if (!*pathret)
-		strcpy(pathret, ".");
+	if (!*path2)
+		strcpy(path2, ".");
 
 	/*
-	 * Case-mangle every path component.
+	 * Process every path component through fs_match_path.
 	 */
-	p = pathret;
+	for (p = path2, nnames = 1; *p; p++)
+		if (*p == '/')
+			nnames++;
+	path3 = malloc(20 * nnames + 10);
+	p = path2;
+	q = path3;
 	while (*p) {
-		int c;
+		char *r = p;
 		while (*p && *p != '/') p++;
-		c = *p;
-		*p = '\0';
-		fs_typecase_path(pathret, !c);
-		*p = c;
-		if (*p) p++;
+		sprintf(q, "%.*s", p-r, r);
+		fs_match_path(path3);
+		q += strlen(q);
+		if (*p) {
+			p++;
+			*q++ = '/';
+		}
 	}
-	if (debug) printf("->[%s]\n", pathret);
+	if (debug) printf("->[%s]\n", path3);
 
-	pathret = realloc(pathret, 1 + strlen(pathret));
+	free(path2);
+	path3 = realloc(path3, 1 + strlen(path3));
 
-	return pathret;
+	return path3;
 }
 
 /*
@@ -214,18 +224,76 @@ fs_unhat_path(path)
 }
 
 /*
- * If <pathname> doesn't exist, try <pathname>,??? or case-mangling
+ * Case-insensitively match a file name against a potential
+ * wildcard.
+ */
+static int wcfrag(char *frag, char *file)
+{
+	while (*frag && *frag != '*') {
+		if (*frag != '?' && (toupper((unsigned char)*file) !=
+				     toupper((unsigned char)*frag)))
+			return 0;
+		frag++;
+		file++;
+	}
+	return 1;
+}
+static int wcmatch(char *wc, char *file, int len)
+{
+	char *fragend;
+	char *filestart = file;
+	int at_start = 1;
+
+	while (*wc) {
+		for (fragend = wc; *fragend && *fragend != '*'; fragend++);
+		if (*fragend) {
+			/*
+			 * This fragment isn't the end of the
+			 * wildcard, so we match it at the first
+			 * place we can.
+			 */
+			while (len >= fragend - wc &&
+			       ((at_start && file!=filestart) ||
+				!wcfrag(wc, file)))
+				file++, len--;
+			if (len < fragend - wc)
+				return 0;
+			file += fragend - wc;
+			len -= fragend - wc;
+			wc = fragend;
+		} else {
+			/*
+			 * This fragment is at the end, so we must
+			 * match it at precisely the end or fail.
+			 */
+			if (len < fragend - wc)
+				return 0;
+			return ((!at_start || file==filestart) &&
+				wcfrag(wc, file + len - (fragend - wc)));
+		}
+		while (*wc == '*') wc++;
+		at_start = 0;
+	}
+	return 1;
+}
+
+/*
+ * Find the real file that matches the name in 'path'. This may
+ * involve:
+ *
+ *  - case-insensitively matching
+ *  - wildcard matching (we just return the first match)
+ *  - appending ,??? for a RISC OS file type
  */
 static void
-fs_typecase_path(path, type)
+fs_match_path(path)
 	char *path;
-	int type;
 {
 	struct stat st;
-	char *pathcopy, *parentpath, *leaf;
+	char *pathcopy, *parentpath, *leaf, *wc;
 	DIR *parent;
 	struct dirent *dp;
-	size_t len;
+	size_t leaflen;
 
 	if (lstat(path, &st) == -1 && errno == ENOENT) {
 		pathcopy = strdup(path);
@@ -235,20 +303,30 @@ fs_typecase_path(path, type)
 			free(pathcopy);
 			return;
 		}
-		leaf = basename(path);
-		len = strlen(leaf);
+		leaf = strrchr(path, '/');
+		if (leaf)
+			leaf++;
+		else
+			leaf = path;
+		leaflen = strlen(leaf);
+		wc = leaf;
+		if (wc[0] == '.' && wc[1] == '.' && wc[2] == '.')
+			wc += 2;       /* un-dot-stuff wildcard */
 		while ((dp = readdir(parent)) != NULL) {
-			if (len < sizeof(dp->d_name) &&
-			    dp->d_name[len] == '\0' &&
-			    strcasecmp(dp->d_name, leaf) == 0) {
-				strcpy(path + strlen(path) - len, dp->d_name);
-				break;
-                	}
-                	if (type && len + 4 < sizeof(dp->d_name) &&
-			    dp->d_name[len] == ',' &&
-			    strncasecmp(dp->d_name, leaf, len) == 0 &&
-			    strlen(dp->d_name + len) == 4) {
-				strcpy(path + strlen(path) - len, dp->d_name);
+			char *name = dp->d_name;
+			int namelen = strlen(dp->d_name);
+			if (name[0] == '.') {
+				if (namelen >= 3 &&
+				    name[1] == '.' && name[2] == '.') {
+					name += 2;   /* un-dot-stuff */
+				} else
+					continue;    /* hidden file */
+			}
+			if (namelen >= 4 && dp->d_name[namelen-4] == ',')
+				namelen -= 4;
+			if (namelen <= 10 &&
+			    wcmatch(leaf, dp->d_name, namelen)) {
+				strcpy(leaf, dp->d_name);
 				break;
                 	}
 		}
