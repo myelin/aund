@@ -327,9 +327,9 @@ fs_cmd_sdisc(c, tail)
 	fs_close_handle(c->client, c->req->urd);
 	fs_close_handle(c->client, c->req->csd);
 	fs_close_handle(c->client, c->req->lib);
-	reply.urd = fs_open_handle(c->client, "/home/bjh21", 1);
-	reply.csd = fs_open_handle(c->client, "/home/bjh21", 1);
-	reply.lib = fs_open_handle(c->client, "/", 1);
+	reply.urd = fs_open_handle(c->client, "", 1);
+	reply.csd = fs_open_handle(c->client, "", 1);
+	reply.lib = fs_open_handle(c->client, "", 1);
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
 }
 

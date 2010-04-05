@@ -36,6 +36,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <assert.h>
 #include <dirent.h>
 #include <err.h>
 #include <errno.h>
@@ -46,14 +47,9 @@
 #include "extern.h"
 #include "fileserver.h"
 
-static char *fs_merge_paths __P((const char *, const char *));
-static char *fs_get_base __P((struct fs_context *, char **));
 static char *fs_unhat_path __P((char *));
 static char *fs_type_path __P((char *));
-#if 0
-static char *fs_smash_case __P((const char *, char *));
-#endif
-static char *fs_trans_simple __P((char *));
+static void fs_trans_simple __P((char *, char *));
 
 /*
  * Convert a leaf name to Acorn style for presenting to the client.
@@ -64,12 +60,19 @@ fs_acornify_name(name)
 	char *name;
 {
 	size_t len;
+	char *p, *q;
 
-	fs_trans_simple(name);
-	len = strlen(name);
+	p = q = name;
+	if (*p == '.' && p[1] == '.' && p[2] == '.')
+		p += 2;	       /* un-dot-stuff */
+	for (; *p; p++)
+		*q++ = (*p == '.' ? '/' : *p); /* un-slash-dot-swap */
+	len = q - name;
 	if (len >= 4 && name[len-4] == ',')
 		/* For now, assume all *,??? names are magic */
 		name[len-4] = '\0';
+	else
+		name[len] = '\0';
 	return name;
 }
 
@@ -84,101 +87,75 @@ fs_unixify_path(c, path)
 	char *path;
 {
 	const char *base;
+	char *pathret;
+
+	/*
+	 * Plenty of space.
+	 */
+	pathret = malloc(strlen(c->client->urd) +
+			 strlen(c->client->handles[c->req->csd]->path) +
+			 strlen(c->client->handles[c->req->lib]->path) +
+			 2 * strlen(path) + 100);
 
 	if (debug) printf("fs_unixify_path: [%s]", path);
-	/* t%./%/.% */
-	fs_trans_simple(path);
-	if (debug) printf("->[%s]", path);
-	/* skip absolutes */
-	base = fs_get_base(c, &path);
-	if (debug) printf("->[%s,%s]", base, path);
-	/* unhat */
-	fs_unhat_path(path);
-	if (debug) printf("->[%s,%s]", base, path);
-	/* resolve absolutes (more unhatting if necessary, but '^'s in the stored path should be retained) */
-	path = fs_merge_paths(base, path);
-	if (debug) printf("->[%s]", path);
-	/* add ",???" type indicator to end if necessary*/
-	path = fs_type_path(path);
-	if (debug) printf("->[%s]\n", path);
-	return path;
-}
 
-/*
- * Concatenate two paths, removing "^/"s at the start of the second
- * and corresponding components at the end of the first.  Returns a
- * freshly malloced block.  Caller is responsible for freeing it.
- */
-static char *
-fs_merge_paths(base, path)
-	const char *base, *path;
-{
-	int nhats, i;
-	char *out, *new;
-
-	nhats = 0;
-	while (strlen(path) >= 2 && strncmp(path, "^/", 2) == 0) {
-		nhats++;
-		path +=2;
-	}
-	if (strcmp(path, "^") == 0) {
-		nhats++;
-		path++;
-	}
-	out = strdup(base);
-	if (out == NULL)
-		return NULL;
-	for (i=0; i<nhats && strlen(out)>1; i++)
-		*strrchr(out, '/') = '\0';
-	new = realloc(out, strlen(out)+strlen(path)+2);
-	if (new == NULL) {
-		free(out);
-		return NULL;
-	}
-	out = new;
-	strcat(out, "/");
-	strcat(out, path);
-	return out;
-}
-
-/*
- * resolve an absolute section at the start of a path.  Returns the
- * 'base' path, and modifies the supplied pointer to point past any
- * absolute specifier it contained.
- */
-static char *
-fs_get_base(c, pathp)
-	struct fs_context *c;
-	char **pathp;
-{
-	char *path;
-	size_t disclen;
-	int h;
-
-	path = *pathp;
-	if (path[0] == ':') {
-		disclen = strcspn(path+1, "/");
-		if (disclen != strlen(discname)) return NULL;
-		if (strncmp(path+1, discname, disclen) != 0) return NULL;
-		path += disclen+2;
-	}
-	if (strlen(path) > 0 && strchr("$@%&", path[0]) && (path[1] == '/' || path[1] == '\0')) {
-		/* Absolute path specified */
+	/*
+	 * Decide what base path this pathname is relative to, by
+	 * spotting magic characters at the front. Without any, of
+	 * course, it'll be relative to the csd.
+	 */
+	if (path[0] && strchr("$&%@", path[0]) &&
+	    (!path[1] || path[1] == '.')) {
 		switch (path[0]) {
-		case '$': *pathp = path+2; return "";
-		case '&': h = c->req->urd;
-		case '@': h = c->req->csd;
-		case '%': h = c->req->lib;
-		default: h = 0; /* Keep gcc quiet */
+		    case '$':
+			base = NULL; break;
+		    case '&':
+			base = c->client->urd; break;
+		    case '@':
+			base = c->client->handles[c->req->csd]->path; break;
+		    case '%':
+			base = c->client->handles[c->req->lib]->path; break;
 		}
-		path += 2;
-	} else
-		h = c->req->csd;
-	*pathp = path;
-	if (h)
-		return c->client->handles[h]->path;
-	else
-		return "";
+		path++;
+		if (*path) path++;
+	} else {
+		base = c->client->handles[c->req->csd]->path;
+	}
+	if (base) {
+		sprintf(pathret, "%s/", base);
+	} else {
+		*pathret = '\0';
+	}
+
+	/*
+	 * Append the supplied pathname to that prefix, performing
+	 * simple translations on the way.
+	 */
+	fs_trans_simple(pathret + strlen(pathret), path);
+
+	if (debug) printf("->[%s]", pathret);
+
+	/*
+	 * Unhat.
+	 */
+	fs_unhat_path(pathret);
+
+	if (debug) printf("->[%s]", pathret);
+
+	/*
+	 * References directly to the root dir: turn an empty name
+	 * into ".".
+	 */
+	if (!*pathret)
+		strcpy(pathret, ".");
+
+	/* add ",???" type indicator to end if necessary*/
+	path = fs_type_path(pathret);
+	if (debug) printf("->[%s]\n", pathret);
+
+	pathret = realloc(pathret, 1 + strlen(pathret));
+
+	return pathret;
 }
 
 /*
@@ -188,33 +165,39 @@ static char *
 fs_unhat_path(path)
 	char *path;
 {
-	char *p, *q, *r;
-	
-	p = path;
-	/* We can't resolve initial hats yet. */
-	while (strncmp(p, "^/", 2) == 0)
-		p += 2;
-	while ((q = strstr(p, "/^/")) != 0) {
-		r = q;
-		while(*(r-1) != '/' && r > p)
-			r--;
-		/*
-		 * r now points at the start of the path component to
-		 * be excised
-		 */
-		strcpy(r, q + 3); /* XXX Is this safe???? */
-	}
+	char *p, *q;
+
 	/*
-	 * Now just need to trim off a possible "foo/^" at the end of
-	 * the path.
+	 * p walks along the path as we read it; q walks along the
+	 * same string as we write the transformed version.
 	 */
-	if (strcmp(strchr(p, '\0') - 2, "/^") == 0) {
-		r = strchr(p, '\0') - 3;
-		while(*r != '/' && r > p)
-			r--;
-		/* r points at the slash before the doomed path component */
-		*r = '\0';
+	p = q = path;
+
+	while (*p) {
+		if (*p == '^' && (!p[1] || p[1] == '/')) {
+			/*
+			 * Hat component. Skip it, and backtrack q.
+			 */
+			p++;
+			while (q > path && q[-1] != '/')
+				q--;   /* backtrack over the previous word */
+			if (q > path)
+				q--;   /* and over the slash before it */
+		} else {
+			/*
+			 * Non-hat component. Just copy it in.
+			 */
+			if (q > path)
+				*q++ = '/';
+			while (*p && *p != '/')
+				*q++ = *p++;
+		}
+		if (*p) {
+			assert(*p == '/');
+			p++;
+		}
 	}
+	*q = '\0';
 	return path;
 }
 
@@ -265,18 +248,34 @@ fs_type_path(path)
 }
 
 /*
- * Simple translation, swapping '.' and '/'.
+ * Simple translations: exchange . and /, and stuff two extra dots
+ * at the front of any pathname starting with a dot. (That protects
+ * '.', '..' and '.Acorn'.)
  */
-static char *
-fs_trans_simple(path)
+static void
+fs_trans_simple(pathret, path)
+	char *pathret;
 	char *path;
 {
-	int i;
-	for (i = 0; path[i]; i++) {
-		switch (path[i]) {
-		case '/': path[i] = '.'; break;
-		case '.': path[i] = '/'; break;
+	/*
+	 * Loop over each pathname component.
+	 */
+	while (*path) {
+		if (*path == '/') {
+			*pathret++ = '.';
+			*pathret++ = '.';
+		}
+		while (*path && *path != '.') {
+			if (*path == '/')
+				*pathret++ = '.';
+			else
+				*pathret++ = *path;
+			path++;
+		}
+		if (*path) {
+			path++;
+			*pathret++ = '/';
 		}
 	}
-	return path;
+	*pathret = '\0';
 }

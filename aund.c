@@ -129,6 +129,14 @@ main(argc, argv)
 			LOG_DAEMON);
 		syslog(LOG_NOTICE, "started");
 	}
+
+	/*
+	 * We'll use relative pathnames for all our file accesses,
+	 * so start by setting our cwd to the root of the fs we're
+	 * serving.
+	 */
+	chdir(root);
+
 	for (;!painful_death;) {
 		ssize_t msgsize;
 		struct aun_packet *pkt;

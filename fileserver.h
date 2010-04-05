@@ -78,6 +78,7 @@ LIST_HEAD(fs_client_head, fs_client);
 extern struct fs_client_head fs_clients;
 
 extern char *discname;
+extern char *root;
 extern char *fixedurd;
 extern char *pwfile;
 extern char *lib;

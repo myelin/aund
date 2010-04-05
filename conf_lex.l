@@ -83,6 +83,7 @@
 static void conf_read_file __P((const char *));
 static void conf_cmd_debug __P((void));
 static void conf_cmd_syslog __P((void));
+static void conf_cmd_root __P((void));
 static void conf_cmd_urd __P((void));
 static void conf_cmd_pwfile __P((void));
 static void conf_cmd_lib __P((void));
@@ -120,9 +121,10 @@ static int cfylex __P((int start, void *thing));
   typemap	BEGIN(TYPEMAP);
   debug		BEGIN(BORING); conf_cmd_debug();
   syslog	BEGIN(BORING); conf_cmd_syslog();
+  root		BEGIN(BORING); conf_cmd_root();
+  lib|library	BEGIN(BORING); conf_cmd_lib();
   urd		BEGIN(BORING); conf_cmd_urd();
   pwfile	BEGIN(BORING); conf_cmd_pwfile();
-  lib|library	BEGIN(BORING); conf_cmd_lib();
   opt4		BEGIN(BORING); conf_cmd_opt4();
   beebem	BEGIN(BORING); conf_cmd_beebem();
 }
@@ -187,6 +189,16 @@ conf_cmd_syslog()
 {
 	if (cfylex(BOOLEAN, &using_syslog) != CF_BOOLEAN)
 		errx(1, "no boolean for syslog");
+}
+
+static void
+conf_cmd_root()
+{
+
+	if (cfylex(BORING, NULL) != CF_WORD)
+		errx(1, "no root specified");
+	root = malloc(cfyleng + 1);
+	strcpy(root, cfytext);
 }
 
 static void

@@ -64,8 +64,9 @@ extern fs_func_impl fs_logoff;
 struct fs_client_head fs_clients = LIST_HEAD_INITIALIZER(fs_clients);
 
 char *discname;
-char *fixedurd = NULL;
-char *lib = "/"; /* XXX */
+char *root = NULL;		       /* must specify this in config */
+char *fixedurd = "";		       /* default to the root dir */
+char *lib = "";			       /* default to the root dir */
 int opt4 = 0;
 
 void
