@@ -488,24 +488,39 @@ fs_long_info(char *string, FTSENT *f)
 	struct ec_fs_meta meta;
 	struct tm tm;
 	unsigned long load, exec;
-	char accstring[8];
+	char accstring[8], accstr2[8];
+	mode_t currumask;
 	char *acornname;
 
 	acornname = strdup(f->fts_name);
 	fs_acornify_name(acornname);
-	fs_get_meta(f, &meta);
-	load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
-	exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
-	tm = *localtime(&f->fts_statp->st_mtime);
+
 	fs_access_to_string(accstring,
 			    fs_mode_to_access(f->fts_statp->st_mode));
 
-	sprintf(string, "%-10.10s %08X %08X   %06X   "
-		"%-6.6s     %02d%.3s%02d  \r\x80",
-		acornname, load, exec, f->fts_statp->st_size,
-		accstring, tm.tm_mday,
-		"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
-		tm.tm_year % 100);
+	if (S_ISDIR(f->fts_statp->st_mode)) {
+		currumask = umask(777);
+		umask(currumask);
+		fs_access_to_string(accstr2,
+				    fs_mode_to_access(0777 & ~currumask));
+		sprintf(string, "%-10.10s         =           %-6.6s   "
+			"%-6.6s     %02d%.3s%02d  \r\x80",
+			acornname, accstr2,
+			accstring, tm.tm_mday,
+			"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
+			tm.tm_year % 100);
+	} else {
+		fs_get_meta(f, &meta);
+		load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
+		exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
+		tm = *localtime(&f->fts_statp->st_mtime);
+		sprintf(string, "%-10.10s %08X %08X   %06X   "
+			"%-6.6s     %02d%.3s%02d  \r\x80",
+			acornname, load, exec, f->fts_statp->st_size,
+			accstring, tm.tm_mday,
+			"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
+			tm.tm_year % 100);
+	}
 
 	free(acornname);
 }
