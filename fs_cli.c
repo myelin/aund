@@ -66,6 +66,7 @@ struct fs_cmd {
 	fs_cmd_impl	*impl;
 };
 
+static fs_cmd_impl fs_cmd_dir;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
 static fs_cmd_impl fs_cmd_lib;
@@ -78,6 +79,7 @@ static void fs_cli_unrec __P((struct fs_context *, char *));
 static char *printtime __P((time_t));
 
 static const struct fs_cmd cmd_tab[] = {
+	{"DIR", 	"DIR",	fs_cmd_dir,	},
 	{"I", 		"I",	fs_cmd_i_am,	}, /* Odd case */
 	{"INFO",	"INFO",	fs_cmd_info,	},
 	{"LIB",		"LIB",	fs_cmd_lib,	},
@@ -334,6 +336,36 @@ fs_cmd_sdisc(c, tail)
 }
 
 static void
+fs_cmd_dir(c, tail)
+	struct fs_context *c;
+	char *tail;
+{
+	char *upath;
+	struct stat st;
+	struct ec_fs_reply_dir reply;
+
+	upath = fs_cli_getarg(&tail);
+	if (!*upath)
+		upath = "&";
+	upath = fs_unixify_path(c, upath);
+	if (fs_stat(upath, &st) == -1) {
+		fs_errno(c);
+		goto burn;
+	}
+	fs_close_handle(c->client, c->req->csd);
+	reply.new_handle = fs_open_handle(c->client, upath, 1);
+	if (reply.new_handle == 0) {
+		fs_err(c, EC_FS_E_MANYOPEN);
+		goto burn;
+	}
+	reply.std_tx.command_code = EC_FS_CC_DIR;
+	reply.std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &(reply.std_tx), sizeof(reply));
+burn:
+	free(upath);
+}
+
+static void
 fs_cmd_lib(c, tail)
 	struct fs_context *c;
 	char *tail;
@@ -453,4 +485,3 @@ printtime(ftime)
 	shortstring[j++] = 0;
 	return shortstring;
 }
-
