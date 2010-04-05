@@ -124,7 +124,6 @@ aun_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		case AUN_TYPE_BROADCAST:
 			/* Real packet; return it. */
 			*outsize = msgsize;
-			memset(afrom, 0, sizeof(struct aun_srcaddr));
 			afrom->sin_addr = from.sin_addr;
 			return pkt;
 		}
