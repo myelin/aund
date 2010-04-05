@@ -110,12 +110,16 @@ fs_cli(c)
 	if (*tail == '*') tail++;
 	/*
 	 * We can't use fs_cli_getarg, because the leading command
-	 * may end in a dot and then immediately adjoin to the next
-	 * word (e.g. "i.file" as an abbreviation for "INFO file").
+	 * may immediately adjoin to the next word:
+	 *  - if the command ends in a dot (e.g. "i.file" as an
+	 *    abbreviation for "INFO file")
+	 *  - if the next word ends in magic punctuation (e.g.
+	 *    "dir^").
 	 */
 	while (*tail && isspace((unsigned char)*tail)) tail++;
 	head = tail;
-	while (*tail && !isspace((unsigned char)*tail) && *tail != '.') tail++;
+	while (*tail && !isspace((unsigned char)*tail) &&
+	       !strchr(".^&@$%", *tail)) tail++;
 	if (*tail == '.') tail++;
 	len = tail - head;
 	for (i = 0; i < NCMDS; i++) {
