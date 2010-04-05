@@ -112,7 +112,7 @@ fs_get_info(c)
 		reply.std_tx.return_code = EC_FS_RC_OK;
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
-			reply.type = 0xff;
+			reply.type = EC_FS_TYPE_NONE;
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
 			reply.access = fs_mode_to_access(f->fts_statp->st_mode);
@@ -126,7 +126,7 @@ fs_get_info(c)
 		reply.std_tx.return_code = EC_FS_RC_OK;
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
-			reply.type = 0;
+			reply.type = EC_FS_TYPE_NONE;
 			memset(&(reply.meta), 0, sizeof(reply.meta));
 			memset(&(reply.size), 0, sizeof(reply.size));
 			memset(&(reply.access), 0, sizeof(reply.access));
@@ -147,7 +147,7 @@ fs_get_info(c)
 		reply.std_tx.return_code = EC_FS_RC_OK;
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
-			reply.type = 0;
+			reply.type = EC_FS_TYPE_NONE;
 			memset(&(reply.date), 0, sizeof(reply.date));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
@@ -162,7 +162,7 @@ fs_get_info(c)
 		reply.std_tx.return_code = EC_FS_RC_OK;
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
-			reply.type = 0;
+			reply.type = EC_FS_TYPE_NONE;
 			memset(&(reply.meta), 0, sizeof(reply.meta));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
@@ -177,7 +177,7 @@ fs_get_info(c)
 		reply.std_tx.return_code = EC_FS_RC_OK;
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
-			reply.type = 0;
+			reply.type = EC_FS_TYPE_NONE;
 			memset(&(reply.size), 0, sizeof(reply.size));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
@@ -216,7 +216,7 @@ fs_get_info(c)
 		reply.std_tx.return_code = EC_FS_RC_OK;
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
-			reply.type = 0;
+			reply.type = EC_FS_TYPE_NONE;
 			memset(&(reply.sin), 0, sizeof(reply.sin));
 			memset(&(reply.fsnum), 0, sizeof(reply.fsnum));
 		} else {
