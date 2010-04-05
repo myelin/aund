@@ -404,6 +404,10 @@ fs_cmd_dir(c, tail)
 	struct stat st;
 	struct ec_fs_reply_dir reply;
 
+	if (c->client == NULL) {
+		fs_error(c, 0xff, "Who are you?");
+		return;
+	}
 	upath = fs_cli_getarg(&tail);
 	if (!*upath)
 		upath = "&";
@@ -434,6 +438,10 @@ fs_cmd_lib(c, tail)
 	struct stat st;
 	struct ec_fs_reply_dir reply;
 
+	if (c->client == NULL) {
+		fs_error(c, 0xff, "Who are you?");
+		return;
+	}
 	upath = fs_unixify_path(c, fs_cli_getarg(&tail)); /* Free it! */
 	if (fs_stat(upath, &st) == -1) {
 		fs_errno(c);
@@ -536,6 +544,11 @@ fs_cmd_info(c, tail)
 	 *
 	 * awServer puts all numeric values in hex.
 	 */
+
+	if (c->client == NULL) {
+		fs_error(c, 0xff, "Who are you?");
+		return;
+	}
 
 	upath = fs_unixify_path(c, fs_cli_getarg(&tail)); /* Free it! */
 
