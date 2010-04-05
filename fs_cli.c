@@ -72,6 +72,7 @@ static fs_cmd_impl fs_cmd_info;
 static fs_cmd_impl fs_cmd_lib;
 static fs_cmd_impl fs_cmd_sdisc;
 static fs_cmd_impl fs_cmd_pass;
+static fs_cmd_impl fs_cmd_rename;
 
 static int fs_cli_match __P((char *word, int len, const struct fs_cmd *cmd));
 static void fs_cli_unrec __P((struct fs_context *, char *));
@@ -84,6 +85,7 @@ static const struct fs_cmd cmd_tab[] = {
 	{"INFO",	"INFO",	fs_cmd_info,	},
 	{"LIB",		"LIB",	fs_cmd_lib,	},
 	{"PASS",      	"PASS",	fs_cmd_pass,	},
+	{"RENAME",      "RENAME", fs_cmd_rename, },
 	{"SDISC",      	"SDIS",	fs_cmd_sdisc,	},
 };
 
@@ -313,6 +315,58 @@ fs_cmd_pass(c, tail)
 	reply.command_code = EC_FS_CC_DONE;
 	reply.return_code = EC_FS_RC_OK;
 	fs_reply(c, &reply, sizeof(reply));
+}
+
+static void
+fs_cmd_rename(c, tail)
+	struct fs_context *c;
+	char *tail;
+{
+	struct ec_fs_reply reply;
+	struct ec_fs_meta meta;
+	char *oldname, *newname;
+	char *oldupath, *newupath;
+	char *path_argv[2];
+	FTS *ftsp;
+	FTSENT *f;
+	
+	oldname = fs_cli_getarg(&tail);
+	newname = fs_cli_getarg(&tail);
+	if (debug) printf(" -> rename [%s,%s]\n", oldname, newname);
+	if (c->client == NULL) {
+		fs_error(c, 0xff, "Who are you?");
+		return;
+	}
+	oldupath = fs_unixify_path(c, oldname);
+	newupath = fs_unixify_path(c, newname);
+	if (oldupath == NULL || newupath == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return;
+	}
+	if (rename(oldupath, newupath) < 0) {
+		fs_errno(c);
+	} else {
+		path_argv[0] = oldupath;
+		path_argv[1] = NULL;
+		ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+		f = fts_read(ftsp);
+		fs_get_meta(f, &meta);
+		fs_del_meta(f);
+		fts_close(ftsp);
+
+		path_argv[0] = newupath;
+		path_argv[1] = NULL;
+		ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+		f = fts_read(ftsp);
+		fs_set_meta(f, &meta);
+		fts_close(ftsp);
+
+		reply.command_code = EC_FS_CC_DONE;
+		reply.return_code = EC_FS_RC_OK;
+		fs_reply(c, &reply, sizeof(reply));
+	}
+	free(oldupath);
+	free(newupath);
 }
 
 static void
