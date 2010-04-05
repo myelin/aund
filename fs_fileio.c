@@ -126,8 +126,13 @@ fs_close(c)
 	if (debug) printf("close [%d]\n", request->handle);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		fd = c->client->handles[request->handle]->fd;
-		if ((rc = fsync(fd)) == -1) /* ESUG says this is needed */
-			fs_errno(c);
+		/* ESUG says this is needed */
+		if ((rc = fsync(fd)) == -1) {
+			if (errno == EINVAL)
+				rc = 0;/* fundamentally unfsyncable */
+			else
+				fs_errno(c);
+		}
 		close(fd);
 		fs_close_handle(c->client, h);
 	} else
