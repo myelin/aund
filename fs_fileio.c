@@ -419,9 +419,12 @@ fs_save(c)
 	struct ec_fs_reply_save1 reply1;
 	struct ec_fs_reply_save2 reply2;
 	struct ec_fs_req_save *request;
+	struct ec_fs_meta meta;
 	char *upath, *path_argv[2];
 	int fd, ackport, replyport;
 	size_t size, got;
+	FTS *ftsp;
+	FTSENT *f;
 
 	if (c->client == NULL) {
 		fs_err(c, EC_FS_E_WHOAREYOU);
@@ -431,7 +434,6 @@ fs_save(c)
 	request->path[strcspn(request->path, "\r")] = '\0';
 	replyport = c->req->reply_port;
 	ackport = c->req->urd;
-	printf("reply %d, ack %d\n", replyport, ackport);
 	if (debug) printf("save [%s]\n", request->path);
 	size = fs_read_val(request->size, sizeof(request->size));
 	upath = fs_unixify_path(c, request->path);
@@ -444,10 +446,7 @@ fs_save(c)
 		free(upath);
 		return;
 	}
-	/*
-	 * FIXME: read metadata from request and put it somewhere
-	 * useful
-	 */
+	meta = request->meta;
 	reply1.std_tx.command_code = EC_FS_CC_DONE;
 	reply1.std_tx.return_code = EC_FS_RC_OK;
 	reply1.data_port = OUR_DATA_PORT;
@@ -457,17 +456,27 @@ fs_save(c)
 	reply2.std_tx.command_code = EC_FS_CC_DONE;
 	reply2.std_tx.return_code = EC_FS_RC_OK;
 	got = fs_data_recv(c, fd, size, ackport);
+	close(fd);
 	if (got == -1) {
 		/* Error */
 		fs_errno(c);
 	} else {
 		/*
-		 * FIXME: fill in date for second reply
+		 * Write load and execute addresses from the
+		 * request, and return the file date in the
+		 * response.
 		 */
+		path_argv[0] = upath;
+		path_argv[1] = NULL;
+		ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+		f = fts_read(ftsp);
+		fs_set_meta(f, &meta);
+		fs_write_date(&(reply2.date), f->fts_statp->st_ctime);
+		reply2.access = fs_mode_to_access(f->fts_statp->st_mode);
+		fts_close(ftsp);
 		c->req->reply_port = replyport;
 		fs_reply(c, &(reply2.std_tx), sizeof(reply2));
 	}
-	close(fd);
 }
 
 static ssize_t
@@ -551,6 +560,7 @@ fs_data_recv(c, fd, size, ackport)
 			 */
 			ack->type = AUN_TYPE_UNICAST;
 			ack->dest_port = ackport;
+			ack->flag = 0;
 			ack->data[0] = 0;
 			if (aunfuncs->xmit(ack, sizeof(*ack) + 1, c->from) == -1)
 				warn("send data");

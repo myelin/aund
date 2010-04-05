@@ -204,6 +204,46 @@ fs_get_meta(f, meta)
 	}
 }
 
+int
+fs_set_meta(f, meta)
+	FTSENT *f;
+	struct ec_fs_meta *meta;
+{
+	char *duppath, *dir, *metapath, rawinfo[24];
+	int ret;
+
+	duppath = strdup(f->fts_accpath);
+	dir = dirname(duppath);
+	metapath = malloc(strlen(dir) + f->fts_namelen + 8 + 1);
+	if (metapath == NULL) {
+		errno = ENOMEM;
+		return 0;
+	}
+
+	strcpy(metapath, dir);
+	free(duppath);
+	strcat(metapath, "/.Acorn");
+	ret = rmdir(metapath);
+	if (ret < 0 && errno != ENOENT && errno != ENOTEMPTY)
+		return 0;
+	if ((ret < 0 && errno == ENOENT) || ret == 0) {
+		if (mkdir(metapath, 0777) < 0)
+			return 0;
+	}
+	strcat(metapath, "/");
+	strcat(metapath, f->fts_name);
+	sprintf(rawinfo, "%02x %02x %02x %02x %02x %02x %02x %02x",
+		meta->load_addr[0], meta->load_addr[1],
+		meta->load_addr[2], meta->load_addr[3],
+		meta->exec_addr[0], meta->exec_addr[1],
+		meta->exec_addr[2], meta->exec_addr[3]);
+	if (unlink(metapath) < 0 && errno != ENOENT)
+		return 0;
+	if (symlink(rawinfo, metapath) < 0)
+		return 0;
+	return 1;
+}
+
 /*
  * Convert a Unix time_t (non-leap seconds since 1970-01-01) to a RISC
  * OS time (non-leap(?) centiseconds since 1900-01-01(?)).
