@@ -246,6 +246,26 @@ fs_set_meta(f, meta)
 	return 1;
 }
 
+void
+fs_del_meta(f)
+	FTSENT *f;
+{
+	char *duppath, *dir, *metapath, rawinfo[24];
+	int dirlen, ret;
+
+	duppath = strdup(f->fts_accpath);
+	dir = dirname(duppath);
+	metapath = malloc(strlen(dir) + f->fts_namelen + 8 + 1);
+	if (metapath != NULL) {
+		strcpy(metapath, dir);
+		free(duppath);
+		strcat(metapath, "/.Acorn/");
+		strcat(metapath, f->fts_name);
+		unlink(metapath);
+		free(metapath);
+	}
+}
+
 /*
  * Convert a Unix time_t (non-leap seconds since 1970-01-01) to a RISC
  * OS time (non-leap(?) centiseconds since 1900-01-01(?)).

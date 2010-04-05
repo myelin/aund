@@ -60,6 +60,7 @@ extern fs_func_impl fs_get_discs;
 extern fs_func_impl fs_get_info;
 extern fs_func_impl fs_get_uenv;
 extern fs_func_impl fs_logoff;
+extern fs_func_impl fs_delete;
 extern fs_func_impl fs_cdirn;
 
 struct fs_client_head fs_clients = LIST_HEAD_INITIALIZER(fs_clients);
@@ -163,6 +164,9 @@ file_server(pkt, len, from)
 		break;
 	case EC_FS_FUNC_LOGOFF:
 		fs_logoff(c);
+		break;
+	case EC_FS_FUNC_DELETE:
+		fs_delete(c);
 		break;
 	case EC_FS_FUNC_CDIRN:
 		fs_cdirn(c);
