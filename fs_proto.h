@@ -494,6 +494,7 @@ struct ec_fs_req_set_info {
 struct ec_fs_req_set_info_all {
 	struct ec_fs_req_set_info std_si;
 	struct ec_fs_meta meta;
+	u_int8_t access;
 	char path[0];
 };
 #define EC_FS_SET_INFO_LOAD	2

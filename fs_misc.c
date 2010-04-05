@@ -245,7 +245,8 @@ fs_set_info(c)
 	struct ec_fs_req_set_info *request;
 	struct ec_fs_reply reply;
 	struct ec_fs_meta meta_in, meta_out;
-	int set_load = 0, set_exec = 0, nyi = 0, bad = 0;
+	u_int8_t access;
+	int set_load = 0, set_exec = 0, set_access = 0;
 	FTS *ftsp;
 	FTSENT *f;
 
@@ -260,6 +261,7 @@ fs_set_info(c)
 		struct ec_fs_req_set_info_all *req2 =
 			(struct ec_fs_req_set_info_all *)request;
 		memcpy(&meta_in, &(req2->meta), sizeof(meta_in));
+		access = req2->access;
 		path = req2->path;
 		set_load = set_exec = 1;
 		/*
@@ -288,25 +290,33 @@ fs_set_info(c)
 		break;
 	}
 	case EC_FS_SET_INFO_ACCESS: {
-		nyi = 1;
+		struct ec_fs_req_set_info_access *req2 =
+			(struct ec_fs_req_set_info_access *)request;
+		access = req2->access;
+		path = req2->path;
+		set_access = 1;
 		break;
 	}
 	default:
-		bad = 1;
-	}
-
-	if (nyi) {
-		if (debug) printf("]\n");
-		fs_error(c, 0xff, "Not yet implemented!");
-		return;
-	} else if (bad) {
 		if (debug) printf("]\n");
 		fs_err(c, EC_FS_E_BADINFO);
 		return;
 	}
 
+	if (debug) {
+		if (set_load)
+			printf("%02x%02x%02x%02x, ",
+			    meta_in.load_addr[0], meta_in.load_addr[1],
+			    meta_in.load_addr[2], meta_in.load_addr[3]);
+		if (set_exec)
+			printf("%02x%02x%02x%02x, ",
+			    meta_in.exec_addr[0], meta_in.exec_addr[1],
+			    meta_in.exec_addr[2], meta_in.exec_addr[3]);
+		if (set_access)
+			printf("%02x, ", access);
+	}
 	path[strcspn(path, "\r")] = '\0';
-	if (debug) printf("%s]\n", request->arg, path);
+	if (debug) printf("%s]\n", path);
 
 	upath = fs_unixify_path(c, path); /* This must be freed */
 	if (upath == NULL) {
@@ -320,9 +330,7 @@ fs_set_info(c)
 	f = fts_read(ftsp);
 	if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
 		fs_errno(c);
-		fts_close(ftsp);
-		free(upath);
-		return;
+		goto out;
 	}
 	if (set_load || set_exec) {
 		fs_get_meta(f, &meta_out);
@@ -334,14 +342,20 @@ fs_set_info(c)
 			       sizeof(meta_in.exec_addr));
 		if (!fs_set_meta(f, &meta_out)) {
 			fs_errno(c);
-			fts_close(ftsp);
-			free(upath);
-			return;
+			goto out;
+		}
+	}
+	if (set_access) {
+		/* XXX Should chose usergroup sensibly */
+		if (chmod(f->fts_accpath, fs_access_to_mode(access, 0)) != 0) {
+			fs_errno(c);
+			goto out;
 		}
 	}
 	reply.return_code = EC_FS_RC_OK;
 	reply.command_code = EC_FS_CC_DONE;
 	fs_reply(c, &reply, sizeof(reply));
+out:
 	fts_close(ftsp);
 	free(upath);
 }
