@@ -70,6 +70,7 @@ static fs_cmd_impl fs_cmd_dir;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
 static fs_cmd_impl fs_cmd_lib;
+static fs_cmd_impl fs_cmd_logoff;
 static fs_cmd_impl fs_cmd_sdisc;
 static fs_cmd_impl fs_cmd_pass;
 static fs_cmd_impl fs_cmd_rename;
@@ -84,6 +85,7 @@ static const struct fs_cmd cmd_tab[] = {
 	{"I", 		"I",	fs_cmd_i_am,	}, /* Odd case */
 	{"INFO",	"INFO",	fs_cmd_info,	},
 	{"LIB",		"LIB",	fs_cmd_lib,	},
+	{"LOGOFF",	"LOGOFF", fs_cmd_logoff, },
 	{"PASS",      	"PASS",	fs_cmd_pass,	},
 	{"RENAME",      "RENAME", fs_cmd_rename, },
 	{"SDISC",      	"SDIS",	fs_cmd_sdisc,	},
@@ -448,6 +450,28 @@ fs_cmd_lib(c, tail)
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
 burn:
 	free(upath);
+}
+
+
+static void
+fs_cmd_logoff(c, tail)
+	struct fs_context *c;
+	char *tail;
+{
+	/*
+	 * This is an SJism, apparently; the vanilla Beeb command is
+	 * *BYE, which is interpreted locally and converted into
+	 * EC_FS_FUNC_LOGOFF. But SJ file servers supported
+	 * OSCLI("LOGOFF") too.
+	 *
+	 * (Actually, documentation on the web suggests that *LOGOFF
+	 * was mostly an SJ _administrator_ command, used to
+	 * forcibly log off other users' sessions. But it worked
+	 * without arguments as an unprivileged command synonymous
+	 * with *BYE, and that's the only part I've implemented
+	 * here.)
+	 */
+	fs_logoff(c);
 }
 
 static void
