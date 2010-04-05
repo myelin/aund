@@ -48,7 +48,7 @@
 #include "fileserver.h"
 
 static char *fs_unhat_path __P((char *));
-static char *fs_type_path __P((char *));
+static void fs_typecase_path __P((char *, int));
 static void fs_trans_simple __P((char *, char *));
 
 /*
@@ -88,6 +88,7 @@ fs_unixify_path(c, path)
 {
 	const char *base;
 	char *pathret;
+	char *p;
 
 	/*
 	 * Plenty of space.
@@ -149,8 +150,19 @@ fs_unixify_path(c, path)
 	if (!*pathret)
 		strcpy(pathret, ".");
 
-	/* add ",???" type indicator to end if necessary*/
-	path = fs_type_path(pathret);
+	/*
+	 * Case-mangle every path component.
+	 */
+	p = pathret;
+	while (*p) {
+		int c;
+		while (*p && *p != '/') p++;
+		c = *p;
+		*p = '\0';
+		fs_typecase_path(pathret, !c);
+		*p = c;
+		if (*p) p++;
+	}
 	if (debug) printf("->[%s]\n", pathret);
 
 	pathret = realloc(pathret, 1 + strlen(pathret));
@@ -203,11 +215,11 @@ fs_unhat_path(path)
 
 /*
  * If <pathname> doesn't exist, try <pathname>,??? or case-mangling
- * May realloc the path.
  */
-static char *
-fs_type_path(path)
+static void
+fs_typecase_path(path, type)
 	char *path;
+	int type;
 {
 	struct stat st;
 	char *pathcopy, *parentpath, *leaf;
@@ -221,7 +233,7 @@ fs_type_path(path)
 		parent = opendir(parentpath);
 		if (parent == NULL) {
 			free(pathcopy);
-			return path;
+			return;
 		}
 		leaf = basename(path);
 		len = strlen(leaf);
@@ -232,19 +244,17 @@ fs_type_path(path)
 				strcpy(path + strlen(path) - len, dp->d_name);
 				break;
                 	}
-                	if (len + 4 < sizeof(dp->d_name) &&
+                	if (type && len + 4 < sizeof(dp->d_name) &&
 			    dp->d_name[len] == ',' &&
 			    strncasecmp(dp->d_name, leaf, len) == 0 &&
 			    strlen(dp->d_name + len) == 4) {
-				path = realloc(path, strlen(path)+5);
-				strcat(path, dp->d_name + len);
+				strcpy(path + strlen(path) - len, dp->d_name);
 				break;
                 	}
 		}
 		closedir(parent);
 		free(pathcopy);
 	}
-	return path;
 }
 
 /*
