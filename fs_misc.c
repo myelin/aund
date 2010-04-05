@@ -254,6 +254,7 @@ fs_set_info(c)
 		return;
 	}
 	request = (struct ec_fs_req_set_info *)c->req;
+	if (debug) printf("set info [%d, ", request->arg);
 	switch (request->arg) {
 	case EC_FS_SET_INFO_ALL: {
 		struct ec_fs_req_set_info_all *req2 =
@@ -288,22 +289,24 @@ fs_set_info(c)
 	}
 	case EC_FS_SET_INFO_ACCESS: {
 		nyi = 1;
-		return;
+		break;
 	}
 	default:
 		bad = 1;
 	}
 
-	path[strcspn(path, "\r")] = '\0';
-	if (debug) printf("set info [%d, %s]\n", request->arg, path);
-
 	if (nyi) {
+		if (debug) printf("]\n");
 		fs_error(c, 0xff, "Not yet implemented!");
 		return;
 	} else if (bad) {
+		if (debug) printf("]\n");
 		fs_err(c, EC_FS_E_BADINFO);
 		return;
 	}
+
+	path[strcspn(path, "\r")] = '\0';
+	if (debug) printf("%s]\n", request->arg, path);
 
 	upath = fs_unixify_path(c, path); /* This must be freed */
 	if (upath == NULL) {
