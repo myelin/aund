@@ -579,6 +579,30 @@ struct ec_fs_reply_get_free {
 
 /* This lot are implemented by awServer, but not in my manual. */
 #define EC_FS_FUNC_CDIRN	27
+struct ec_fs_req_cdirn {
+	struct ec_fs_req std_rx;
+
+	/*
+	 * awServer ignores this one-byte field when processing
+	 * function code 27, but on the other hand when it receives
+	 * a *CDIR cli, it copies an optional numeric second
+	 * argument into this field to pass to its function-27
+	 * implementation (which then ignores it anyway). So
+	 * whatever this is, it's also allowable to pass it as a
+	 * number after the directory name in *CDIR.
+	 *
+	 * And with that knowledge, it becomes easy:
+	 * http://acorn.riscos.com/riscos3/37/37DiscImage/Tutorials/StarComms
+	 * says that on NetFS, *CDIR can take an optional extra
+	 * argument which is the 'size in entries' of the directory.
+	 * Fine. So I'll call this field 'size', and then ignore it
+	 * like any civilised filesystem should.
+	 */
+	u_int8_t size;
+
+	char path[0];
+};
+
 #define EC_FS_FUNC_SET_TIME	28
 #define EC_FS_FUNC_CREATE	29
 #define EC_FS_FUNC_READ_FREE	30

@@ -284,3 +284,33 @@ fs_logoff(c)
 	reply.return_code = EC_FS_RC_OK;
 	fs_reply(c, &reply, sizeof(reply));
 }
+
+void
+fs_cdirn(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply reply;
+	struct ec_fs_req_cdirn *request;
+	char *upath;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_cdirn *)(c->req);
+	request->path[strcspn(request->path, "\r")] = '\0';
+	if (debug) printf("cdirn [%s]\n", request->path);
+	upath = fs_unixify_path(c, request->path);
+	if (upath == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return;
+	}
+	if (mkdir(upath, 0777) < 0) {
+		fs_errno(c);
+	} else {
+		reply.command_code = EC_FS_CC_DONE;
+		reply.return_code = EC_FS_RC_OK;
+		fs_reply(c, &reply, sizeof(reply));
+	}
+	free(upath);
+}
