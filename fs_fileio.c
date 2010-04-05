@@ -261,7 +261,7 @@ fs_getbytes(c)
 	struct ec_fs_reply_getbytes2 reply2;
 	struct ec_fs_req_getbytes *request;
 	int h, fd;
-	off_t off, saved_off = 0;
+	off_t off;
 	size_t size, got;
 
 	if (c->client == NULL) {
@@ -275,8 +275,7 @@ fs_getbytes(c)
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		fd = c->client->handles[h]->fd;
 		if (!request->use_ptr)
-			if ((saved_off = lseek(fd, 0, SEEK_CUR)) == -1 ||
-			    lseek(fd, off, SEEK_SET) == -1) {
+			if (lseek(fd, off, SEEK_SET) == -1) {
 				fs_errno(c);
 				return;
 			}
@@ -286,10 +285,6 @@ fs_getbytes(c)
 		reply2.std_tx.command_code = EC_FS_CC_DONE;
 		reply2.std_tx.return_code = EC_FS_RC_OK;
 		got = fs_data_send(c, fd, size);
-		if (!request->use_ptr && lseek(fd, saved_off, SEEK_SET) == -1) {
-			fs_errno(c);
-			return;
-		}
 		if (got == -1) {
 			/* Error */
 			fs_errno(c);
@@ -313,7 +308,7 @@ fs_putbytes(c)
 	struct ec_fs_reply_putbytes2 reply2;
 	struct ec_fs_req_putbytes *request;
 	int h, fd, replyport;
-	off_t off, saved_off = 0;
+	off_t off;
 	size_t size, got;
 
 	if (c->client == NULL) {
@@ -328,8 +323,7 @@ fs_putbytes(c)
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		fd = c->client->handles[h]->fd;
 		if (!request->use_ptr)
-			if ((saved_off = lseek(fd, 0, SEEK_CUR)) == -1 ||
-			    lseek(fd, off, SEEK_SET) == -1) {
+			if (lseek(fd, off, SEEK_SET) == -1) {
 				fs_errno(c);
 				return;
 			}
@@ -342,10 +336,6 @@ fs_putbytes(c)
 		reply2.std_tx.command_code = EC_FS_CC_DONE;
 		reply2.std_tx.return_code = EC_FS_RC_OK;
 		got = fs_data_recv(c, fd, size, c->req->urd);
-		if (!request->use_ptr && lseek(fd, saved_off, SEEK_SET) == -1) {
-			fs_errno(c);
-			return;
-		}
 		if (got == -1) {
 			/* Error */
 			fs_errno(c);
