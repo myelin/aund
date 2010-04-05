@@ -64,7 +64,7 @@ fs_examine(c)
 	FTSENT *ent;
 	struct ec_fs_reply_examine *reply;
 	size_t reply_size;
-	int i, rc;
+	int i, n, rc;
 
 	request->path[strcspn(request->path, "\r")] = '\0';	
 	if (debug) printf("examine [%d, %d/%d, %s]\n", request->arg, request->start, request->nentries, request->path);
@@ -100,16 +100,23 @@ fs_examine(c)
 	ent = c->client->dir_cache.f;
 	for (i = c->client->dir_cache.start;
 	     i < request->start && ent != NULL;
-	     i++, ent = ent->fts_link);
+	     ent = ent->fts_link) {
+		if (ent->fts_name[0] == '.' &&
+		    (!ent->fts_name[1] || ent->fts_name[2] != '.'))
+			continue;      /* hidden file */
+		i++;		       /* count this one */
+	}
 	for (i = 0;
 	     i < request->nentries && ent != NULL;
-	     i++, ent = ent->fts_link) {
+	     ent = ent->fts_link) {
 		switch (ent->fts_info) {
 		case FTS_ERR: case FTS_NS: /* FTS_DNR doesn't matter here */
 			continue;
 		}
-		if (!strcmp(ent->fts_name, ".Acorn"))
-			continue;      /* special; don't display */
+		if (ent->fts_name[0] == '.' &&
+		    (!ent->fts_name[1] || ent->fts_name[2] != '.'))
+			continue;      /* hidden file */
+		i++;
 		switch (request->arg) {
 		case EC_FS_EXAMINE_ALL:
 			rc = fs_examine_all(ent, &reply, &reply_size);
