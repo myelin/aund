@@ -89,6 +89,7 @@ fs_unixify_path(c, path)
 	const char *base;
 	int nnames;
 	char *csd, *lib;
+	size_t disclen;
 	char *path2;
 	char *path3;
 	char *p, *q;
@@ -104,6 +105,20 @@ fs_unixify_path(c, path)
 
 	if (debug) printf("fs_unixify_path: [%s]", path);
 
+	/*
+	 * Skip disc name if one is supplied.  It would be better to
+	 * check it for correctness too.
+	 */
+	if (path[0] == ':') {
+		path++;
+		disclen = strcspn(path, ".");
+		/* 
+		 * if (disclen != strlen(discname)) return NULL;
+		 * if (strncmp(path, discname, disclen) != 0) return NULL;
+		 */
+		path += disclen;
+		if (*path) path++;
+	}
 	/*
 	 * Decide what base path this pathname is relative to, by
 	 * spotting magic characters at the front. Without any, of
