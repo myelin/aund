@@ -499,93 +499,112 @@ fs_long_info(char *string, FTSENT *f)
 
 	tm = *localtime(&f->fts_statp->st_mtime);
 
-	/*
-	 * These formats for *INFO are taken from the SJ Research
-	 * file server manual. Since the RISC OS PRM mandates a
-	 * different format (and in particular says nothing about
-	 * directories being treated differently), this should
-	 * probably be controlled by a config file option.
-	 *
-	 * The two dates are supposed to be creation and
-	 * modification respectively, but since Unix doesn't give
-	 * true creation dates I just set them both to the same
-	 * thing. (The time goes with the modification date.)
-	 *
-	 * The two three-digit hex numbers at the end of the line
-	 * are the primary and secondary account numbers on the SJ
-	 * file server that own the file. I might have tried to make
-	 * up something in here from the Unix uid and gid, but it
-	 * didn't seem worth it.
-	 */
-
-	if (S_ISDIR(f->fts_statp->st_mode)) {
-		currumask = umask(777);
-		umask(currumask);
-		fs_access_to_string(accstr2,
-				    fs_mode_to_access(0777 & ~currumask));
-
+	if (infoformat == FS_INFO_SJ) {
 		/*
-		 * Count the entries in a subdirectory.
+		 * These formats for *INFO are taken from the SJ
+		 * Research file server manual.
+		 *
+		 * The two dates are supposed to be creation and
+		 * modification respectively, but since Unix doesn't
+		 * give true creation dates I just set them both to
+		 * the same thing. (The time goes with the
+		 * modification date.)
+		 *
+		 * The two three-digit hex numbers at the end of the
+		 * line are the primary and secondary account
+		 * numbers on the SJ file server that own the file.
+		 * I might have tried to make up something in here
+		 * from the Unix uid and gid, but it didn't seem
+		 * worth it. Though if aund actually supported
+		 * multiple users and enforced access control
+		 * between them, that would be a different matter,
+		 * of course.
 		 */
-		{
-			char *lastslash = strrchr(f->fts_accpath, '/');
-			char *fullpath;
-			char *path_argv[2];
-			FTS *ftsp2;
-			FTSENT *f2;
+		if (S_ISDIR(f->fts_statp->st_mode)) {
+			currumask = umask(777);
+			umask(currumask);
+			fs_access_to_string(accstr2,
+					    fs_mode_to_access(0777 & ~currumask));
 
-			if (lastslash)
-				lastslash++;
-			else
-				lastslash = f->fts_accpath;
-			fullpath = malloc((lastslash - f->fts_accpath) +
-					  f->fts_namelen + 8 + 1);
-			sprintf(fullpath, "%.*s/%s",
-				lastslash - f->fts_accpath,
-				f->fts_accpath, f->fts_name);
-			path_argv[0] = fullpath;
-			path_argv[1] = NULL;
+			/*
+			 * Count the entries in a subdirectory.
+			 */
+			{
+				char *lastslash = strrchr(f->fts_accpath, '/');
+				char *fullpath;
+				char *path_argv[2];
+				FTS *ftsp2;
+				FTSENT *f2;
 
-			ftsp2 = fts_open(path_argv, FTS_LOGICAL, NULL);
-			f2 = fts_read(ftsp2);
-			f2 = fts_children(ftsp2, FTS_NAMEONLY);
-			for (entries = 0; f2 != NULL; f2 = f2->fts_link) {
-				if (f2->fts_name[0] == '.' &&
-				    (!f2->fts_name[1] ||
-				     f2->fts_name[2] != '.'))
-					continue;      /* hidden file */
-				entries++;          /* count this one */
+				if (lastslash)
+					lastslash++;
+				else
+					lastslash = f->fts_accpath;
+				fullpath = malloc((lastslash - f->fts_accpath) +
+						  f->fts_namelen + 8 + 1);
+				sprintf(fullpath, "%.*s/%s",
+					lastslash - f->fts_accpath,
+					f->fts_accpath, f->fts_name);
+				path_argv[0] = fullpath;
+				path_argv[1] = NULL;
+
+				ftsp2 = fts_open(path_argv, FTS_LOGICAL, NULL);
+				f2 = fts_read(ftsp2);
+				f2 = fts_children(ftsp2, FTS_NAMEONLY);
+				for (entries = 0; f2 != NULL; f2 = f2->fts_link) {
+					if (f2->fts_name[0] == '.' &&
+					    (!f2->fts_name[1] ||
+					     f2->fts_name[2] != '.'))
+						continue;      /* hidden file */
+					entries++;          /* count this one */
+				}
+				fts_close(ftsp2);
 			}
-			fts_close(ftsp2);
-		}
 
-		sprintf(string, "%-10.10s  Entries=%-4dDefault=%-6.6s  "
-			"%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d 000 (000)\r\x80",
-			acornname, entries, accstr2, accstring,
-			tm.tm_mday,
-			"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
-			tm.tm_year % 100,
-			tm.tm_mday,
-			"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
-			tm.tm_year % 100,
-			tm.tm_hour,
-			tm.tm_min);
+			sprintf(string, "%-10.10s  Entries=%-4dDefault=%-6.6s  "
+				"%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d 000 (000)\r\x80",
+				acornname, entries, accstr2, accstring,
+				tm.tm_mday,
+				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
+				tm.tm_year % 100,
+				tm.tm_mday,
+				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
+				tm.tm_year % 100,
+				tm.tm_hour,
+				tm.tm_min);
+		} else {
+			fs_get_meta(f, &meta);
+			load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
+			exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
+			sprintf(string, "%-10.10s %08X %08X     %06X "
+				"%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d 000 (000)\r\x80",
+				acornname, load, exec,
+				f->fts_statp->st_size, accstring,
+				tm.tm_mday,
+				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
+				tm.tm_year % 100,
+				tm.tm_mday,
+				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
+				tm.tm_year % 100,
+				tm.tm_hour,
+				tm.tm_min);
+		}
 	} else {
+		/*
+		 * This is the format specified in the RISC OS PRM.
+		 */
 		fs_get_meta(f, &meta);
 		load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
 		exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
-		sprintf(string, "%-10.10s %08X %08X     %06X "
-			"%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d 000 (000)\r\x80",
+		/* Low 24 bits of inode number make as good a SIN as any */
+		sprintf(string, "%-10.10s %08X %08X   %06X   "
+			"%-6.6s     %02d:%02d:%02d %06x\x80",
 			acornname, load, exec,
 			f->fts_statp->st_size, accstring,
 			tm.tm_mday,
-			"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
+			tm.tm_mon,
 			tm.tm_year % 100,
-			tm.tm_mday,
-			"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
-			tm.tm_year % 100,
-			tm.tm_hour,
-			tm.tm_min);
+			f->fts_statp->st_ino & 0xFFFFFF);
 	}
 
 	free(acornname);

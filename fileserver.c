@@ -71,6 +71,7 @@ char *root = NULL;		       /* must specify this in config */
 char *fixedurd = "";		       /* default to the root dir */
 char *lib = "";			       /* default to the root dir */
 int opt4 = 0;
+enum fs_info_format infoformat = FS_INFO_RISCOS;
 
 void
 fs_init()

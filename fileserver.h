@@ -74,6 +74,8 @@ struct fs_client {
 	struct fs_dir_cache dir_cache;
 };
 
+enum fs_info_format { FS_INFO_RISCOS, FS_INFO_SJ } infoformat;
+
 LIST_HEAD(fs_client_head, fs_client);
 extern struct fs_client_head fs_clients;
 

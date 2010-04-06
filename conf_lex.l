@@ -88,6 +88,7 @@ static void conf_cmd_urd __P((void));
 static void conf_cmd_pwfile __P((void));
 static void conf_cmd_lib __P((void));
 static void conf_cmd_beebem __P((void));
+static void conf_cmd_infofmt __P((void));
 static void conf_cmd_opt4 __P((void));
 static void conf_cmd_typemap_name __P((void));
 static void conf_cmd_typemap_perm __P((void));
@@ -127,6 +128,7 @@ static int cfylex __P((int start, void *thing));
   pwfile	BEGIN(BORING); conf_cmd_pwfile();
   opt4		BEGIN(BORING); conf_cmd_opt4();
   beebem	BEGIN(BORING); conf_cmd_beebem();
+  info([_-]?(fmt|format))	BEGIN(BORING); conf_cmd_infofmt();
 }
 <TYPEMAP>{
   name		BEGIN(BORING); conf_cmd_typemap_name(); 
@@ -239,6 +241,18 @@ conf_cmd_beebem()
 		errx(1, "no beebem configuration file specified");
 	beebem_cfg_file = malloc(cfyleng + 1);
 	strcpy(beebem_cfg_file, cfytext);
+}
+
+static void
+conf_cmd_infofmt()
+{
+
+	if (cfylex(BORING, NULL) != CF_WORD)
+		errx(1, "no *INFO format keyword specified");
+	if (!strcasecmp(cfytext, "riscos"))
+		infoformat = FS_INFO_RISCOS;
+	else if (!strcasecmp(cfytext, "sj"))
+		infoformat = FS_INFO_SJ;
 }
 
 static void
