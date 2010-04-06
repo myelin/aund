@@ -221,7 +221,7 @@ fs_get_info(c)
 			memset(&(reply.fsnum), 0, sizeof(reply.fsnum));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
-			fs_write_val(reply.sin, f->fts_statp->st_ino,
+			fs_write_val(reply.sin, fs_get_sin(f),
 			    sizeof(reply.sin));
 			reply.disc = 0;
 			fs_write_val(reply.fsnum, f->fts_statp->st_dev,

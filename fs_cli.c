@@ -597,7 +597,6 @@ fs_long_info(char *string, FTSENT *f)
 		fs_get_meta(f, &meta);
 		load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
 		exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
-		/* Low 24 bits of inode number make as good a SIN as any */
 		sprintf(string, "%-10.10s %08X %08X   %06X   "
 			"%-6.6s     %02d:%02d:%02d %06x\x80",
 			acornname, load, exec,
@@ -605,7 +604,7 @@ fs_long_info(char *string, FTSENT *f)
 			tm.tm_mday,
 			tm.tm_mon,
 			tm.tm_year % 100,
-			f->fts_statp->st_ino & 0xFFFFFF);
+			fs_get_sin(f));
 	}
 
 	free(acornname);

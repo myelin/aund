@@ -271,6 +271,21 @@ fs_del_meta(f)
 }
 
 /*
+ * Return the System Internal Name for a file.  This is only 24 bits long
+ * but is expected to be unique across the whole disk.  For now, we fake
+ * it with the bottom 24 bits of the inode number, which is less than
+ * optimal.
+ */
+int
+fs_get_sin(f)
+	FTSENT *f;
+{
+
+	return f->fts_statp->st_ino & 0xFFFFFF;
+}
+
+
+/*
  * Convert a Unix time_t (non-leap seconds since 1970-01-01) to a RISC
  * OS time (non-leap(?) centiseconds since 1900-01-01(?)).
  */

@@ -115,6 +115,7 @@ extern u_int64_t fs_read_val __P((u_int8_t *, size_t));
 extern void fs_write_val __P((u_int8_t *, u_int64_t, size_t));
 extern u_int64_t fs_riscos_date __P((time_t));
 extern void fs_get_meta __P((FTSENT *, struct ec_fs_meta *));
+extern int fs_get_sin __P((FTSENT *));
 extern void fs_write_date __P((struct ec_fs_date *, time_t));
 extern int fs_stat __P((const char *, struct stat *));
 extern const char *fs_leafname __P((const char *));
