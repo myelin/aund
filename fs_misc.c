@@ -345,7 +345,13 @@ fs_set_info(c)
 			goto out;
 		}
 	}
-	if (set_access) {
+	/*
+	 * We don't try to set the access on directories.  Acorn file
+	 * servers historically didn't support permissions on
+	 * directories, and NetFS and the Filer both do some rather
+	 * strange things with them.
+	 */
+	if (set_access && !S_ISDIR(f->fts_statp->st_mode)) {
 		/* XXX Should chose usergroup sensibly */
 		if (chmod(f->fts_accpath, fs_access_to_mode(access, 0)) != 0) {
 			fs_errno(c);
