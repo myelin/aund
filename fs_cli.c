@@ -496,6 +496,8 @@ fs_long_info(char *string, FTSENT *f)
 	fs_access_to_string(accstring,
 			    fs_mode_to_access(f->fts_statp->st_mode));
 
+	tm = *localtime(&f->fts_statp->st_mtime);
+
 	if (S_ISDIR(f->fts_statp->st_mode)) {
 		currumask = umask(777);
 		umask(currumask);
@@ -511,7 +513,6 @@ fs_long_info(char *string, FTSENT *f)
 		fs_get_meta(f, &meta);
 		load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
 		exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
-		tm = *localtime(&f->fts_statp->st_mtime);
 		sprintf(string, "%-10.10s %08X %08X   %06X   "
 			"%-6.6s     %02d%.3s%02d  \r\x80",
 			acornname, load, exec, f->fts_statp->st_size,
