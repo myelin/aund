@@ -62,7 +62,10 @@ fs_acornify_name(name)
 	size_t len;
 	char *p, *q;
 
+	if (debug) printf("fs_acornify_name: [%s]", name);
 	p = q = name;
+	if (*p == '.' && !p[1])
+		p++;			/* map "." to the empty string */
 	if (*p == '.' && p[1] == '.' && p[2] == '.')
 		p += 2;	       /* un-dot-stuff */
 	for (; *p; p++)
@@ -73,6 +76,7 @@ fs_acornify_name(name)
 		name[len-4] = '\0';
 	else
 		name[len] = '\0';
+	if (debug) printf("->[%s]\n", name);
 	return name;
 }
 
@@ -88,20 +92,37 @@ fs_unixify_path(c, path)
 {
 	const char *base;
 	int nnames;
+	char *csd, *lib;
+	size_t disclen;
 	char *path2;
 	char *path3;
 	char *p, *q;
 
+	csd = c->req->csd ? c->client->handles[c->req->csd]->path : NULL;
+	lib = c->req->lib ? c->client->handles[c->req->lib]->path : NULL;
 	/*
 	 * Plenty of space.
 	 */
-	path2 = malloc(strlen(c->client->urd) +
-		       strlen(c->client->handles[c->req->csd]->path) +
-		       strlen(c->client->handles[c->req->lib]->path) +
+	path2 = malloc(strlen(c->client->urd) + (csd ? strlen(csd) : 0) +
+		       (lib ? strlen(lib) : 0) +
 		       2 * strlen(path) + 100);
 
 	if (debug) printf("fs_unixify_path: [%s]", path);
 
+	/*
+	 * Skip disc name if one is supplied.  It would be better to
+	 * check it for correctness too.
+	 */
+	if (path[0] == ':') {
+		path++;
+		disclen = strcspn(path, ".");
+		/* 
+		 * if (disclen != strlen(discname)) return NULL;
+		 * if (strncmp(path, discname, disclen) != 0) return NULL;
+		 */
+		path += disclen;
+		if (*path) path++;
+	}
 	/*
 	 * Decide what base path this pathname is relative to, by
 	 * spotting magic characters at the front. Without any, of
@@ -115,14 +136,14 @@ fs_unixify_path(c, path)
 		    case '&':
 			base = c->client->urd; break;
 		    case '@':
-			base = c->client->handles[c->req->csd]->path; break;
+			base = csd; break;
 		    case '%':
-			base = c->client->handles[c->req->lib]->path; break;
+			base = lib; break;
 		}
 		path++;
 		if (*path) path++;
 	} else {
-		base = c->client->handles[c->req->csd]->path;
+		base = csd;
 	}
 	if (base) {
 		sprintf(path2, "%s/", base);
