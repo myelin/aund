@@ -56,8 +56,6 @@
 #include "extern.h"
 #include "fileserver.h"
 
-#include "bsd_libc.h"
-
 typedef void fs_cmd_impl __P((struct fs_context *, char *));
 
 struct fs_cmd {
