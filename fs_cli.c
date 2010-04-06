@@ -257,7 +257,7 @@ fs_cmd_i_am(c, tail)
 		 */
 		oururd = pw_validate(login, password);
 		if (!oururd) {
-			fs_err(c, EC_FS_E_BADPW);
+			fs_err(c, EC_FS_E_WRONGPW);
 			return;
 		}
 	} else {
