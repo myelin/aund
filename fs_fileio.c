@@ -61,6 +61,7 @@ void fs_getbytes __P((struct fs_context *));
 
 static ssize_t fs_data_send __P((struct fs_context *, int, size_t));
 static ssize_t fs_data_recv __P((struct fs_context *, int, size_t, int));
+static int fs_close1 __P((struct fs_context *c, int h));
 
 void
 fs_open(c)
@@ -116,7 +117,7 @@ fs_close(c)
 {
 	struct ec_fs_reply reply;
 	struct ec_fs_req_close *request;
-	int h, fd, rc;
+	int h, fd, error, thiserr;
 	
 	if (c->client == NULL) {
 		fs_err(c, EC_FS_E_WHOAREYOU);
@@ -124,24 +125,46 @@ fs_close(c)
 	}
 	request = (struct ec_fs_req_close *)(c->req);
 	if (debug) printf("close [%d]\n", request->handle);
-	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
-		fd = c->client->handles[request->handle]->fd;
-		/* ESUG says this is needed */
-		if ((rc = fsync(fd)) == -1) {
-			if (errno == EINVAL)
-				rc = 0;/* fundamentally unfsyncable */
-			else
-				fs_errno(c);
-		}
-		close(fd);
-		fs_close_handle(c->client, h);
+	if (request->handle == 0) {
+		for (h = 1; h < c->client->nhandles; h++)
+			if (c->client->handles[h] &&
+			    c->client->handles[h]->type == FS_HANDLE_FILE &&
+			    (thiserr = fs_close1(c, h)))
+				error = thiserr;
 	} else
-		rc = 0;
-	if (rc == 0) {
+		error = fs_close1(c, request->handle);
+	if (error)
+		fs_errno(c);
+        else {
 		reply.command_code = EC_FS_CC_DONE;
 		reply.return_code = EC_FS_RC_OK;
 		fs_reply(c, &reply, sizeof(reply));
 	}
+}
+
+/*
+ * Close a single handle.
+ */
+static int
+fs_close1(c, h)
+	struct fs_context *c;
+	int h;
+{
+	struct fs_handle *hp;
+	int error = 0;
+
+	if ((h = fs_check_handle(c->client, h)) != 0) {
+		if (debug) printf("close(%d)", h);
+		hp = c->client->handles[h];
+		/* ESUG says this is needed */
+		if (hp->type == FS_HANDLE_FILE && fsync(hp->fd) == -1) {
+			if (errno != EINVAL) /* fundamentally unfsyncable */
+				error = errno;
+		}
+		close(hp->fd);
+		fs_close_handle(c->client, h);
+	}
+	return error;
 }
 
 void
