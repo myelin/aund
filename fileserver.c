@@ -68,8 +68,8 @@ struct fs_client_head fs_clients = LIST_HEAD_INITIALIZER(fs_clients);
 
 char *discname;
 char *root = NULL;		       /* must specify this in config */
-char *fixedurd = "";		       /* default to the root dir */
-char *lib = "";			       /* default to the root dir */
+char *fixedurd = ".";		       /* default to the root dir */
+char *lib = ".";		       /* default to the root dir */
 int opt4 = 0;
 enum fs_info_format infoformat = FS_INFO_RISCOS;
 
