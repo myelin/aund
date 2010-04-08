@@ -68,8 +68,10 @@ extern fs_func_impl fs_get_time;
 extern fs_func_impl fs_set_opt4;
 extern fs_func_impl fs_logoff;
 extern fs_func_impl fs_delete;
+extern fs_func_impl fs_get_disc_free;
 extern fs_func_impl fs_cdirn;
 extern fs_func_impl fs_create;
+extern fs_func_impl fs_get_user_free;
 
 struct fs_client_head fs_clients = LIST_HEAD_INITIALIZER(fs_clients);
 
@@ -198,11 +200,17 @@ file_server(pkt, len, from)
 	case EC_FS_FUNC_DELETE:
 		fs_delete(c);
 		break;
+	case EC_FS_FUNC_GET_DISC_FREE:
+		fs_get_disc_free(c);
+		break;
 	case EC_FS_FUNC_CDIRN:
 		fs_cdirn(c);
 		break;
 	case EC_FS_FUNC_CREATE:
 		fs_create(c);
+		break;
+	case EC_FS_FUNC_GET_USER_FREE:
+		fs_get_user_free(c);
 		break;
 	default:
 		if (debug) printf("unknown function %d\n", c->req->function);

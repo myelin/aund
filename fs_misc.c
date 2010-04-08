@@ -35,6 +35,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -641,6 +642,69 @@ fs_get_time(c)
 	reply.mins = tm.tm_min;
 	reply.secs = tm.tm_sec;
 
+	reply.std_tx.command_code = EC_FS_CC_DONE;
+	reply.std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &(reply.std_tx), sizeof(reply));
+}
+
+void
+fs_get_disc_free(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_get_disc_free reply;
+	struct ec_fs_req_get_disc_free *request;
+	struct statvfs f;
+	unsigned long long bfree, bytes;
+
+	request = (struct ec_fs_req_get_disc_free *)(c->req);
+	request->discname[strcspn(request->discname, "\r")] = '\0';
+	if (debug) printf("get disc free [%s]", request->discname);
+	/*
+	 * XXX To support multiple discs, we might want to look at
+	 * the disc name passed in and resolve it to a Unix path.
+	 * For now, though, just assume it refers to the only disc
+	 * we export.
+	 */
+	if (statvfs(".", &f) != 0) {
+		fs_errno(c);
+		return;
+	}
+	/* XXX Handle overflow? */
+	bytes = f.f_blocks * f.f_frsize;
+	bfree = f.f_bfree * f.f_frsize;
+	if (bytes > 0xffffffff) bytes = 0xffffffff;
+	if (bfree > 0xffffffff) bfree = 0xffffffff;
+	fs_write_val(reply.free_blocks, bfree>>8, sizeof(reply.free_blocks));
+	fs_write_val(reply.total_blocks, bytes>>8, sizeof(reply.total_blocks));
+	reply.std_tx.command_code = EC_FS_CC_DONE;
+	reply.std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &(reply.std_tx), sizeof(reply));
+}
+
+void
+fs_get_user_free(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_get_user_free reply;
+	struct ec_fs_req_get_user_free *request;
+	struct statvfs f;
+	unsigned long long bavail;
+
+	request = (struct ec_fs_req_get_user_free *)(c->req);
+	request->username[strcspn(request->username, "\r")] = '\0';
+	if (debug) printf("get user free [%s]", request->username);
+	/*
+	 * XXX In an ideal world, we might look at quotas here, but in
+	 * an ideal world there'd be a standardised way of doing that.
+	 */
+	if (statvfs(".", &f) != 0) {
+		fs_errno(c);
+		return;
+	}
+	/* XXX Handle overflow? */
+	bavail = f.f_bavail * f.f_frsize;
+	if (bavail > 0xffffffff) bavail = 0xffffffff;
+	fs_write_val(reply.free_bytes, bavail, sizeof(reply.free_bytes));
 	reply.std_tx.command_code = EC_FS_CC_DONE;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	fs_reply(c, &(reply.std_tx), sizeof(reply));

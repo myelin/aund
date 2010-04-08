@@ -611,8 +611,17 @@ struct ec_fs_reply_create { /* identical to save2 */
 	struct ec_fs_date date;
 };
 
-#define EC_FS_FUNC_READ_FREE	30
-#define EC_FS_FUNC_SET_FREE	31
+/* Read user free space - code 30 */
+#define EC_FS_FUNC_GET_USER_FREE 30
+struct ec_fs_req_get_user_free {
+	struct ec_fs_req std_rx;
+	char username[0];
+};
+struct ec_fs_reply_get_user_free {
+	struct ec_fs_reply std_tx;
+	u_int8_t free_bytes[4];
+};
+#define EC_FS_FUNC_SET_USER_FREE 31
 #define EC_FS_FUNC_WHO_AM_I	32
 #define EC_FS_FUNC_USERS_EXT	33
 #define EC_FS_FUNC_USER_INFO_EXT 34
