@@ -1,8 +1,7 @@
 /* $NetBSD: fs_cli.c,v 1.3 2009/01/02 23:33:04 bjh21 Exp $ */
-/* Berkeley copyright because of fs_cmd_info(), which is basically ls(1) */
-/*
- * Copyright (c) 1989, 1993
- *	The Regents of the University of California.  All rights reserved.
+/*-
+ * Copyright (c) 1998 Ben Harris
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -12,25 +11,19 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * 3. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
  * fs_cli.c - command-line interpreter for file server
@@ -75,8 +68,6 @@ static fs_cmd_impl fs_cmd_rename;
 
 static int fs_cli_match __P((char *word, int len, const struct fs_cmd *cmd));
 static void fs_cli_unrec __P((struct fs_context *, char *));
-
-static char *printtime __P((time_t));
 
 static const struct fs_cmd cmd_tab[] = {
 	{"DIR", 	"DIR",	fs_cmd_dir,	},
@@ -621,30 +612,6 @@ fs_cmd_info(c, tail)
 	FTS *ftsp;
 	FTSENT *f;
 
-	/*
-	 * XXX
-	 *
-	 * According to the RISC OS 3 PRM, this should return (in ASCII):
-	 * Byte  Meaning
-	 * 1-2   standard Rx Header (command code = 4)
-	 * 3-12  object name, padded with spaces
-	 * 13    space
-	 * 14-21 load address, padded with zeros
-	 * 22    space
-	 * 23-30 execution address, padded with zeros
-	 * 31-33 spaces
-	 * 34-39 length padded with zeros
-	 * 40-42 spaces
-	 * 43-48 access details (eg LWR/WR), padded with spaces
-	 * 49-53 spaces
-	 * 54-61 date (DD:MM:YY)
-	 * 62    space
-	 * 63-68 System Internal Name (SIN), padded with zeros
-	 * 69    Terminating negative byte (&80)
-	 *
-	 * awServer puts all numeric values in hex.
-	 */
-
 	if (c->client == NULL) {
 		fs_error(c, 0xff, "Who are you?");
 		return;
@@ -671,31 +638,4 @@ fs_cmd_info(c, tail)
 	free(reply);
 	free(upath);
 	fts_close(ftsp);
-}
-
-static char *
-printtime(ftime)
-	time_t ftime;
-{
-	int i, j;
-	char *longstring;
-	static char shortstring[14];
-
-	j = 0;
-	longstring = ctime(&ftime);
-	for (i = 4; i < 11; ++i)
-		shortstring[j++] = longstring[i];
-
-#define	SIXMONTHS	(365*24*60*60/2)
-	if (ftime + SIXMONTHS > time((time_t *)NULL))
-		for (i = 11; i < 16; ++i)
-			shortstring[j++] = longstring[i];
-	else {
-		shortstring[j++] = ' ';
-		for (i = 20; i < 24; ++i)
-			shortstring[j++] = longstring[i];
-	}
-	shortstring[j++] = ' ';
-	shortstring[j++] = 0;
-	return shortstring;
 }

@@ -567,45 +567,50 @@ struct ec_fs_reply_get_version {
 	char version[0];
 };
 
-/* Read file server free space - code 26 */
-#define EC_FS_FUNC_GET_FREE	26
-struct ec_fs_req_get_free {
+/* Read disc free space - code 26 */
+#define EC_FS_FUNC_GET_DISC_FREE	26
+struct ec_fs_req_get_disc_free {
 	struct ec_fs_req std_rx;
 	char discname[0];
 };
-struct ec_fs_reply_get_free {
+struct ec_fs_reply_get_disc_free {
 	struct ec_fs_reply std_tx;
-	u_int8_t free_blocks[3]; /* What size? */
+	u_int8_t free_blocks[3]; /* Units of 0x100 bytes */
+	u_int8_t total_blocks[3]; /* ditto */
 };
 
-/* This lot are implemented by awServer, but not in my manual. */
+/* Create directory, specifying size - code 27 */
 #define EC_FS_FUNC_CDIRN	27
 struct ec_fs_req_cdirn {
 	struct ec_fs_req std_rx;
-
-	/*
-	 * awServer ignores this one-byte field when processing
-	 * function code 27, but on the other hand when it receives
-	 * a *CDIR cli, it copies an optional numeric second
-	 * argument into this field to pass to its function-27
-	 * implementation (which then ignores it anyway). So
-	 * whatever this is, it's also allowable to pass it as a
-	 * number after the directory name in *CDIR.
-	 *
-	 * And with that knowledge, it becomes easy:
-	 * http://acorn.riscos.com/riscos3/37/37DiscImage/Tutorials/StarComms
-	 * says that on NetFS, *CDIR can take an optional extra
-	 * argument which is the 'size in entries' of the directory.
-	 * Fine. So I'll call this field 'size', and then ignore it
-	 * like any civilised filesystem should.
-	 */
-	u_int8_t size;
-
+	u_int8_t size; /* Maximum number of sectors */
 	char path[0];
 };
 
+/* Set fileserver date and time - code 28 */
 #define EC_FS_FUNC_SET_TIME	28
+struct ec_fs_req_set_time {
+	struct ec_fs_req std_rx;
+	struct ec_fs_date date;
+	u_int8_t hours;
+	u_int8_t mins;
+	u_int8_t secs;
+};
+
+/* Create file - code 29 */
 #define EC_FS_FUNC_CREATE	29
+struct ec_fs_req_create { /* almost identical to save */
+	struct ec_fs_req std_rx;
+	struct ec_fs_meta meta;
+	u_int8_t size[3];
+	char path[0]; /* CR terminated */
+};
+struct ec_fs_reply_create { /* identical to save2 */
+	struct ec_fs_reply std_tx;
+	u_int8_t access;
+	struct ec_fs_date date;
+};
+
 #define EC_FS_FUNC_READ_FREE	30
 #define EC_FS_FUNC_SET_FREE	31
 #define EC_FS_FUNC_WHO_AM_I	32

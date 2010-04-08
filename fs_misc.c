@@ -443,23 +443,33 @@ fs_delete(c)
 	path_argv[1] = NULL;
 	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
 	f = fts_read(ftsp);
-	if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS ||
-	    (unlink(upath) < 0 && (errno != EISDIR ||
-				   (rmdir(acornpath), rmdir(upath)) < 0))) {
+	if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
 		fs_errno(c);
+		goto out;
+	} else if (S_ISDIR(f->fts_statp->st_mode)) {
+		rmdir(acornpath);
+		if (rmdir(upath) < 0) {
+			fs_errno(c);
+			goto out;
+		}
 	} else {
-		/*
-		 * I'm not quite sure why it's necessary to return
-		 * the metadata and size of something we've just
-		 * deleted, but there we go.
-		 */
-		fs_write_val(reply.size, f->fts_statp->st_size, sizeof(reply.size));
-		fs_get_meta(f, &(reply.meta));
-		fs_del_meta(f);
-		reply.std_tx.command_code = EC_FS_CC_DONE;
-		reply.std_tx.return_code = EC_FS_RC_OK;
-		fs_reply(c, &(reply.std_tx), sizeof(reply));
+		if (unlink(upath) < 0) {
+			fs_errno(c);
+			goto out;
+		}
 	}
+	/*
+	 * I'm not quite sure why it's necessary to return
+	 * the metadata and size of something we've just
+	 * deleted, but there we go.
+	 */
+	fs_write_val(reply.size, f->fts_statp->st_size, sizeof(reply.size));
+	fs_get_meta(f, &(reply.meta));
+	fs_del_meta(f);
+	reply.std_tx.command_code = EC_FS_CC_DONE;
+	reply.std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &(reply.std_tx), sizeof(reply));
+out:
 	free(acornpath);
 	free(upath);
 }
