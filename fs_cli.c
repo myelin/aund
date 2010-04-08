@@ -52,8 +52,8 @@
 typedef void fs_cmd_impl __P((struct fs_context *, char *));
 
 struct fs_cmd {
-	char	*full;
-	char	*min;
+	char	*name;
+	int	minlen;
 	fs_cmd_impl	*impl;
 };
 
@@ -66,18 +66,18 @@ static fs_cmd_impl fs_cmd_sdisc;
 static fs_cmd_impl fs_cmd_pass;
 static fs_cmd_impl fs_cmd_rename;
 
-static int fs_cli_match __P((char *word, int len, const struct fs_cmd *cmd));
+static int fs_cli_match __P((char *cmdline, char **tail, const struct fs_cmd *cmd));
 static void fs_cli_unrec __P((struct fs_context *, char *));
 
 static const struct fs_cmd cmd_tab[] = {
-	{"DIR", 	"DIR",	fs_cmd_dir,	},
-	{"I", 		"I",	fs_cmd_i_am,	}, /* Odd case */
-	{"INFO",	"INFO",	fs_cmd_info,	},
-	{"LIB",		"LIB",	fs_cmd_lib,	},
-	{"LOGOFF",	"LOGOFF", fs_cmd_logoff, },
-	{"PASS",      	"PASS",	fs_cmd_pass,	},
-	{"RENAME",      "RENAME", fs_cmd_rename, },
-	{"SDISC",      	"SDIS",	fs_cmd_sdisc,	},
+	{"DIR", 	3, fs_cmd_dir,		},
+	{"INFO",	1, fs_cmd_info,		},
+	{"I AM", 	2, fs_cmd_i_am,		},
+	{"LIB",		3, fs_cmd_lib,		},
+	{"LOGOFF",	3, fs_cmd_logoff,	},
+	{"PASS",      	1, fs_cmd_pass,		},
+	{"RENAME",      1, fs_cmd_rename,	},
+	{"SDISC",      	3, fs_cmd_sdisc,	},
 };
 
 #define NCMDS (sizeof(cmd_tab) / sizeof(cmd_tab[0]))
@@ -97,25 +97,10 @@ fs_cli(c)
 	int len;
 	c->req->data[strcspn(c->req->data, "\r")] = '\0';
 
-	tail = c->req->data;
-	backup = strdup(tail);
-	if (*tail == '*') tail++;
-	/*
-	 * We can't use fs_cli_getarg, because the leading command
-	 * may immediately adjoin to the next word:
-	 *  - if the command ends in a dot (e.g. "i.file" as an
-	 *    abbreviation for "INFO file")
-	 *  - if the next word ends in magic punctuation (e.g.
-	 *    "dir^").
-	 */
-	while (*tail && isspace((unsigned char)*tail)) tail++;
-	head = tail;
-	while (*tail && !isspace((unsigned char)*tail) &&
-	       !strchr(".^&@$%", *tail)) tail++;
-	if (*tail == '.') tail++;
-	len = tail - head;
+	head = backup = strdup(c->req->data);
+	if (*head == '*') head++;
 	for (i = 0; i < NCMDS; i++) {
-		if (fs_cli_match(head, len, &(cmd_tab[i]))) {
+		if (fs_cli_match(head, &tail, &(cmd_tab[i]))) {
 			/*
 			 * We print a diagnostic of the command for
 			 * all commands except *I AM and *PASS,
@@ -154,32 +139,39 @@ fs_cli_unrec(c, cmd)
 }
 
 /*
- * Work out if word is an acceptable abbreviation for cmd.
+ * Work out if cmdline starts with an acceptable abbreviation for
+ * cmd. If it does, return the tail of the command beyond that.
  */
 
 static int
-fs_cli_match(word, len, cmd)
-	char *word;
-	int len;
+fs_cli_match(cmdline, tail, cmd)
+	char *cmdline;
+	char **tail;
 	const struct fs_cmd *cmd;
 {
 	int i;
 
-	for (i = 0; i < len; i++) {
-		int creal = cmd->full[i];
-		int cthis = toupper((unsigned char)word[i]);
+	for (i = 0;; i++) {
+		int creal = cmd->name[i];
+		int cthis = toupper((unsigned char)cmdline[i]);
 
-		if (creal == '\0')
-			return 0;      /* real command ended before this */
-		if (i == len-1 && cthis == '.')
+		if (creal == '\0') {   /* real command has just ended */
+			if (strchr(" .^&@$%", cthis)) {   /* so has input */
+				*tail = cmdline + i;
+				return 1;
+			} else {
+				return 0;   /* no match */
+			}
+		}
+		if (cthis == '.') {    /* input command is abbreviated */
+			if (i < cmd->minlen)
+				return 0;   /* too short an abbreviation */
+			*tail = cmdline + i + 1;   /* skip the dot */
 			return 1;      /* abbreviation which matches */
+		}
 		if (creal != cthis)
 			return 0;      /* mismatched character */
 	}
-	/* If we reach the end of this loop, we've run off the end of cthis. */
-	if (!cmd->full[len])
-		return 1;	       /* commands matched all the way along */
-	return 0;		       /* no they didn't */
 }
 
 /*
@@ -243,10 +235,6 @@ fs_cmd_i_am(c, tail)
 	char *login, *password, *oururd;
 	int opt4 = default_opt4;
 
-	if (strcasecmp(fs_cli_getarg(&tail), "am")) {
-		fs_unrec(c);
-		return;
-	}
 	login = fs_cli_getarg(&tail);
 	password = fs_cli_getarg(&tail);
 	if (debug) printf("cli: log on [%s]\n", login);
