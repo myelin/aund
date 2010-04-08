@@ -232,6 +232,8 @@ fs_cmd_i_am(c, tail)
 	/* FIXME user authentication would be nice */
 	struct ec_fs_reply_logon reply;
 	char *login, *password, *oururd;
+	int opt4 = default_opt4;
+
 	if (strcasecmp(fs_cli_getarg(&tail), "am")) {
 		fs_unrec(c);
 		return;
@@ -246,7 +248,7 @@ fs_cmd_i_am(c, tail)
 		 * file, and look up the root directory for the
 		 * given user.
 		 */
-		oururd = pw_validate(login, password);
+		oururd = pw_validate(login, password, &opt4);
 		if (!oururd) {
 			fs_err(c, EC_FS_E_WRONGPW);
 			return;

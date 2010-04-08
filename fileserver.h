@@ -84,7 +84,7 @@ extern char *root;
 extern char *fixedurd;
 extern char *pwfile;
 extern char *lib;
-extern int opt4; /* ditto */
+extern int default_opt4;
 
 extern void fs_unrec __P((struct fs_context *));
 extern char *fs_cli_getarg __P((char **));

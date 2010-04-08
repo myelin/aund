@@ -22,6 +22,8 @@ char *pwtmp = NULL;
 static int pwline;
 static FILE *fp, *newfp;
 
+extern int default_opt4;
+
 int pw_open(int write)
 {
 	assert(pwfile);		       /* shouldn't even be called otherwise */
@@ -84,10 +86,10 @@ int pw_close_rename(void)
 	}
 }
 
-int pw_read_line(char **user, char **pw, char **urd)
+int pw_read_line(char **user, char **pw, char **urd, int *opt4)
 {
 	static char buffer[16384];
-	char *p, *q;
+	char *p, *q, *r;
 	if (!fgets(buffer, sizeof(buffer), fp))
 		return 0;
 	pwline++;
@@ -102,6 +104,14 @@ int pw_read_line(char **user, char **pw, char **urd)
 	*p++ = '\0';
 	*q++ = '\0';
 
+	r = strchr(q, ':');
+	if (r) {
+		*r++ = '\0';
+		*opt4 = atoi(r);
+	} else {
+		*opt4 = default_opt4;
+	}
+
 	*user = buffer;
 	*pw = p;
 	*urd = q;
@@ -109,12 +119,12 @@ int pw_read_line(char **user, char **pw, char **urd)
 	return 1;
 }
 
-void pw_write_line(char *user, char *pw, char *urd)
+void pw_write_line(char *user, char *pw, char *urd, int opt4)
 {
-	fprintf(newfp, "%s:%s:%s\n", user, pw, urd);
+	fprintf(newfp, "%s:%s:%s:%d\n", user, pw, urd, opt4);
 }
 
-extern char *pw_validate(char *user, const char *pw)
+extern char *pw_validate(char *user, const char *pw, int *opt4)
 {
 	char *u, *p, *d;
 	char *ret;
@@ -122,7 +132,7 @@ extern char *pw_validate(char *user, const char *pw)
 	if (!pw_open(0))
 		return;
 
-	while (pw_read_line(&u, &p, &d)) {
+	while (pw_read_line(&u, &p, &d, opt4)) {
 		if (!strcasecmp(user, u)) {
 			int ok = 0;
 			char *ret;
@@ -149,12 +159,13 @@ extern char *pw_validate(char *user, const char *pw)
 extern int pw_change(const char *user, const char *oldpw, const char *newpw)
 {
 	char *u, *p, *d;
+	int opt4;
 	int done = 0;
 
 	if (!pw_open(1))
 		return;
 
-	while (pw_read_line(&u, &p, &d)) {
+	while (pw_read_line(&u, &p, &d, &opt4)) {
 		if (!done && !strcasecmp(user, u)) {
 			int ok = 0;
 			char *ret;
@@ -177,7 +188,7 @@ extern int pw_change(const char *user, const char *oldpw, const char *newpw)
 				tv.tv_usec & 0xFFFFFFFFUL);
 			p = crypt(newpw, salt);
 		}
-		pw_write_line(u, p, d);
+		pw_write_line(u, p, d, opt4);
 	}
 
 	return pw_close_rename();

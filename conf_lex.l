@@ -262,7 +262,7 @@ conf_cmd_opt4()
 
 	if (cfylex(BORING, NULL) != CF_WORD)
 		errx(1, "no boot option specified");
-	opt4 = strtol(cfytext, &endptr, 0);
+	default_opt4 = strtol(cfytext, &endptr, 0);
 	if (*endptr != '\0')
 		errx(1, "bad boot option");
 }

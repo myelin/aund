@@ -50,7 +50,7 @@ extern void conf_init __P((const char *));
 extern void fs_init __P((void));
 extern void file_server __P((struct aun_packet *, ssize_t, struct aun_srcaddr *));
 
-extern char *pw_validate(char *user, const char *pw);
+extern char *pw_validate(char *user, const char *pw, int *opt4);
 extern int pw_change(const char *user, const char *oldpw, const char *newpw);
 
 extern int debug;
