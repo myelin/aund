@@ -317,6 +317,12 @@ fs_getbytes(c)
 			/* Error */
 			fs_errno(c);
 		} else {
+			/*
+			 * FIXME: shouldn't we be detecting here the
+			 * case in which we read a full buffer
+			 * _which included the last byte_, and
+			 * setting flag 0x80?
+			 */
 			if (got == size)
 				reply2.flag = 0;
 			else
@@ -326,6 +332,45 @@ fs_getbytes(c)
 		}
 	}
 	
+}
+
+void
+fs_getbyte(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_getbyte reply;
+	struct ec_fs_req_getbyte *request;
+	int h, fd, ret;
+	off_t off;
+	size_t size, got;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_getbyte *)(c->req);
+	if (debug) printf("getbyte [%d]\n", request->handle);
+	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
+		fd = c->client->handles[h]->fd;
+		if ((ret = read(fd, &reply.byte, 1)) < 0) {
+			fs_errno(c);
+			return;
+		}
+		reply.std_tx.command_code = EC_FS_CC_DONE;
+		reply.std_tx.return_code = EC_FS_RC_OK;
+		/*
+		 * FIXME: we should be detecting EOF here in the
+		 * sense of having just read the last byte, and
+		 * setting flag 0x80.
+		 */
+		if (ret == 0) {
+			reply.flag = 0xC0;
+			reply.byte = 0xFF;
+		} else {
+			reply.flag = 0;
+		}
+		fs_reply(c, &(reply.std_tx), sizeof(reply));
+	}
 }
 
 void

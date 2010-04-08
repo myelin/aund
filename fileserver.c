@@ -50,6 +50,7 @@ extern fs_func_impl fs_cli;
 extern fs_func_impl fs_examine;
 extern fs_func_impl fs_open;
 extern fs_func_impl fs_close;
+extern fs_func_impl fs_getbyte;
 extern fs_func_impl fs_putbyte;
 extern fs_func_impl fs_getbytes;
 extern fs_func_impl fs_putbytes;
@@ -139,6 +140,9 @@ file_server(pkt, len, from)
 		break;
 	case EC_FS_FUNC_CLOSE:
 		fs_close(c);
+		break;
+	case EC_FS_FUNC_GETBYTE:
+		fs_getbyte(c);
 		break;
 	case EC_FS_FUNC_PUTBYTE:
 		fs_putbyte(c);
