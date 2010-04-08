@@ -183,7 +183,7 @@ fs_get_args(c)
 		return;
 	}
 	request = (struct ec_fs_req_get_args *)(c->req);
-	if (debug) printf("get args [%d, %d]\n", request->handle, request->arg);
+	if (debug) printf("get args [%d, %d]", request->handle, request->arg);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		fd = c->client->handles[h]->fd;
 		switch (request->arg) {
@@ -209,9 +209,13 @@ fs_get_args(c)
 			fs_write_val(reply.val, st.st_blocks * S_BLKSIZE, sizeof(reply.val));
 			break;
 		default:
-			fs_error(c, 0xff, "Bad argument to get_args");
+			if (debug) printf("\n");
+			fs_err(c, EC_FS_E_BADARGS);
 			return;
 		}
+		if (debug)
+			printf(" <- %ju\n",
+			    fs_read_val(reply.val, sizeof(reply.val)));
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		reply.std_tx.return_code = EC_FS_RC_OK;
 		fs_reply(c, &(reply.std_tx), sizeof(reply));
@@ -235,7 +239,7 @@ fs_set_args(c)
 	}
 	request = (struct ec_fs_req_set_args *)(c->req);
 	val = fs_read_val(request->val, sizeof(request->val));
-	if (debug) printf("set args [%d, %d := %jx]\n", request->handle, request->arg, (uintmax_t)val);
+	if (debug) printf("set args [%d, %d := %ju]\n", request->handle, request->arg, (uintmax_t)val);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		c->client->handles[h]->sequence ^= 1;
 		fd = c->client->handles[h]->fd;
@@ -245,6 +249,16 @@ fs_set_args(c)
 				fs_errno(c);
 				return;
 			}
+			break;
+		case EC_FS_ARG_EXT:
+			if (ftruncate(fd, val) == -1) {
+				fs_errno(c);
+				return;
+			}
+			break;
+		default:
+			fs_error(c, 0xff, "bad argument to set_args");
+			return;
 		}
 		reply.command_code = EC_FS_CC_DONE;
 		reply.return_code = EC_FS_RC_OK;

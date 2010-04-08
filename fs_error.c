@@ -75,6 +75,7 @@ const static struct {
 	{0x69, "Object not a file"},
 
 	{EC_FS_E_BADINFO,	"Bad INFO argument"},
+	{EC_FS_E_BADARGS,	"Bad RDARGS argument"},
 
 	{EC_FS_E_NOMEM, "Server out of memory"},
 
