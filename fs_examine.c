@@ -322,6 +322,7 @@ fs_examine_longtxt(ent, replyp, reply_sizep)
 	}
 	string = (char*)(((void *)*replyp) + *reply_sizep);
 	fs_long_info(string, ent);
+	string[strcspn(string, "\r\x80")] = '\0';
 	*reply_sizep += 1 + strlen(string); /* one byte spare to terminate */
 	return 0;
 burn:
