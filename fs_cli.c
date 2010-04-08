@@ -546,9 +546,7 @@ fs_long_info(char *string, FTSENT *f)
 				f2 = fts_read(ftsp2);
 				f2 = fts_children(ftsp2, FTS_NAMEONLY);
 				for (entries = 0; f2 != NULL; f2 = f2->fts_link) {
-					if (f2->fts_name[0] == '.' &&
-					    (!f2->fts_name[1] ||
-					     f2->fts_name[2] != '.'))
+					if (fs_hidden_name(f2->fts_name))
 						continue;      /* hidden file */
 					entries++;          /* count this one */
 				}

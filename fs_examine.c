@@ -105,8 +105,7 @@ fs_examine(c)
 	for (i = c->client->dir_cache.start;
 	     i < request->start && ent != NULL;
 	     ent = ent->fts_link) {
-		if (ent->fts_name[0] == '.' &&
-		    (!ent->fts_name[1] || ent->fts_name[2] != '.'))
+		if (fs_hidden_name(ent->fts_name))
 			continue;      /* hidden file */
 		i++;		       /* count this one */
 	}
@@ -117,8 +116,7 @@ fs_examine(c)
 		case FTS_ERR: case FTS_NS: /* FTS_DNR doesn't matter here */
 			continue;
 		}
-		if (ent->fts_name[0] == '.' &&
-		    (!ent->fts_name[1] || ent->fts_name[2] != '.'))
+		if (fs_hidden_name(ent->fts_name))
 			continue;      /* hidden file */
 		i++;
 		switch (request->arg) {

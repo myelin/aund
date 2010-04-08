@@ -81,6 +81,34 @@ fs_acornify_name(name)
 }
 
 /*
+ * Determine whether a leaf name describes a file that the file
+ * server should be showing. File names beginning with one or two
+ * dots are hidden (this covers '.', '..' and '.Acorn' in
+ * particular), and so are file names longer than 10 characters
+ * (after stripping two dots off dot-stuffed ones).
+ */
+int
+fs_hidden_name(name)
+	char *name;
+{
+	if (*name == '.') {
+		/*
+		 * Check for, and skip, two extra dots.
+		 */
+		if (*++name != '.' || *++name != '.')
+			return 1;      /* dotfile; hidden */
+		/*
+		 * Now the name has been un-dot-stuffed.
+		 */
+	}
+
+	if (strlen(name) > 10)
+		return 1;	       /* long file: hidden */
+
+	return 0;
+}
+
+/*
  * Convert a path provided by a client into a Unix one.  Note that the
  * new path is in a freshly mallocked block, and the caller is
  * responsible for freeing it.
@@ -302,6 +330,7 @@ static int wcmatch(char *wc, char *file, int len)
  * Find the real file that matches the name in 'path'. This may
  * involve:
  *
+ *  - truncating to 10 characters
  *  - case-insensitively matching
  *  - wildcard matching (we just return the first match)
  *  - appending ,??? for a RISC OS file type
@@ -316,6 +345,17 @@ fs_match_path(path)
 	struct dirent *dp;
 	size_t leaflen;
 
+	leaf = strrchr(path, '/');
+	if (leaf)
+		leaf++;
+	else
+		leaf = path;
+	leaflen = strlen(leaf);
+	if (leaflen > 10) {
+		leaflen = 10;
+		leaf[leaflen] = '\0';
+	}
+
 	if (lstat(path, &st) == -1 && errno == ENOENT) {
 		pathcopy = strdup(path);
 		parentpath = dirname(pathcopy);
@@ -324,12 +364,6 @@ fs_match_path(path)
 			free(pathcopy);
 			return;
 		}
-		leaf = strrchr(path, '/');
-		if (leaf)
-			leaf++;
-		else
-			leaf = path;
-		leaflen = strlen(leaf);
 		wc = leaf;
 		if (wc[0] == '.' && wc[1] == '.' && wc[2] == '.')
 			wc += 2;       /* un-dot-stuff wildcard */

@@ -121,6 +121,7 @@ extern int fs_stat __P((const char *, struct stat *));
 extern const char *fs_leafname __P((const char *));
 
 extern char *fs_acornify_name __P((char *));
+extern int fs_hidden_name __P((char *));
 extern char *fs_unixify_path __P((struct fs_context *, char *));
 
 extern int fs_guess_type __P((FTSENT *));
