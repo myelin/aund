@@ -476,6 +476,35 @@ fs_get_users_on(c)
 }
 
 void
+fs_get_user(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_get_user reply;
+	struct ec_fs_req_get_user *request;
+	struct fs_client *ent;
+
+	request = (struct ec_fs_req_get_user *)(c->req);
+	request->user[strcspn(request->user, "\r")] = '\0';
+	if (debug) printf("get user info [%s]\n", request->user);
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	for (ent = fs_clients.lh_first; ent != NULL; ent = ent->link.le_next)
+		if (!strcmp(request->user, ent->login))
+			break;
+	if (!ent) {
+		reply.std_tx.command_code = EC_FS_CC_DONE;
+		reply.std_tx.return_code = EC_FS_E_USERNOTON;
+		fs_reply(c, &(reply.std_tx), sizeof(reply.std_tx));
+	} else {
+		aunfuncs->get_stn(&ent->host, reply.station);
+		reply.priv = 0;  /* all users are unprivileged */
+		fs_reply(c, &(reply.std_tx), sizeof(reply));
+	}
+}
+
+void
 fs_delete(c)
 	struct fs_context *c;
 {

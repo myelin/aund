@@ -37,6 +37,8 @@
 
 #define EC_FS_E_NOMEM		0x90
 
+#define EC_FS_E_USERNOTON	0xae
+
 #define EC_FS_E_RENXDEV		0xb0
 #define EC_FS_E_USEREXIST	0xb1
 #define EC_FS_E_PWFFULL		0xb2
