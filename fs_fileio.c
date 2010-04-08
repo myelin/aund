@@ -126,6 +126,7 @@ fs_close(c)
 	request = (struct ec_fs_req_close *)(c->req);
 	if (debug) printf("close [%d]\n", request->handle);
 	if (request->handle == 0) {
+		error = 0;
 		for (h = 1; h < c->client->nhandles; h++)
 			if (c->client->handles[h] &&
 			    c->client->handles[h]->type == FS_HANDLE_FILE &&
