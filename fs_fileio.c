@@ -563,6 +563,68 @@ fs_save(c)
 		c->req->reply_port = replyport;
 		fs_reply(c, &(reply2.std_tx), sizeof(reply2));
 	}
+	free(upath);
+}
+
+void
+fs_create(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_create reply;
+	struct ec_fs_req_create *request;
+	struct ec_fs_meta meta;
+	char *upath, *path_argv[2];
+	int fd, ackport, replyport;
+	size_t size, got;
+	FTS *ftsp;
+	FTSENT *f;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_create *)(c->req);
+	request->path[strcspn(request->path, "\r")] = '\0';
+	replyport = c->req->reply_port;
+	ackport = c->req->urd;
+	if (debug) printf("create [%s]\n", request->path);
+	size = fs_read_val(request->size, sizeof(request->size));
+	upath = fs_unixify_path(c, request->path);
+	if (upath == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return;
+	}
+	if ((fd = open(upath, O_CREAT|O_TRUNC|O_RDWR, 0666)) == -1) {
+		fs_errno(c);
+		free(upath);
+		return;
+	}
+	if (ftruncate(fd, size) != 0) {
+		fs_errno(c);
+		close(fd);
+		free(upath);
+		return;
+	}
+	meta = request->meta;
+	reply.std_tx.command_code = EC_FS_CC_DONE;
+	reply.std_tx.return_code = EC_FS_RC_OK;
+	close(fd);
+	/*
+	 * Write load and execute addresses from the
+	 * request, and return the file date in the
+	 * response.
+	 */
+	path_argv[0] = upath;
+	path_argv[1] = NULL;
+	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+	f = fts_read(ftsp);
+	fs_set_meta(f, &meta);
+	fs_write_date(&(reply.date), f->fts_statp->st_ctime);
+	reply.access = fs_mode_to_access(f->fts_statp->st_mode);
+	fts_close(ftsp);
+	free(upath);
+	c->req->reply_port = replyport;
+	fs_reply(c, &(reply.std_tx), sizeof(reply));
 }
 
 static ssize_t
