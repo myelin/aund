@@ -281,6 +281,14 @@ fs_putbyte(c)
 	
 }
 
+static int
+at_eof(int fd)
+{
+	struct stat st;
+	off_t off = lseek(fd, 0, SEEK_CUR);
+	return (off != (off_t)-1 && fstat(fd, &st) >= 0 && off == st.st_size);
+}
+
 void
 fs_getbytes(c)
 	struct fs_context *c;
@@ -317,13 +325,7 @@ fs_getbytes(c)
 			/* Error */
 			fs_errno(c);
 		} else {
-			/*
-			 * FIXME: shouldn't we be detecting here the
-			 * case in which we read a full buffer
-			 * _which included the last byte_, and
-			 * setting flag 0x80?
-			 */
-			if (got == size)
+			if (got == size && !at_eof(fd))
 				reply2.flag = 0;
 			else
 				reply2.flag = 0x80; /* EOF reached */
@@ -358,16 +360,11 @@ fs_getbyte(c)
 		}
 		reply.std_tx.command_code = EC_FS_CC_DONE;
 		reply.std_tx.return_code = EC_FS_RC_OK;
-		/*
-		 * FIXME: we should be detecting EOF here in the
-		 * sense of having just read the last byte, and
-		 * setting flag 0x80.
-		 */
 		if (ret == 0) {
 			reply.flag = 0xC0;
 			reply.byte = 0xFF;
 		} else {
-			reply.flag = 0;
+			reply.flag = at_eof(fd) ? 0x80 : 0;
 		}
 		fs_reply(c, &(reply.std_tx), sizeof(reply));
 	}
