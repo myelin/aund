@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "aun.h"
 #include "fs_proto.h"
@@ -587,4 +588,31 @@ fs_set_opt4(c, tail)
 	reply.command_code = EC_FS_CC_DONE;
 	reply.return_code = EC_FS_RC_OK;
 	fs_reply(c, &reply, sizeof(reply));
+}
+
+void
+fs_get_time(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_get_time reply;
+	time_t t;
+	struct tm tm;
+
+	/*
+	 * SGT: I actually can't see any reason to restrict this
+	 * call to logged-in users.
+	 */
+
+	if (debug) printf(" -> get time\n");
+
+	t = time(NULL);
+	fs_write_date(&(reply.date), t);
+	tm = *localtime(&t);
+	reply.hours = tm.tm_hour;
+	reply.mins = tm.tm_min;
+	reply.secs = tm.tm_sec;
+
+	reply.std_tx.command_code = EC_FS_CC_DONE;
+	reply.std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &(reply.std_tx), sizeof(reply));
 }

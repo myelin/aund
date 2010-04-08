@@ -63,6 +63,7 @@ extern fs_func_impl fs_set_info;
 extern fs_func_impl fs_get_uenv;
 extern fs_func_impl fs_get_eof;
 extern fs_func_impl fs_get_users_on;
+extern fs_func_impl fs_get_time;
 extern fs_func_impl fs_set_opt4;
 extern fs_func_impl fs_logoff;
 extern fs_func_impl fs_delete;
@@ -182,6 +183,9 @@ file_server(pkt, len, from)
 		break;
 	case EC_FS_FUNC_GET_USERS_ON:
 		fs_get_users_on(c);
+		break;
+	case EC_FS_FUNC_GET_TIME:
+		fs_get_time(c);
 		break;
 	case EC_FS_FUNC_SET_OPT4:
 		fs_set_opt4(c);
