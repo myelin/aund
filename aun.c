@@ -217,10 +217,24 @@ aun_ntoa(struct aun_srcaddr *vfrom)
 	return inet_ntoa(afrom->sin_addr);
 }
 
+static void
+aun_get_stn(struct aun_srcaddr *vfrom, u_int8_t *out)
+{
+	union internal_addr *afrom = (union internal_addr *)vfrom;
+	in_addr_t a = ntohs(afrom->sin_addr.s_addr);
+	/*
+	 * SGT: I understand that default Acorn AUN Econet over
+	 * Ethernet uses IP 1.0.x.y to represent station x.y.
+	 */
+	out[0] = a;
+	out[1] = a >> 8;
+}
+
 const struct aun_funcs aun = {
 	AUN_MAX_BLOCK,
 	aun_setup,
 	aun_recv,
         aun_xmit,
         aun_ntoa,
+        aun_get_stn,
 };

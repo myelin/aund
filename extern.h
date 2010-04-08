@@ -65,6 +65,7 @@ struct aun_funcs {
 	ssize_t (*xmit)(struct aun_packet *pkt,
 			size_t len, struct aun_srcaddr *to);
 	char *(*ntoa)(struct aun_srcaddr *addr);
+	void (*get_stn)(struct aun_srcaddr *addr, u_int8_t *out);
 };
 
 extern const struct aun_funcs *aunfuncs;

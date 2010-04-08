@@ -403,10 +403,19 @@ beebem_ntoa(struct aun_srcaddr *vfrom)
 	return retbuf;
 }
 
+static void
+beebem_get_stn(struct aun_srcaddr *vfrom, u_int8_t *out)
+{
+	union internal_addr *afrom = (union internal_addr *)vfrom;
+	out[0] = afrom->eaddr.station;
+	out[1] = afrom->eaddr.network;
+}
+
 const struct aun_funcs beebem = {
 	512,
 	beebem_setup,
 	beebem_recv,
         beebem_xmit,
         beebem_ntoa,
+        beebem_get_stn,
 };

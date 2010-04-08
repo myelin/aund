@@ -416,6 +416,55 @@ fs_logoff(c)
 }
 
 void
+fs_get_users_on(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_get_users_on *reply;
+	struct ec_fs_req_get_users_on *request;
+	struct fs_client *ent;
+	size_t reply_size;
+	int i;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_get_users_on *)(c->req);
+	if (debug) printf("users on [%d/%d]\n", request->start, request->nusers);
+	if (c->client == NULL) {
+		fs_error(c, 0xff, "Who are you?");
+		return;
+	}
+	reply = malloc(sizeof(*reply) + (request->nusers *
+					 sizeof(struct ec_fs_user_on)));
+	if (reply == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return;
+	}
+	ent = fs_clients.lh_first;
+	for (i = 0; i < request->start && ent != NULL;
+	     ent = ent->link.le_next) {
+		i++;
+	}
+	reply_size = sizeof(*reply);
+	for (i = 0; i < request->nusers && ent != NULL;
+	     ent = ent->link.le_next) {
+		aunfuncs->get_stn(&ent->host, reply->users[i].station);
+		/* this sprintf overwrites the priv field, but that's OK */
+		sprintf(reply->users[i].user, "%-10.10s", ent->login);
+		/* ... because we now write it to what it should be. */
+		reply->users[i].priv = 0;  /* all users are unprivileged */
+		reply_size += sizeof(struct ec_fs_user_on);
+		i++;
+	}
+	reply->nusers = i;
+	reply->std_tx.command_code = EC_FS_CC_DONE;
+	reply->std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &(reply->std_tx), reply_size);
+	free(reply);
+}
+
+void
 fs_delete(c)
 	struct fs_context *c;
 {
