@@ -216,6 +216,13 @@ fs_examine_read(c, upath, start)
 		fts_close(dc->ftsp); dc->ftsp = NULL;
 		free(dc->path); dc->path = NULL;
 		return -1;
+	case FTS_D: case FTS_DC: case FTS_DP:
+		break;
+	default:
+		fts_close(dc->ftsp); dc->ftsp = NULL;
+		free(dc->path); dc->path = NULL;
+		errno = ENOTDIR;
+		return -1;
 	}
 	dc->f = fts_children(dc->ftsp, 0);
 	dc->start = 0;
