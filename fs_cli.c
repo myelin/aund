@@ -624,6 +624,7 @@ fs_cmd_info(c, tail)
 	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
 	f = fts_read(ftsp);
 	if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+		fs_errno(c);
 		fts_close(ftsp);
 		free(upath);
 		return;
