@@ -422,7 +422,7 @@ fs_get_users_on(c)
 	struct ec_fs_reply_get_users_on *reply;
 	struct ec_fs_req_get_users_on *request;
 	struct fs_client *ent;
-	size_t reply_size;
+	u_int8_t *p;
 	int i;
 
 	if (c->client == NULL) {
@@ -435,8 +435,7 @@ fs_get_users_on(c)
 		fs_error(c, 0xff, "Who are you?");
 		return;
 	}
-	reply = malloc(sizeof(*reply) + (request->nusers *
-					 sizeof(struct ec_fs_user_on)));
+	reply = malloc(sizeof(*reply) + (request->nusers * (2+11+1)));
 	if (reply == NULL) {
 		fs_err(c, EC_FS_E_NOMEM);
 		return;
@@ -446,21 +445,32 @@ fs_get_users_on(c)
 	     ent = ent->link.le_next) {
 		i++;
 	}
-	reply_size = sizeof(*reply);
+	p = (u_int8_t *)reply->users;
 	for (i = 0; i < request->nusers && ent != NULL;
 	     ent = ent->link.le_next) {
-		aunfuncs->get_stn(&ent->host, reply->users[i].station);
-		/* this sprintf overwrites the priv field, but that's OK */
-		sprintf(reply->users[i].user, "%-10.10s", ent->login);
-		/* ... because we now write it to what it should be. */
-		reply->users[i].priv = 0;  /* all users are unprivileged */
-		reply_size += sizeof(struct ec_fs_user_on);
+		/*
+		 * The Econet System User Guide, and fs_proto.h, say
+		 * that this function returns a sequence of 13-byte
+		 * records consisting of station number (2 bytes),
+		 * space-padded username (10 bytes) and privilege
+		 * byte. However, the RISC OS PRM says it returns a
+		 * sequence of variable-length records consisting of
+		 * station number (2 bytes), CR-terminated username
+		 * (up to 11 bytes) and privilege byte.
+		 *
+		 * My (SGT's) old software that ran on Beebs
+		 * expected the latter, so I've gone with that.
+		 */
+		aunfuncs->get_stn(&ent->host, p);
+		p += 2;
+		p += sprintf(p, "%.10s\r", ent->login);
+		*p++ = 0;  /* all users are unprivileged */
 		i++;
 	}
 	reply->nusers = i;
 	reply->std_tx.command_code = EC_FS_CC_DONE;
 	reply->std_tx.return_code = EC_FS_RC_OK;
-	fs_reply(c, &(reply->std_tx), reply_size);
+	fs_reply(c, &(reply->std_tx), p - (u_int8_t *)reply);
 	free(reply);
 }
 
