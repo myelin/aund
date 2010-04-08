@@ -286,7 +286,32 @@ at_eof(int fd)
 {
 	struct stat st;
 	off_t off = lseek(fd, 0, SEEK_CUR);
-	return (off != (off_t)-1 && fstat(fd, &st) >= 0 && off == st.st_size);
+	return (off != (off_t)-1 && fstat(fd, &st) >= 0 && off >= st.st_size);
+}
+
+void
+fs_get_eof(c)
+	struct fs_context *c;
+{
+	struct ec_fs_reply_get_eof reply;
+	struct ec_fs_req_get_eof *request;
+	int h, fd, ret;
+	off_t off;
+	size_t size, got;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	request = (struct ec_fs_req_get_eof *)(c->req);
+	if (debug) printf("get eof [%d]\n", request->handle);
+	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
+		fd = c->client->handles[h]->fd;
+		reply.status = at_eof(fd) ? 0xFF : 0;
+		reply.std_tx.command_code = EC_FS_CC_DONE;
+		reply.std_tx.return_code = EC_FS_RC_OK;
+		fs_reply(c, &(reply.std_tx), sizeof(reply));
+	}
 }
 
 void
