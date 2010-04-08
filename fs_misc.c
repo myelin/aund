@@ -562,3 +562,29 @@ fs_cdirn(c)
 	}
 	free(upath);
 }
+
+void
+fs_set_opt4(c, tail)
+	struct fs_context *c;
+	char *tail;
+{
+	struct ec_fs_reply reply;
+	struct ec_fs_req_set_opt4 *request;
+	int opt4;
+
+	request = (struct ec_fs_req_set_opt4 *)(c->req);
+	opt4 = request->opt4 & 0xF;
+	if (debug) printf(" -> set boot option [%d]\n", opt4);
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+
+	if (!pwfile || !pw_set_opt4(c->client->login, opt4)) {
+		fs_err(c, EC_FS_E_BADPW);
+		return;
+	}
+	reply.command_code = EC_FS_CC_DONE;
+	reply.return_code = EC_FS_RC_OK;
+	fs_reply(c, &reply, sizeof(reply));
+}

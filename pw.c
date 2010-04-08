@@ -193,3 +193,22 @@ extern int pw_change(const char *user, const char *oldpw, const char *newpw)
 
 	return pw_close_rename();
 }
+
+extern int pw_set_opt4(const char *user, int newopt4)
+{
+	char *u, *p, *d;
+	int opt4;
+	int done = 0;
+
+	if (!pw_open(1))
+		return;
+
+	while (pw_read_line(&u, &p, &d, &opt4)) {
+		if (!done && !strcasecmp(user, u)) {
+		    opt4 = newopt4;
+		}
+		pw_write_line(u, p, d, opt4);
+	}
+
+	return pw_close_rename();
+}

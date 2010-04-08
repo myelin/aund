@@ -52,6 +52,7 @@ extern void file_server __P((struct aun_packet *, ssize_t, struct aun_srcaddr *)
 
 extern char *pw_validate(char *user, const char *pw, int *opt4);
 extern int pw_change(const char *user, const char *oldpw, const char *newpw);
+extern int pw_set_opt4(const char *user, int opt4);
 
 extern int debug;
 extern int using_syslog;
