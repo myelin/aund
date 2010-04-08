@@ -96,7 +96,6 @@ fs_cli(c)
 	char *head, *tail, *backup;
 	int len;
 	c->req->data[strcspn(c->req->data, "\r")] = '\0';
-	if (debug) printf("cli: [%s]", c->req->data);
 
 	tail = c->req->data;
 	backup = strdup(tail);
@@ -117,6 +116,17 @@ fs_cli(c)
 	len = tail - head;
 	for (i = 0; i < NCMDS; i++) {
 		if (fs_cli_match(head, len, &(cmd_tab[i]))) {
+			/*
+			 * We print a diagnostic of the command for
+			 * all commands except *I AM and *PASS,
+			 * which will print their own truncated
+			 * diagnostics to avoid echoing passwords on
+			 * the screen.
+			 */
+			if (debug &&
+			    cmd_tab[i].impl != fs_cmd_i_am &&
+			    cmd_tab[i].impl != fs_cmd_pass)
+				printf("cli: [%s]", c->req->data);
 			(cmd_tab[i].impl)(c, tail);
 			break;
 		}
@@ -133,7 +143,7 @@ fs_cli_unrec(c, cmd)
 {
 	struct ec_fs_reply *reply;
 
-	if (debug) printf(" -> <unrecognised>");
+	if (debug) printf(" -> <unrecognised>\n");
 	reply = malloc(sizeof(*reply) + strlen(cmd) + 1);
 	reply->command_code = EC_FS_CC_UNREC;
 	reply->return_code = EC_FS_RC_OK;
@@ -229,7 +239,6 @@ fs_cmd_i_am(c, tail)
 	struct fs_context *c;
 	char *tail;
 {
-	/* FIXME user authentication would be nice */
 	struct ec_fs_reply_logon reply;
 	char *login, *password, *oururd;
 	int opt4 = default_opt4;
@@ -240,7 +249,7 @@ fs_cmd_i_am(c, tail)
 	}
 	login = fs_cli_getarg(&tail);
 	password = fs_cli_getarg(&tail);
-	if (debug) printf(" -> log on [%s:%s]\n", login, password);
+	if (debug) printf("cli: log on [%s]\n", login);
 	if (pwfile) {
 		/*
 		 * If no universal user root directory is set up, we
@@ -292,7 +301,7 @@ fs_cmd_pass(c, tail)
 	char *oldpw, *newpw, *oururd;
 	oldpw = fs_cli_getarg(&tail);
 	newpw = fs_cli_getarg(&tail);
-	if (debug) printf(" -> change password\n");
+	if (debug) printf("cli: change password\n");
 	if (c->client == NULL) {
 		fs_error(c, 0xff, "Who are you?");
 		return;
@@ -401,6 +410,7 @@ fs_cmd_dir(c, tail)
 		return;
 	}
 	upath = fs_cli_getarg(&tail);
+	if (debug) printf(" -> dir [%s]\n", upath);
 	if (!*upath)
 		upath = "&";
 	upath = fs_unixify_path(c, upath);
@@ -434,7 +444,9 @@ fs_cmd_lib(c, tail)
 		fs_error(c, 0xff, "Who are you?");
 		return;
 	}
-	upath = fs_unixify_path(c, fs_cli_getarg(&tail)); /* Free it! */
+	upath = fs_cli_getarg(&tail);
+	if (debug) printf(" -> lib [%s]\n", upath);
+	upath = fs_unixify_path(c, upath); /* Free it! */
 	if (fs_stat(upath, &st) == -1) {
 		fs_errno(c);
 		goto burn;
@@ -471,6 +483,7 @@ fs_cmd_logoff(c, tail)
 	 * with *BYE, and that's the only part I've implemented
 	 * here.)
 	 */
+	if (debug) printf(" -> logoff\n");
 	fs_logoff(c);
 }
 
@@ -616,8 +629,9 @@ fs_cmd_info(c, tail)
 		fs_error(c, 0xff, "Who are you?");
 		return;
 	}
-
-	upath = fs_unixify_path(c, fs_cli_getarg(&tail)); /* Free it! */
+	upath = fs_cli_getarg(&tail);
+	if (debug) printf(" -> info [%s]\n", upath);
+	upath = fs_unixify_path(c, upath); /* Free it! */
 
 	path_argv[0] = upath;
 	path_argv[1] = NULL;
