@@ -317,8 +317,9 @@ static int wcmatch(char *wc, char *file, int len)
 			 */
 			if (len < fragend - wc)
 				return 0;
+			file += len - (fragend - wc);
 			return ((!at_start || file==filestart) &&
-				wcfrag(wc, file + len - (fragend - wc)));
+				wcfrag(wc, file));
 		}
 		while (*wc == '*') wc++;
 		at_start = 0;
