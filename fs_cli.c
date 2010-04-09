@@ -491,6 +491,8 @@ fs_long_info(char *string, FTSENT *f)
 
 	acornname = strdup(f->fts_name);
 	fs_acornify_name(acornname);
+	if (!*acornname)
+		strcpy(acornname, "$");
 
 	fs_access_to_string(accstring,
 			    fs_mode_to_access(f->fts_statp->st_mode));
