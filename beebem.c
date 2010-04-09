@@ -23,6 +23,7 @@
 
 #include "aun.h"
 #include "extern.h"
+#include "fileserver.h"
 
 struct econet_addr {
 	u_int8_t station;
@@ -242,13 +243,18 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		ack[2] = our_econet_addr & 0xFF;
 		ack[3] = our_econet_addr >> 8;
 
-		if (msgsize > 6 && rbuf[PKTOFF+5] == 0) {
+		if (rbuf[PKTOFF+5] == 0) {
 			/*
-			 * I think this is a Machine Type packet.
-			 * Respond by claiming to be a file server.
+			 * Port 0 means a primitive operation. We
+			 * only support Machine Type Peek: respond
+			 * by claiming to be a file server.
 			 */
-			ack[4] = 254;
-			ack[5] = ack[6] = ack[7] = 0;
+			if (rbuf[PKTOFF+4] == 0x88) {
+				ack[4] = 254;
+				ack[5] = 0;
+				ack[6] = 0x10 * (FS_MINOR_VERSION/10) + (FS_MINOR_VERSION%10);   /* BCD */
+				ack[7] = FS_MAJOR_VERSION;
+			}
 			beebem_send(ack, 8);
 			continue;
 		}
