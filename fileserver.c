@@ -68,6 +68,7 @@ extern fs_func_impl fs_get_time;
 extern fs_func_impl fs_set_opt4;
 extern fs_func_impl fs_logoff;
 extern fs_func_impl fs_delete;
+extern fs_func_impl fs_get_version;
 extern fs_func_impl fs_get_disc_free;
 extern fs_func_impl fs_cdirn;
 extern fs_func_impl fs_create;
@@ -199,6 +200,9 @@ file_server(pkt, len, from)
 		break;
 	case EC_FS_FUNC_DELETE:
 		fs_delete(c);
+		break;
+	case EC_FS_FUNC_GET_VERSION:
+		fs_get_version(c);
 		break;
 	case EC_FS_FUNC_GET_DISC_FREE:
 		fs_get_disc_free(c);

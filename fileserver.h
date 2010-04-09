@@ -41,6 +41,9 @@
 #include "aun.h"
 #include "fs_proto.h"
 
+#define FS_MAJOR_VERSION 0
+#define FS_MINOR_VERSION 0
+
 struct fs_context {
 	struct ec_fs_req *req;		/* Request being handled */
 	size_t req_len;			/* Size of request */

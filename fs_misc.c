@@ -648,6 +648,42 @@ fs_get_time(c)
 }
 
 void
+fs_get_version(c)
+	struct fs_context *c;
+{
+	struct {
+		struct ec_fs_reply_get_version reply;
+		char version[40];
+	} reply;
+
+	/*
+	 * SGT: I actually can't see any reason to restrict this
+	 * call to logged-in users.
+	 */
+
+	if (debug) printf(" -> get version\n");
+
+	reply.reply.std_tx.command_code = EC_FS_CC_DONE;
+	reply.reply.std_tx.return_code = EC_FS_RC_OK;
+
+	/*
+	 * The RISC OS PRM says that the version string must consist
+	 * of nine characters describing the file server type, then
+	 * a space, then a version number of the form n.xy. It says
+	 * nothing about a CR terminator.
+	 *
+	 * However, the Econet System User Guide does say there must
+	 * be a terminating CR, and SJ Research *VERS command
+	 * definitely expects one. I compromise by returning the
+	 * terminating CR _in addition_ to a string matching the
+	 * PRM's specification.
+	 */
+	sprintf(reply.version, "aund      %d.%02d\r",
+		FS_MAJOR_VERSION, FS_MINOR_VERSION);
+	fs_reply(c, &(reply.reply.std_tx), sizeof(reply.reply) + 15);
+}
+
+void
 fs_get_disc_free(c)
 	struct fs_context *c;
 {
