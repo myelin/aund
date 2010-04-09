@@ -116,8 +116,11 @@ fs_cli(c)
 			break;
 		}
 	}
-	if (i == NCMDS)
+	if (i == NCMDS) {
+		if (debug)
+			printf("cli: [%s]", c->req->data);
 		fs_cli_unrec(c, backup);
+	}
 	free(backup);
 }
 
