@@ -60,10 +60,10 @@ const struct aun_funcs *aunfuncs = &aun;
 
 volatile int painful_death = 0;
 
-int main __P((int, char*[]));
+int main(int, char*[]);
 
-static void sig_init __P((void));
-static void sigcatcher __P((int));
+static void sig_init(void);
+static void sigcatcher(int);
 
 int
 main(argc, argv)

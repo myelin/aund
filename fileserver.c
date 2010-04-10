@@ -44,7 +44,7 @@
 #include "extern.h"
 #include "fileserver.h"
 
-typedef void fs_func_impl __P((struct fs_context *));
+typedef void fs_func_impl(struct fs_context *);
 extern fs_func_impl fs_cli;
 extern fs_func_impl fs_examine;
 extern fs_func_impl fs_open;
@@ -95,7 +95,7 @@ fs_init()
 }
 
 #if 0
-static void dump_handles __P((struct fs_client *));
+static void dump_handles(struct fs_client *);
 
 static void dump_handles(client)
 	struct fs_client *client;

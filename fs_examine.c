@@ -44,14 +44,16 @@
 #include "fileserver.h"
 #include "fs_errors.h"
 
-static int fs_examine_read __P((struct fs_context *, const char *, int));
+static int fs_examine_read(struct fs_context *, const char *, int);
 
-static int fs_examine_all __P((FTSENT *, struct ec_fs_reply_examine **, size_t *));
-static int fs_examine_longtxt __P((FTSENT *, struct ec_fs_reply_examine **, size_t *));
-static int fs_examine_name __P((FTSENT *, struct ec_fs_reply_examine **, size_t *));
-static int fs_examine_shorttxt __P((FTSENT *, struct ec_fs_reply_examine **, size_t *));
+static int fs_examine_all(FTSENT *, struct ec_fs_reply_examine **, size_t *);
+static int fs_examine_longtxt(FTSENT *, struct ec_fs_reply_examine **,
+    size_t *);
+static int fs_examine_name(FTSENT *, struct ec_fs_reply_examine **, size_t *);
+static int fs_examine_shorttxt(FTSENT *, struct ec_fs_reply_examine **,
+    size_t *);
 
-void fs_examine __P((struct fs_context *));
+void fs_examine(struct fs_context *);
 
 void
 fs_examine(c)

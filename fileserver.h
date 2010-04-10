@@ -88,47 +88,47 @@ extern char *pwfile;
 extern char *lib;
 extern int default_opt4;
 
-extern void fs_unrec __P((struct fs_context *));
-extern char *fs_cli_getarg __P((char **));
-extern void fs_long_info __P((char *string, FTSENT *f));
-extern void fs_reply __P((struct fs_context *, struct ec_fs_reply *, size_t));
+extern void fs_unrec(struct fs_context *);
+extern char *fs_cli_getarg(char **);
+extern void fs_long_info(char *, FTSENT *);
+extern void fs_reply(struct fs_context *, struct ec_fs_reply *, size_t);
 
-extern void fs_errno __P((struct fs_context *));
-extern void fs_err __P((struct fs_context *, u_int8_t));
-extern void fs_error __P((struct fs_context *, u_int8_t, const char *));
+extern void fs_errno(struct fs_context *);
+extern void fs_err(struct fs_context *, u_int8_t);
+extern void fs_error(struct fs_context *, u_int8_t, const char *);
 
-extern void fs_check_handles __P((struct fs_context *));
-extern int fs_check_handle __P((struct fs_client *, int));
-extern int fs_open_handle __P((struct fs_client *, char *, int));
-extern void fs_close_handle __P((struct fs_client *, int));
-extern int fs_alloc_handle __P((struct fs_client *));
-extern void fs_free_handle __P((struct fs_client *, int));
+extern void fs_check_handles(struct fs_context *);
+extern int fs_check_handle(struct fs_client *, int);
+extern int fs_open_handle(struct fs_client *, char *, int);
+extern void fs_close_handle(struct fs_client *, int);
+extern int fs_alloc_handle(struct fs_client *);
+extern void fs_free_handle(struct fs_client *, int);
 
-extern struct fs_client *fs_new_client __P((struct aun_srcaddr *));
-extern void fs_delete_client __P((struct fs_client *));
-extern struct fs_client *fs_find_client __P((struct aun_srcaddr *));
+extern struct fs_client *fs_new_client(struct aun_srcaddr *);
+extern void fs_delete_client(struct fs_client *);
+extern struct fs_client *fs_find_client(struct aun_srcaddr *);
 
-extern char *strpad __P((char *, int, size_t));
-extern u_int8_t fs_mode_to_type __P((mode_t));
-extern u_int8_t fs_mode_to_access __P((mode_t));
-extern mode_t fs_access_to_mode __P((unsigned char, int));
-extern char *fs_access_to_string __P((char *, u_int8_t));
-extern u_int64_t fs_read_val __P((u_int8_t *, size_t));
-extern void fs_write_val __P((u_int8_t *, u_int64_t, size_t));
-extern u_int64_t fs_riscos_date __P((time_t));
-extern void fs_get_meta __P((FTSENT *, struct ec_fs_meta *));
-extern int fs_get_sin __P((FTSENT *));
-extern void fs_write_date __P((struct ec_fs_date *, time_t));
-extern int fs_stat __P((const char *, struct stat *));
-extern const char *fs_leafname __P((const char *));
+extern char *strpad(char *, int, size_t);
+extern u_int8_t fs_mode_to_type(mode_t);
+extern u_int8_t fs_mode_to_access(mode_t);
+extern mode_t fs_access_to_mode(unsigned char, int);
+extern char *fs_access_to_string(char *, u_int8_t);
+extern u_int64_t fs_read_val(u_int8_t *, size_t);
+extern void fs_write_val(u_int8_t *, u_int64_t, size_t);
+extern u_int64_t fs_riscos_date(time_t);
+extern void fs_get_meta(FTSENT *, struct ec_fs_meta *);
+extern int fs_get_sin(FTSENT *);
+extern void fs_write_date(struct ec_fs_date *, time_t);
+extern int fs_stat(const char *, struct stat *);
+extern const char *fs_leafname(const char *);
 
-extern char *fs_acornify_name __P((char *));
-extern int fs_hidden_name __P((char *));
-extern char *fs_unixify_path __P((struct fs_context *, char *));
+extern char *fs_acornify_name(char *);
+extern int fs_hidden_name(char *);
+extern char *fs_unixify_path(struct fs_context *, char *);
 
-extern int fs_guess_type __P((FTSENT *));
-extern int fs_add_typemap_name __P((const char *, int));
-extern int fs_add_typemap_mode __P((mode_t, mode_t, int));
-extern int fs_add_typemap_default __P((int));
+extern int fs_guess_type(FTSENT *);
+extern int fs_add_typemap_name(const char *, int);
+extern int fs_add_typemap_mode(mode_t, mode_t, int);
+extern int fs_add_typemap_default(int);
 
 #endif

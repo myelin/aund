@@ -48,7 +48,7 @@
 #include "extern.h"
 #include "fileserver.h"
 
-typedef void fs_cmd_impl __P((struct fs_context *, char *));
+typedef void fs_cmd_impl(struct fs_context *, char *);
 
 struct fs_cmd {
 	char	*name;
@@ -65,8 +65,8 @@ static fs_cmd_impl fs_cmd_sdisc;
 static fs_cmd_impl fs_cmd_pass;
 static fs_cmd_impl fs_cmd_rename;
 
-static int fs_cli_match __P((char *cmdline, char **tail, const struct fs_cmd *cmd));
-static void fs_cli_unrec __P((struct fs_context *, char *));
+static int fs_cli_match(char *cmdline, char **tail, const struct fs_cmd *cmd);
+static void fs_cli_unrec(struct fs_context *, char *);
 
 static const struct fs_cmd cmd_tab[] = {
 	{"DIR", 	3, fs_cmd_dir,		},
@@ -81,7 +81,7 @@ static const struct fs_cmd cmd_tab[] = {
 
 #define NCMDS (sizeof(cmd_tab) / sizeof(cmd_tab[0]))
 
-void fs_cli __P((struct fs_context *));
+void fs_cli(struct fs_context *);
 
 /*
  * Handle a command-line packet from a client.  This is rarely used by

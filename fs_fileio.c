@@ -52,15 +52,15 @@
 
 #define OUR_DATA_PORT 0x97
 
-void fs_open __P((struct fs_context *));
-void fs_close __P((struct fs_context *));
-void fs_get_args __P((struct fs_context *));
-void fs_set_args __P((struct fs_context *));
-void fs_getbytes __P((struct fs_context *));
+void fs_open(struct fs_context *);
+void fs_close(struct fs_context *);
+void fs_get_args(struct fs_context *);
+void fs_set_args(struct fs_context *);
+void fs_getbytes(struct fs_context *);
 
-static ssize_t fs_data_send __P((struct fs_context *, int, size_t));
-static ssize_t fs_data_recv __P((struct fs_context *, int, size_t, int));
-static int fs_close1 __P((struct fs_context *c, int h));
+static ssize_t fs_data_send(struct fs_context *, int, size_t);
+static ssize_t fs_data_recv(struct fs_context *, int, size_t, int);
+static int fs_close1(struct fs_context *c, int h);
 
 void
 fs_open(c)

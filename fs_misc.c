@@ -49,11 +49,11 @@
 #include "extern.h"
 #include "fileserver.h"
 
-void fs_get_discs __P((struct fs_context *));
-void fs_get_info __P((struct fs_context *));
-void fs_set_info __P((struct fs_context *));
-void fs_get_uenv __P((struct fs_context *));
-void fs_logoff __P((struct fs_context *));
+void fs_get_discs(struct fs_context *);
+void fs_get_info(struct fs_context *);
+void fs_set_info(struct fs_context *);
+void fs_get_uenv(struct fs_context *);
+void fs_logoff(struct fs_context *);
 
 void
 fs_get_discs(c)

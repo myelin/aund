@@ -46,9 +46,9 @@
 #include "extern.h"
 #include "fileserver.h"
 
-static char *fs_unhat_path __P((char *));
-static void fs_match_path __P((char *));
-static void fs_trans_simple __P((char *, char *));
+static char *fs_unhat_path(char *);
+static void fs_match_path(char *);
+static void fs_trans_simple(char *, char *);
 
 /*
  * Convert a leaf name to Acorn style for presenting to the client.

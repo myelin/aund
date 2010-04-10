@@ -79,22 +79,22 @@
 #define CF_BOOLEAN 3
 #define CF_WORD 4
 
-static void conf_read_file __P((const char *));
-static void conf_cmd_debug __P((void));
-static void conf_cmd_syslog __P((void));
-static void conf_cmd_root __P((void));
-static void conf_cmd_urd __P((void));
-static void conf_cmd_pwfile __P((void));
-static void conf_cmd_lib __P((void));
-static void conf_cmd_beebem __P((void));
-static void conf_cmd_infofmt __P((void));
-static void conf_cmd_opt4 __P((void));
-static void conf_cmd_typemap_name __P((void));
-static void conf_cmd_typemap_perm __P((void));
-static void conf_cmd_typemap_type __P((mode_t));
-static void conf_cmd_typemap_default __P((void));
+static void conf_read_file(const char *);
+static void conf_cmd_debug(void);
+static void conf_cmd_syslog(void);
+static void conf_cmd_root(void);
+static void conf_cmd_urd(void);
+static void conf_cmd_pwfile(void);
+static void conf_cmd_lib(void);
+static void conf_cmd_beebem(void);
+static void conf_cmd_infofmt(void);
+static void conf_cmd_opt4(void);
+static void conf_cmd_typemap_name(void);
+static void conf_cmd_typemap_perm(void);
+static void conf_cmd_typemap_type(mode_t);
+static void conf_cmd_typemap_default(void);
 
-static int cfylex __P((int start, void *thing));
+static int cfylex(int start, void *thing);
 
 #define YY_DECL static int cfylex(start, thing) int start; void *thing;
 
