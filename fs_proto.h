@@ -255,6 +255,22 @@ struct ec_fs_req_cat_header {
 	struct ec_fs_req std_rx;
 	char path[0]; /* CR terminated */
 };
+struct ec_fs_reply_cat_header {
+	struct ec_fs_reply std_tx;
+	/*
+	 * SGT: This appears to be a request which was obsolete even
+	 * in the days of the BBC B. The precise format is not
+	 * documented anywhere I could find, but I ran the BBC BASIC
+	 * Econet Level 1 file server, sent it this request by a
+	 * hand-coded OSWORD &14, and network-sniffed it.
+	 */
+	char dir_name[10];	       /* space-padded */
+	char space[1];		       /* just a space */
+	char ownership[1];	       /* 'O'(wner) or 'P'(ublic) */
+	char spaces[3];		       /* spaces */
+	char csd_discname[12];	       /* zero-padded */
+	char cr80[2];		       /* cr, 0x80 */
+};
 
 /* Load as command - code 5 */
 #define EC_FS_FUNC_LOAD_COMMAND	5

@@ -206,7 +206,8 @@ fs_get_info(c)
 		if (f->fts_name[0] == '\0') strcpy(f->fts_name, "$");
 		strncpy(reply.dir_name, f->fts_name, sizeof(reply.dir_name));
 		strpad(reply.dir_name, ' ', sizeof(reply.dir_name));
-		reply.dir_access = FS_DIR_ACCESS_PUBLIC; /* XXX should check */
+		/* XXX should check ownership. See also cat_header */
+		reply.dir_access = FS_DIR_ACCESS_PUBLIC;
 		reply.cycle = 0; /* XXX should fake */
 		fs_reply(c, &(reply.std_tx), sizeof(reply));
 	}
@@ -401,6 +402,58 @@ fs_get_uenv(c)
 	strncpy(reply.lib_leafname, tmp, sizeof(reply.lib_leafname));
 	strpad(reply.lib_leafname, ' ', sizeof(reply.lib_leafname));
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
+}
+
+void
+fs_cat_header(c)
+	struct fs_context *c;
+{
+	struct ec_fs_req_cat_header *request;
+	struct ec_fs_reply_cat_header reply;
+	char *upath, *path_argv[2];
+	FTS *ftsp;
+	FTSENT *f;
+
+	request = (struct ec_fs_req_cat_header *)c->req;
+	request->path[strcspn(request->path, "\r")] = '\0';
+	if (debug) printf("catalogue header [%s]\n", request->path);
+	upath = fs_unixify_path(c, request->path); /* This must be freed */
+	if (upath == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return;
+	}
+	errno = 0;
+	path_argv[0] = upath;
+	path_argv[1] = NULL;
+	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
+	f = fts_read(ftsp);
+	if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+		fs_errno(c);
+		fts_close(ftsp);
+		return;
+	}
+
+	reply.std_tx.return_code = EC_FS_RC_OK;
+	reply.std_tx.command_code = EC_FS_CC_DONE;
+
+	strncpy(reply.csd_discname, discname, sizeof(reply.csd_discname));
+	strpad(reply.csd_discname, '\0', sizeof(reply.csd_discname));
+
+	fs_acornify_name(f->fts_name);
+	if (f->fts_name[0] == '\0') strcpy(f->fts_name, "$");
+	strncpy(reply.dir_name, f->fts_name, sizeof(reply.dir_name));
+	strpad(reply.dir_name, ' ', sizeof(reply.dir_name));
+
+	/* XXX should check ownership. See also EC_FS_GET_INFO_DIR */
+	reply.ownership[0] = 'P';
+
+	memset(reply.space, ' ', sizeof(reply.space));
+	memset(reply.spaces, ' ', sizeof(reply.spaces));
+	memcpy(reply.cr80, "\r\x80", sizeof(reply.cr80));
+	fs_reply(c, &(reply.std_tx), sizeof(reply));
+
+	fts_close(ftsp);
+	free(upath);
 }
 
 void
