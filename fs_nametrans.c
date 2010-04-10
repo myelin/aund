@@ -157,10 +157,19 @@ fs_unixify_path(c, path)
 	 * course, it'll be relative to the csd.
 	 */
 	if (path[0] && strchr("$&%@", path[0]) &&
-	    (!path[1] || path[1] == '.')) {
+	    (path[0] == '$' || !path[1] || path[1] == '.')) {
 		switch (path[0]) {
 		    case '$':
-			base = NULL; break;
+			base = NULL;
+			/*
+			 * I remember SJ fileservers used to support
+			 * disc names using the syntax '$discname'
+			 * rather than ':discname.$' as supported
+			 * above. So skip a disc name here too.
+			 */
+			while (path[1] && path[1] != '.')
+				path++;
+			break;
 		    case '&':
 			base = c->client->urd; break;
 		    case '@':
