@@ -1,5 +1,3 @@
-$NetBSD: README,v 1.1 2001/02/07 01:20:54 bjh21 Exp $
-
 This is a pile of programs to allow a NetBSD system to act as a very basic
 AUN (Acorn Universal Networking) fileserver.  This release is intended to
 be just about good enough to get a NetBSD/arm26 system booting from it.

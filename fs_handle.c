@@ -1,4 +1,3 @@
-/* $NetBSD: fs_handle.c,v 1.3 2009/01/02 19:21:54 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.

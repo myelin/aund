@@ -1,4 +1,3 @@
-/* $NetBSD: fs_fileio.c,v 1.2 2009/01/02 23:33:04 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.

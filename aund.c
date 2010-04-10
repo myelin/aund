@@ -1,4 +1,3 @@
-/* $NetBSD: aund.c,v 1.5 2009/01/02 23:33:04 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.

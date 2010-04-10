@@ -1,4 +1,3 @@
-/* $NetBSD: fs_proto.h,v 1.3 2001/08/12 22:10:57 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.

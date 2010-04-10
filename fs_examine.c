@@ -1,4 +1,3 @@
-/* $NetBSD: fs_examine.c,v 1.2 2001/02/08 15:55:53 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.

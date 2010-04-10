@@ -1,4 +1,3 @@
-/* $NetBSD: aun.h,v 1.1 2001/02/06 23:54:45 bjh21 Exp $ */
 /*-
  * Copyright (c) 1998 Ben Harris
  * All rights reserved.
