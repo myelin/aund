@@ -156,15 +156,14 @@ static int cfylex(int start, void *thing);
 %%
 
 void
-conf_init(path)
-	const char *path;
+conf_init(const char *path)
 {
+
 	conf_read_file(path);
 }
 
 static void
-conf_read_file(path)
-	const char *path;
+conf_read_file(const char *path)
 {
         FILE *f;
 
@@ -179,21 +178,23 @@ conf_read_file(path)
 }
 
 static void
-conf_cmd_debug()
+conf_cmd_debug(void)
 {
+
 	if (cfylex(BOOLEAN, &debug) != CF_BOOLEAN)
 		errx(1, "no boolean for debug");
 }
 
 static void
-conf_cmd_syslog()
+conf_cmd_syslog(void)
 {
+
 	if (cfylex(BOOLEAN, &using_syslog) != CF_BOOLEAN)
 		errx(1, "no boolean for syslog");
 }
 
 static void
-conf_cmd_root()
+conf_cmd_root(void)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -203,7 +204,7 @@ conf_cmd_root()
 }
 
 static void
-conf_cmd_urd()
+conf_cmd_urd(void)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -213,7 +214,7 @@ conf_cmd_urd()
 }
 
 static void
-conf_cmd_pwfile()
+conf_cmd_pwfile(void)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -223,7 +224,7 @@ conf_cmd_pwfile()
 }
 
 static void
-conf_cmd_lib()
+conf_cmd_lib(void)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -233,7 +234,7 @@ conf_cmd_lib()
 }
 
 static void
-conf_cmd_beebem()
+conf_cmd_beebem(void)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -243,7 +244,7 @@ conf_cmd_beebem()
 }
 
 static void
-conf_cmd_infofmt()
+conf_cmd_infofmt(void)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -255,7 +256,7 @@ conf_cmd_infofmt()
 }
 
 static void
-conf_cmd_opt4()
+conf_cmd_opt4(void)
 {
 	char *endptr;
 
@@ -267,7 +268,7 @@ conf_cmd_opt4()
 }
 
 static void
-conf_cmd_typemap_name()
+conf_cmd_typemap_name(void)
 {
 	char *re;
 	int type;
@@ -285,7 +286,7 @@ conf_cmd_typemap_name()
 }
 
 static void
-conf_cmd_typemap_perm()
+conf_cmd_typemap_perm(void)
 {
 	mode_t perm;
 	int type;
@@ -303,8 +304,7 @@ conf_cmd_typemap_perm()
 }
 
 static void
-conf_cmd_typemap_type(utype)
-	mode_t utype;
+conf_cmd_typemap_type(mode_t utype)
 {
 	int type;
 
@@ -317,7 +317,7 @@ conf_cmd_typemap_type(utype)
 }
 
 static void
-conf_cmd_typemap_default()
+conf_cmd_typemap_default(void)
 {
 	int type;
 
