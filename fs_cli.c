@@ -381,9 +381,9 @@ fs_cmd_dir(struct fs_context *c, char *tail)
 		return;
 	}
 	upath = fs_cli_getarg(&tail);
-	if (debug) printf(" -> dir [%s]\n", upath);
 	if (!*upath)
 		upath = "&";
+	if (debug) printf(" -> dir [%s]\n", upath);
 	upath = fs_unixify_path(c, upath);
 	if (fs_stat(upath, &st) == -1) {
 		fs_errno(c);
@@ -414,23 +414,29 @@ fs_cmd_lib(struct fs_context *c, char *tail)
 		return;
 	}
 	upath = fs_cli_getarg(&tail);
-	if (debug) printf(" -> lib [%s]\n", upath);
-	upath = fs_unixify_path(c, upath); /* Free it! */
-	if (fs_stat(upath, &st) == -1) {
-		fs_errno(c);
-		goto burn;
+	if (!*upath) {
+		if (debug) printf(" -> default lib\n");
+		fs_close_handle(c->client, c->req->lib);
+		reply.new_handle = fs_open_handle(c->client, lib, 1);
+	} else {
+		if (debug) printf(" -> lib [%s]\n", upath);
+		upath = fs_unixify_path(c, upath); /* Free it! */
+		if (fs_stat(upath, &st) == -1) {
+			fs_errno(c);
+			free(upath);
+			return;
+		}
+		fs_close_handle(c->client, c->req->lib);
+		reply.new_handle = fs_open_handle(c->client, upath, 1);
+		free(upath);
 	}
-	fs_close_handle(c->client, c->req->lib);
-	reply.new_handle = fs_open_handle(c->client, upath, 1);
 	if (reply.new_handle == 0) {
 		fs_err(c, EC_FS_E_MANYOPEN);
-		goto burn;
+		return;
 	}
 	reply.std_tx.command_code = EC_FS_CC_LIB;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
-burn:
-	free(upath);
 }
 
 
