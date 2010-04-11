@@ -96,7 +96,7 @@ static void conf_cmd_typemap_default(void);
 
 static int cfylex(int start, void *thing);
 
-#define YY_DECL static int cfylex(start, thing) int start; void *thing;
+#define YY_DECL static int cfylex(int start, void *thing)
 
 %}
 
