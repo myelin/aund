@@ -259,11 +259,6 @@ fs_set_info(struct fs_context *c)
 		access = req2->access;
 		path = req2->path;
 		set_load = set_exec = 1;
-		/*
-		 * Setting access information NYI, but we can't
-		 * afford to refuse the request on those grounds
-		 * when we're also changing other stuff :-(
-		 */
 		break;
 	}
 	case EC_FS_SET_INFO_LOAD: {
