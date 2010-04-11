@@ -90,6 +90,8 @@ int
 fs_hidden_name(name)
 	char *name;
 {
+	int len;
+
 	if (*name == '.') {
 		/*
 		 * Check for, and skip, two extra dots.
@@ -101,7 +103,11 @@ fs_hidden_name(name)
 		 */
 	}
 
-	if (strlen(name) > 10)
+	len = strlen(name);
+	/* Ignore a ',???' suffix when finding name length */
+	if (len >= 4 && name[len-4] == ',')
+		len -= 4;
+	if (len > 10)
 		return 1;	       /* long file: hidden */
 
 	return 0;
