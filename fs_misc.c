@@ -48,6 +48,7 @@
 #include "fs_errors.h"
 #include "extern.h"
 #include "fileserver.h"
+#include "version.h"
 
 void fs_get_discs(struct fs_context *);
 void fs_get_info(struct fs_context *);
@@ -730,8 +731,8 @@ fs_get_version(c)
 	 * terminating CR _in addition_ to a string matching the
 	 * PRM's specification.
 	 */
-	sprintf(reply.version, "aund      %d.%02d\r",
-		FS_MAJOR_VERSION, FS_MINOR_VERSION);
+	sprintf(reply.version, "%-9.9s %x.%02x\r",
+	    AUND_FS_DESCR, AUND_VERSION_MAJOR, AUND_VERSION_MINOR);
 	fs_reply(c, &(reply.reply.std_tx), sizeof(reply.reply) + 15);
 }
 

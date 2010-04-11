@@ -46,11 +46,7 @@
 
 #include "aun.h"
 #include "extern.h"
-
-#define MACHINE_MAKE 0
-#define MACHINE_MODEL 0x0e
-#define ECONET_SW_VERSION_MAJOR 0
-#define ECONET_SW_VERSION_MINOR 1
+#include "version.h"
 
 static void aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from);
 
@@ -105,10 +101,10 @@ aun_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 			if (pkt->flag == 8) {
 				/* Echo request? */
 				pkt->type = AUN_TYPE_IMM_REPLY;
-				pkt->data[0] = MACHINE_MODEL;
-				pkt->data[1] = MACHINE_MAKE;
-				pkt->data[2] = ECONET_SW_VERSION_MINOR;
-				pkt->data[3] = ECONET_SW_VERSION_MAJOR;
+				pkt->data[0] = AUND_MACHINE_PEEK_LO;
+				pkt->data[1] = AUND_MACHINE_PEEK_HI;
+				pkt->data[2] = AUND_VERSION_MINOR;
+				pkt->data[3] = AUND_VERSION_MAJOR;
 				if (sendto(sock, buf, 12, 0,
 					   (struct sockaddr*)&from,
 					   sizeof(from))

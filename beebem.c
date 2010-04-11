@@ -24,6 +24,7 @@
 #include "aun.h"
 #include "extern.h"
 #include "fileserver.h"
+#include "version.h"
 
 struct econet_addr {
 	u_int8_t station;
@@ -245,15 +246,14 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 
 		if (rbuf[PKTOFF+5] == 0) {
 			/*
-			 * Port 0 means a primitive operation. We
-			 * only support Machine Type Peek: respond
-			 * by claiming to be a file server.
+			 * Port 0 means an immediate operation. We
+			 * only support Machine Type Peek.
 			 */
 			if (rbuf[PKTOFF+4] == 0x88) {
-				ack[4] = 254;
-				ack[5] = 0;
-				ack[6] = 0x10 * (FS_MINOR_VERSION/10) + (FS_MINOR_VERSION%10);   /* BCD */
-				ack[7] = FS_MAJOR_VERSION;
+				ack[4] = AUND_MACHINE_PEEK_LO;
+				ack[5] = AUND_MACHINE_PEEK_HI;
+				ack[6] = AUND_VERSION_MINOR;
+				ack[7] = AUND_VERSION_MAJOR;
 			}
 			beebem_send(ack, 8);
 			continue;
