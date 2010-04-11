@@ -37,6 +37,7 @@
 #include <sys/statvfs.h>
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -245,7 +246,7 @@ fs_set_info(struct fs_context *c)
 	struct ec_fs_req_set_info *request;
 	struct ec_fs_reply reply;
 	struct ec_fs_meta meta_in, meta_out;
-	u_int8_t access;
+	uint8_t access;
 	int set_load = 0, set_exec = 0, set_access = 0;
 	FTS *ftsp;
 	FTSENT *f;
@@ -470,7 +471,7 @@ fs_get_users_on(struct fs_context *c)
 	struct ec_fs_reply_get_users_on *reply;
 	struct ec_fs_req_get_users_on *request;
 	struct fs_client *ent;
-	u_int8_t *p;
+	uint8_t *p;
 	int i;
 
 	if (c->client == NULL) {
@@ -493,7 +494,7 @@ fs_get_users_on(struct fs_context *c)
 	     ent = ent->link.le_next) {
 		i++;
 	}
-	p = (u_int8_t *)reply->users;
+	p = (uint8_t *)reply->users;
 	for (i = 0; i < request->nusers && ent != NULL;
 	     ent = ent->link.le_next) {
 		/*
@@ -518,7 +519,7 @@ fs_get_users_on(struct fs_context *c)
 	reply->nusers = i;
 	reply->std_tx.command_code = EC_FS_CC_DONE;
 	reply->std_tx.return_code = EC_FS_RC_OK;
-	fs_reply(c, &(reply->std_tx), p - (u_int8_t *)reply);
+	fs_reply(c, &(reply->std_tx), p - (uint8_t *)reply);
 	free(reply);
 }
 

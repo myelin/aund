@@ -35,6 +35,7 @@
 
 #include <dirent.h>
 #include <fts.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "aun.h"
@@ -53,7 +54,7 @@ struct fs_handle {
 	char	*path;
 	enum 	fs_handle_type type;
 	int	fd; /* Only for files at present */
-	u_int8_t	sequence; /* ditto */
+	uint8_t	sequence; /* ditto */
 };
 
 struct fs_dir_cache {
@@ -91,8 +92,8 @@ extern void fs_long_info(char *, FTSENT *);
 extern void fs_reply(struct fs_context *, struct ec_fs_reply *, size_t);
 
 extern void fs_errno(struct fs_context *);
-extern void fs_err(struct fs_context *, u_int8_t);
-extern void fs_error(struct fs_context *, u_int8_t, const char *);
+extern void fs_err(struct fs_context *, uint8_t);
+extern void fs_error(struct fs_context *, uint8_t, const char *);
 
 extern void fs_check_handles(struct fs_context *);
 extern int fs_check_handle(struct fs_client *, int);
@@ -106,13 +107,13 @@ extern void fs_delete_client(struct fs_client *);
 extern struct fs_client *fs_find_client(struct aun_srcaddr *);
 
 extern char *strpad(char *, int, size_t);
-extern u_int8_t fs_mode_to_type(mode_t);
-extern u_int8_t fs_mode_to_access(mode_t);
+extern uint8_t fs_mode_to_type(mode_t);
+extern uint8_t fs_mode_to_access(mode_t);
 extern mode_t fs_access_to_mode(unsigned char, int);
-extern char *fs_access_to_string(char *, u_int8_t);
-extern u_int64_t fs_read_val(u_int8_t *, size_t);
-extern void fs_write_val(u_int8_t *, u_int64_t, size_t);
-extern u_int64_t fs_riscos_date(time_t);
+extern char *fs_access_to_string(char *, uint8_t);
+extern uint64_t fs_read_val(uint8_t *, size_t);
+extern void fs_write_val(uint8_t *, uint64_t, size_t);
+extern uint64_t fs_riscos_date(time_t);
 extern void fs_get_meta(FTSENT *, struct ec_fs_meta *);
 extern int fs_get_sin(FTSENT *);
 extern void fs_write_date(struct ec_fs_date *, time_t);

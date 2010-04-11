@@ -34,13 +34,15 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <stdint.h>
+
 #include "aun.h"
 
 /*
  * Opaque structure holding a source address.
  */
 struct aun_srcaddr {
-	u_int8_t bytes[4];
+	uint8_t bytes[4];
 };
 
 extern void print_status(struct aun_packet *, ssize_t, struct aun_srcaddr *);
@@ -65,7 +67,7 @@ struct aun_funcs {
 	ssize_t (*xmit)(struct aun_packet *pkt,
 			size_t len, struct aun_srcaddr *to);
 	char *(*ntoa)(struct aun_srcaddr *addr);
-	void (*get_stn)(struct aun_srcaddr *addr, u_int8_t *out);
+	void (*get_stn)(struct aun_srcaddr *addr, uint8_t *out);
 };
 
 extern const struct aun_funcs *aunfuncs;

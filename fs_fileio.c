@@ -69,7 +69,7 @@ fs_open(struct fs_context *c)
 	struct ec_fs_req_open *request;
 	char *upath;
 	int openopt, fd;
-	u_int8_t h;
+	uint8_t h;
 
 	if (c->client == NULL) {
 		fs_err(c, EC_FS_E_WHOAREYOU);

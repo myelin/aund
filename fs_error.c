@@ -35,6 +35,7 @@
 #include <sys/types.h>
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -45,7 +46,7 @@
 
 const static struct {
 	int errnoval;
-	u_int8_t fs_err;
+	uint8_t fs_err;
 } errnotab[16] = {
 	{ EPERM,       	EC_FS_E_NOPRIV },
 	{ ENOENT,	EC_FS_E_NOTFOUND },
@@ -68,7 +69,7 @@ const static struct {
 #define NERRNOS (sizeof(errnotab) / sizeof(errnotab[0]))
 
 const static struct {
-	u_int8_t err;
+	uint8_t err;
 	char *msg;
 } errmsgtab[] = {
 	{0x69, "Object not a file"},
@@ -134,7 +135,7 @@ fs_errno(struct fs_context *c)
 
 
 void
-fs_err(struct fs_context *c, u_int8_t err)
+fs_err(struct fs_context *c, uint8_t err)
 {
 	int i;
 
@@ -147,7 +148,7 @@ fs_err(struct fs_context *c, u_int8_t err)
 }
 
 void
-fs_error(struct fs_context *c, u_int8_t err, const char *report)
+fs_error(struct fs_context *c, uint8_t err, const char *report)
 {
 	struct ec_fs_reply *reply;
 

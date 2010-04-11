@@ -13,6 +13,7 @@
 
 #include <err.h>
 #include <signal.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -27,8 +28,8 @@
 #include "version.h"
 
 struct econet_addr {
-	u_int8_t station;
-	u_int8_t network;
+	uint8_t station;
+	uint8_t network;
 };
 
 static int sock;
@@ -407,7 +408,7 @@ beebem_ntoa(struct aun_srcaddr *vfrom)
 }
 
 static void
-beebem_get_stn(struct aun_srcaddr *vfrom, u_int8_t *out)
+beebem_get_stn(struct aun_srcaddr *vfrom, uint8_t *out)
 {
 	union internal_addr *afrom = (union internal_addr *)vfrom;
 	out[0] = afrom->eaddr.station;

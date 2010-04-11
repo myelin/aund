@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <fts.h>
 #include <libgen.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +56,7 @@ strpad(char *s, int c, size_t len)
 	return s;
 }
 
-u_int8_t
+uint8_t
 fs_mode_to_type(mode_t mode)
 {
 
@@ -71,7 +72,7 @@ fs_mode_to_type(mode_t mode)
  * public permissions when changed by an Acorn client.
  */
 
-u_int8_t
+uint8_t
 fs_mode_to_access(mode_t mode)
 {
 	unsigned char access;
@@ -99,7 +100,7 @@ fs_access_to_mode(unsigned char access, int usergroup)
 }
 
 char *
-fs_access_to_string(char *buf, u_int8_t access)
+fs_access_to_string(char *buf, uint8_t access)
 {
 
 	buf[0] = '\0';
@@ -118,10 +119,10 @@ fs_access_to_string(char *buf, u_int8_t access)
 	return buf;
 }
 
-u_int64_t
-fs_read_val(u_int8_t *p, size_t len)
+uint64_t
+fs_read_val(uint8_t *p, size_t len)
 {
-	u_int64_t value;
+	uint64_t value;
 
 	value = 0;
 	p += len - 1;
@@ -135,9 +136,9 @@ fs_read_val(u_int8_t *p, size_t len)
 }
 
 void
-fs_write_val(u_int8_t *p, u_int64_t value, size_t len)
+fs_write_val(uint8_t *p, uint64_t value, size_t len)
 {
-	u_int64_t max;
+	uint64_t max;
 
 	max = (1ULL << (len * 8)) - 1;
 	if (value > max) value = max;
@@ -155,7 +156,7 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 {
 	struct stat *st, sb;
 	char *lastslash, *dir, *metapath, rawinfo[24];
-	u_int64_t stamp;
+	uint64_t stamp;
 	int type, i;
 	
 	st = &sb;
@@ -276,12 +277,12 @@ fs_get_sin(FTSENT *f)
  * OS time (non-leap(?) centiseconds since 1900-01-01(?)).
  */
 
-u_int64_t fs_riscos_date(time_t time)
+uint64_t fs_riscos_date(time_t time)
 {
-	u_int64_t base;
+	uint64_t base;
 
 	base = 31536000ULL * 70 + 86400 * 17;
-	return (((u_int64_t)time) + base)*100;
+	return (((uint64_t)time) + base)*100;
 }
 
 /*

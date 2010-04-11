@@ -29,22 +29,23 @@
 #define _AUN_H
 
 #include <sys/types.h>
+#include <stdint.h>
 
 #define PORT_AUN 32768
 
 struct aun_packet {
-	u_int8_t type;
+	uint8_t type;
 #define AUN_TYPE_BROADCAST	1
 #define AUN_TYPE_UNICAST	2
 #define AUN_TYPE_ACK		3
 /* NACK of some sort?		4 */
 #define AUN_TYPE_IMMEDIATE	5
 #define AUN_TYPE_IMM_REPLY	6
-	u_int8_t dest_port;
-	u_int8_t flag;
-	u_int8_t retrans;
-	u_int8_t seq[4]; /* little-endian */
-	u_int8_t data[0]; /* actually more */
+	uint8_t dest_port;
+	uint8_t flag;
+	uint8_t retrans;
+	uint8_t seq[4]; /* little-endian */
+	uint8_t data[0]; /* actually more */
 };
 
 #define AUN_MAX_BLOCK 4096

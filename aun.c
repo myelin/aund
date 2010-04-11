@@ -38,6 +38,7 @@
 
 #include <err.h>
 #include <signal.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -208,7 +209,7 @@ aun_ntoa(struct aun_srcaddr *vfrom)
 }
 
 static void
-aun_get_stn(struct aun_srcaddr *vfrom, u_int8_t *out)
+aun_get_stn(struct aun_srcaddr *vfrom, uint8_t *out)
 {
 	union internal_addr *afrom = (union internal_addr *)vfrom;
 	in_addr_t a = ntohs(afrom->sin_addr.s_addr);
