@@ -5,7 +5,7 @@ AUND = aund.o conf_lex.o fileserver.o fs_cli.o fs_examine.o fs_fileio.o \
 # Warnings to help with coding style
 WARNINGS = -Wall \
 	-Wdeclaration-after-statement -Wold-style-definition \
-	-Wmissing-prototypes \
+	-Wmissing-prototypes -Wredundant-decls \
 	-Wno-pointer-sign -Wno-uninitialized
 
 aund: $(AUND)
