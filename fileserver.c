@@ -46,7 +46,7 @@
 
 struct fs_client_head fs_clients = LIST_HEAD_INITIALIZER(fs_clients);
 
-char *discname;
+char discname[17];
 char *root = NULL;		       /* must specify this in config */
 char *fixedurd = ".";		       /* default to the root dir */
 char *lib = ".";		       /* default to the root dir */
@@ -56,12 +56,17 @@ enum fs_info_format infoformat = FS_INFO_RISCOS;
 void
 fs_init(void)
 {
-	discname = malloc(MAXHOSTNAMELEN > 17 ? MAXHOSTNAMELEN : 17);
-	if (gethostname(discname, MAXHOSTNAMELEN) == -1)
+	char fullname[MAXHOSTNAMELEN];
+
+	if (gethostname(fullname, MAXHOSTNAMELEN) == -1)
 		err(1, "gethostname");
 	/* Chomp at the first '.' or 16 characters, whichever is sooner. */
-	discname[strcspn(discname, ".")] = '\0';
-	discname[16] = '\0';
+	fullname[strcspn(fullname, ".")] = '\0';
+	if (MAXHOSTNAMELEN > 16)
+		fullname[16] = '\0';
+	else
+		fullname[MAXHOSTNAMELEN - 1] = '\0'; /* paranoia */
+	strcpy(discname, fullname);
 }
 
 #if 0

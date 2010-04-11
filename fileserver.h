@@ -79,7 +79,7 @@ enum fs_info_format { FS_INFO_RISCOS, FS_INFO_SJ } infoformat;
 LIST_HEAD(fs_client_head, fs_client);
 extern struct fs_client_head fs_clients;
 
-extern char *discname;
+extern char discname[];
 extern char *root;
 extern char *fixedurd;
 extern char *pwfile;
