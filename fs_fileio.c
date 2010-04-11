@@ -144,7 +144,6 @@ fs_close1(struct fs_context *c, int h)
 	int error = 0;
 
 	if ((h = fs_check_handle(c->client, h)) != 0) {
-		if (debug) printf("close(%d)", h);
 		hp = c->client->handles[h];
 		/* ESUG says this is needed */
 		if (hp->type == FS_HANDLE_FILE && fsync(hp->fd) == -1) {

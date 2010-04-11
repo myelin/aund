@@ -44,8 +44,10 @@
  */
 void fs_check_handles(struct fs_context *c)
 {
+	if (debug) printf("{");
 	switch (c->req->function) {
 	default:
+		if (debug) printf("&=%u,", c->req->urd);
 		c->req->urd = fs_check_handle(c->client, c->req->urd);
 		/* FALLTHROUGH */
 	case EC_FS_FUNC_LOAD:
@@ -54,6 +56,7 @@ void fs_check_handles(struct fs_context *c)
 	case EC_FS_FUNC_GETBYTES:
 	case EC_FS_FUNC_PUTBYTES:
 		/* In these calls, the URD is replaced by a port number */
+		if (debug) printf("@=%u,%%=%u", c->req->csd, c->req->lib);
 		c->req->csd = fs_check_handle(c->client, c->req->csd);
 		c->req->lib = fs_check_handle(c->client, c->req->lib);
 		/* FALLTHROUGH */
@@ -62,6 +65,7 @@ void fs_check_handles(struct fs_context *c)
 		/* And these ones don't pass context at all. */
 		break;
 	}
+	if (debug) printf("} ");
 }
 
 /*
@@ -118,6 +122,7 @@ int fs_open_handle(struct fs_client *client, char *path, int must_exist)
 	strcpy(newpath, path);
 	if (newpath[strlen(newpath)-1] == '/')
 		newpath[strlen(newpath)-1] = '\0';
+	if (debug) printf("{%d=%s} ", h, newpath);
 	return h;
 }
 
@@ -130,6 +135,7 @@ fs_close_handle(struct fs_client *client, int h)
 {
 
 	if (h == 0) return;
+	if (debug) printf("{%d closed} ", h);
 	switch (client->handles[h]->type) {
 	case FS_HANDLE_FILE:
 		close(client->handles[h]->fd);
