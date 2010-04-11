@@ -47,7 +47,7 @@
 const static struct {
 	int errnoval;
 	uint8_t fs_err;
-} errnotab[16] = {
+} errnotab[] = {
 	{ EPERM,       	EC_FS_E_NOPRIV },
 	{ ENOENT,	EC_FS_E_NOTFOUND },
 	{ EIO,		EC_FS_E_DISCERR },
