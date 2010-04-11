@@ -73,12 +73,9 @@ static int fs_check_typemap(FTSENT *, struct fs_typemap *);
 /*
  * fs_guess_type - pick a sensible RISC OS file type for a Unix file.
  */
-int fs_guess_type(f)
-	FTSENT *f;
+int fs_guess_type(FTSENT *f)
 {
-	mode_t m;
 	struct fs_typemap *map;
-	size_t len;
 	
 	/* First check for magic names */
 	if (f->fts_namelen >= 4 && f->fts_name[f->fts_namelen-4] == ',')
@@ -92,9 +89,7 @@ int fs_guess_type(f)
 	return FT_DATA;
 }
 
-int fs_check_typemap(f, map)
-	FTSENT *f;
-	struct fs_typemap *map;
+int fs_check_typemap(FTSENT *f, struct fs_typemap *map)
 {
 	switch (map->kind) {
 	case FS_MAP_DEFAULT:
@@ -111,9 +106,7 @@ int fs_check_typemap(f, map)
 }
 
 int
-fs_add_typemap_name(re, type)
-	const char *re;
-	int type;
+fs_add_typemap_name(const char *re, int type)
 {
 	struct fs_typemap *newmap;
 	int rc;
@@ -142,12 +135,9 @@ fs_add_typemap_name(re, type)
 }
 
 int
-fs_add_typemap_mode(val, mask, type)
-	mode_t val, mask;
-	int type;
+fs_add_typemap_mode(mode_t val, mode_t mask, int type)
 {
 	struct fs_typemap *newmap;
-	int rc;
 	
 	newmap = malloc(sizeof(*newmap));
 	if (newmap == NULL) {
@@ -162,11 +152,9 @@ fs_add_typemap_mode(val, mask, type)
 	return 0;
 }
 int
-fs_add_typemap_default(type)
-	int type;
+fs_add_typemap_default(int type)
 {
 	struct fs_typemap *newmap;
-	int rc;
 	
 	newmap = malloc(sizeof(*newmap));
 	if (newmap == NULL) {

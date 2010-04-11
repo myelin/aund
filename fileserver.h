@@ -146,6 +146,8 @@ extern uint64_t fs_read_val(uint8_t *, size_t);
 extern void fs_write_val(uint8_t *, uint64_t, size_t);
 extern uint64_t fs_riscos_date(time_t);
 extern void fs_get_meta(FTSENT *, struct ec_fs_meta *);
+extern int fs_set_meta(FTSENT *, struct ec_fs_meta *);
+extern void fs_del_meta(FTSENT *);
 extern int fs_get_sin(FTSENT *);
 extern void fs_write_date(struct ec_fs_date *, time_t);
 extern int fs_stat(const char *, struct stat *);

@@ -108,7 +108,7 @@ fs_close(struct fs_context *c)
 {
 	struct ec_fs_reply reply;
 	struct ec_fs_req_close *request;
-	int h, fd, error, thiserr;
+	int h, error, thiserr;
 	
 	if (c->client == NULL) {
 		fs_err(c, EC_FS_E_WHOAREYOU);
@@ -260,8 +260,6 @@ fs_putbyte(struct fs_context *c)
 	struct ec_fs_reply reply;
 	struct ec_fs_req_putbyte *request;
 	int h, fd;
-	off_t off, saved_off = 0;
-	size_t size, got;
 
 	if (c->client == NULL) {
 		fs_err(c, EC_FS_E_WHOAREYOU);
@@ -295,9 +293,7 @@ fs_get_eof(struct fs_context *c)
 {
 	struct ec_fs_reply_get_eof reply;
 	struct ec_fs_req_get_eof *request;
-	int h, fd, ret;
-	off_t off;
-	size_t size, got;
+	int h, fd;
 
 	if (c->client == NULL) {
 		fs_err(c, EC_FS_E_WHOAREYOU);
@@ -366,8 +362,6 @@ fs_getbyte(struct fs_context *c)
 	struct ec_fs_reply_getbyte reply;
 	struct ec_fs_req_getbyte *request;
 	int h, fd, ret;
-	off_t off;
-	size_t size, got;
 
 	if (c->client == NULL) {
 		fs_err(c, EC_FS_E_WHOAREYOU);
@@ -448,7 +442,7 @@ fs_load(struct fs_context *c)
 	struct ec_fs_req_load *request;
 	char *upath, *path_argv[2];
 	int fd;
-	size_t size, got;
+	size_t got;
 	FTS *ftsp;
 	FTSENT *f;
 
@@ -568,7 +562,7 @@ fs_create(struct fs_context *c)
 	struct ec_fs_meta meta;
 	char *upath, *path_argv[2];
 	int fd, ackport, replyport;
-	size_t size, got;
+	size_t size;
 	FTS *ftsp;
 	FTSENT *f;
 
@@ -664,10 +658,9 @@ static ssize_t
 fs_data_recv(struct fs_context *c, int fd, size_t size, int ackport)
 {
 	struct aun_packet *pkt, *ack;
-	void *buf;
 	ssize_t msgsize, result;
 	struct aun_srcaddr from;
-	size_t this, done;
+	size_t done;
 
 	if ((ack = malloc(sizeof(*ack) + 1)) == NULL) {
 		fs_err(c, EC_FS_E_NOMEM);

@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <ctype.h>
 #include <err.h>
 #include <signal.h>
 #include <stdint.h>
@@ -261,7 +262,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		}
 		if (msgsize != 6) {
 			if (debug)
-				printf("received wrong-size scout packet (%d) from %d.%d\n",
+				printf("received wrong-size scout packet (%zd) from %d.%d\n",
 				       msgsize, scoutaddr>>8, scoutaddr&0xFF);
 			continue;
 		}
@@ -323,7 +324,7 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 
 	if (len > sizeof(sbuf) - 4) {
 		if (debug)
-			printf("outgoing packet too large (%d)\n", len);
+			printf("outgoing packet too large (%zu)\n", len);
 		return -1;
 	}
 
@@ -355,7 +356,7 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 	}
 	if (msgsize != 4) {
 		if (debug)
-			printf("received wrong-size ack packet (%d) from %d.%d\n",
+			printf("received wrong-size ack packet (%zd) from %d.%d\n",
 			       msgsize, theiraddr>>8, theiraddr&0xFF);
 		return -1;
 	}
@@ -389,7 +390,7 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 	}
 	if (msgsize != 4) {
 		if (debug)
-			printf("received wrong-size ack packet (%d) from %d.%d\n",
+			printf("received wrong-size ack packet (%zd) from %d.%d\n",
 			       msgsize, theiraddr>>8, theiraddr&0xFF);
 		return -1;
 	}

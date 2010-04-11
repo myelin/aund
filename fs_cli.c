@@ -90,7 +90,7 @@ fs_cli(struct fs_context *c)
 {
 	int i;
 	char *head, *tail, *backup;
-	int len;
+
 	c->req->data[strcspn(c->req->data, "\r")] = '\0';
 
 	head = backup = strdup(c->req->data);
@@ -275,7 +275,7 @@ static void
 fs_cmd_pass(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply reply;
-	char *oldpw, *newpw, *oururd;
+	char *oldpw, *newpw;
 	oldpw = fs_cli_getarg(&tail);
 	newpw = fs_cli_getarg(&tail);
 	if (debug) printf("cli: change password\n");
@@ -519,8 +519,8 @@ fs_long_info(char *string, FTSENT *f)
 				fullpath = malloc((lastslash - f->fts_accpath) +
 						  f->fts_namelen + 8 + 1);
 				sprintf(fullpath, "%.*s/%s",
-					lastslash - f->fts_accpath,
-					f->fts_accpath, f->fts_name);
+				    (int)(lastslash - f->fts_accpath),
+				    f->fts_accpath, f->fts_name);
 				path_argv[0] = fullpath;
 				path_argv[1] = NULL;
 
@@ -550,10 +550,10 @@ fs_long_info(char *string, FTSENT *f)
 			fs_get_meta(f, &meta);
 			load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
 			exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
-			sprintf(string, "%-10.10s %08X %08X     %06X "
+			sprintf(string, "%-10.10s %08lX %08lX     %06jX "
 				"%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d 000 (000)\r\x80",
 				acornname, load, exec,
-				f->fts_statp->st_size, accstring,
+				(uintmax_t)f->fts_statp->st_size, accstring,
 				tm.tm_mday,
 				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
 				tm.tm_year % 100,
@@ -570,10 +570,10 @@ fs_long_info(char *string, FTSENT *f)
 		fs_get_meta(f, &meta);
 		load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
 		exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
-		sprintf(string, "%-10.10s %08X %08X   %06X   "
+		sprintf(string, "%-10.10s %08lX %08lX   %06jX   "
 			"%-6.6s     %02d:%02d:%02d %06x\x80",
 			acornname, load, exec,
-			f->fts_statp->st_size, accstring,
+			(uintmax_t)f->fts_statp->st_size, accstring,
 			tm.tm_mday,
 			tm.tm_mon,
 			tm.tm_year % 100,

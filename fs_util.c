@@ -155,7 +155,7 @@ void
 fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 {
 	struct stat *st, sb;
-	char *lastslash, *dir, *metapath, rawinfo[24];
+	char *lastslash, *metapath, rawinfo[24];
 	uint64_t stamp;
 	int type, i;
 	
@@ -169,8 +169,9 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 	metapath = malloc((lastslash - f->fts_accpath) +
 			  f->fts_namelen + 8 + 1);
 	if (metapath != NULL) {
-		sprintf(metapath, "%.*s.Acorn/%s", lastslash - f->fts_accpath,
-			f->fts_accpath, f->fts_name);
+		sprintf(metapath, "%.*s.Acorn/%s",
+		    (int)(lastslash - f->fts_accpath),
+		    f->fts_accpath, f->fts_name);
  		rawinfo[23] = '\0';
 		if (readlink(metapath, rawinfo, 23) == 23) {
 			for (i = 0; i < 4; i++)
@@ -213,7 +214,7 @@ fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 		errno = ENOMEM;
 		return 0;
 	}
-	sprintf(metapath, "%.*s.Acorn", lastslash - f->fts_accpath,
+	sprintf(metapath, "%.*s.Acorn", (int)(lastslash - f->fts_accpath),
 		f->fts_accpath);
 	ret = rmdir(metapath);
 	if (ret < 0 && errno != ENOENT && errno != ENOTEMPTY)
@@ -240,8 +241,7 @@ fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 void
 fs_del_meta(FTSENT *f)
 {
-	char *lastslash, *metapath, rawinfo[24];
-	int dirlen, ret;
+	char *lastslash, *metapath;
 
 	lastslash = strrchr(f->fts_accpath, '/');
 	if (lastslash)
@@ -251,8 +251,9 @@ fs_del_meta(FTSENT *f)
 	metapath = malloc((lastslash - f->fts_accpath) +
 			  f->fts_namelen + 8 + 1);
 	if (metapath != NULL) {
-		sprintf(metapath, "%.*s.Acorn/%s", lastslash - f->fts_accpath,
-			f->fts_accpath, f->fts_name);
+		sprintf(metapath, "%.*s.Acorn/%s",
+		    (int)(lastslash - f->fts_accpath),
+		    f->fts_accpath, f->fts_name);
 		unlink(metapath);
 		free(metapath);
 	}

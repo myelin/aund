@@ -36,6 +36,7 @@
 #include <sys/types.h>
 
 #include <assert.h>
+#include <ctype.h>
 #include <dirent.h>
 #include <err.h>
 #include <errno.h>
@@ -217,7 +218,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 	while (*p) {
 		char *r = p;
 		while (*p && *p != '/') p++;
-		sprintf(q, "%.*s", p-r, r);
+		sprintf(q, "%.*s", (int)(p-r), r);
 		fs_match_path(path3);
 		q += strlen(q);
 		if (*p) {

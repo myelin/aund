@@ -62,7 +62,7 @@ fs_examine(struct fs_context *c)
 	FTSENT *ent;
 	struct ec_fs_reply_examine *reply;
 	size_t reply_size;
-	int i, n, rc;
+	int i, rc;
 
 	request->path[strcspn(request->path, "\r")] = '\0';	
 	if (debug) printf("examine [%d, %d/%d, %s]\n", request->arg, request->start, request->nentries, request->path);
@@ -304,7 +304,6 @@ fs_examine_longtxt(FTSENT *ent, struct ec_fs_reply_examine **replyp,
 {
 	void *new_reply;
 	char *string;
-	char accstring[8];
 	
 	if ((new_reply = realloc(*replyp, *reply_sizep + 100)) != NULL)
 		*replyp = new_reply;

@@ -2,13 +2,12 @@
  * Password file management for aund.
  */
 
-#define _XOPEN_SOURCE 500	       /* for crypt and strdup */
-
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/time.h>
 
 #include <assert.h>
+#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +23,7 @@ static FILE *fp, *newfp;
 
 extern int default_opt4;
 
-int
+static int
 pw_open(int write)
 {
 
@@ -65,7 +64,7 @@ pw_open(int write)
 	return 1;
 }
 
-void
+static void
 pw_close(void)
 {
 
@@ -75,7 +74,7 @@ pw_close(void)
 	fp = newfp = NULL;
 }
 
-int
+static int
 pw_close_rename(void)
 {
 
@@ -88,11 +87,11 @@ pw_close_rename(void)
 			warn("%s -> %s: rename", pwfile, pwtmp);
 			return 0;
 		}
-		return 1;
 	}
+	return 1;
 }
 
-int
+static int
 pw_read_line(char **user, char **pw, char **urd, int *opt4)
 {
 	static char buffer[16384];
@@ -127,7 +126,7 @@ pw_read_line(char **user, char **pw, char **urd, int *opt4)
 	return 1;
 }
 
-void
+static void
 pw_write_line(char *user, char *pw, char *urd, int opt4)
 {
 
@@ -141,12 +140,12 @@ pw_validate(char *user, const char *pw, int *opt4)
 	char *ret;
 
 	if (!pw_open(0))
-		return;
+		return NULL;
 
 	while (pw_read_line(&u, &p, &d, opt4)) {
 		if (!strcasecmp(user, u)) {
 			int ok = 0;
-			char *ret;
+
 			if (*p) {
 				char *cp = crypt(pw, p);
 				ok = !strcmp(cp, p);
@@ -175,12 +174,11 @@ pw_change(const char *user, const char *oldpw, const char *newpw)
 	int done = 0;
 
 	if (!pw_open(1))
-		return;
+		return 0;
 
 	while (pw_read_line(&u, &p, &d, &opt4)) {
 		if (!done && !strcasecmp(user, u)) {
 			int ok = 0;
-			char *ret;
 			char salt[64];
 			char *cp;
 			struct timeval tv;
@@ -195,7 +193,7 @@ pw_change(const char *user, const char *oldpw, const char *newpw)
 				return 0;
 			}
 			gettimeofday(&tv, NULL);
-			sprintf(salt, "$6$%08x%08x$",
+			sprintf(salt, "$6$%08lx%08lx$",
 				tv.tv_sec & 0xFFFFFFFFUL,
 				tv.tv_usec & 0xFFFFFFFFUL);
 			p = crypt(newpw, salt);
@@ -214,7 +212,7 @@ pw_set_opt4(const char *user, int newopt4)
 	int done = 0;
 
 	if (!pw_open(1))
-		return;
+		return 0;
 
 	while (pw_read_line(&u, &p, &d, &opt4)) {
 		if (!done && !strcasecmp(user, u)) {
