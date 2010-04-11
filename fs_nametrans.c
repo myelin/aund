@@ -153,7 +153,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 	/*
 	 * Plenty of space.
 	 */
-	path2 = malloc(strlen(c->client->urd) + (csd ? strlen(csd) : 0) +
+	path2 = malloc((urd ? strlen(urd) : 0) + (csd ? strlen(csd) : 0) +
 		       (lib ? strlen(lib) : 0) +
 		       2 * strlen(path) + 100);
 
