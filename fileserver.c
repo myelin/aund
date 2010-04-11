@@ -44,36 +44,6 @@
 #include "extern.h"
 #include "fileserver.h"
 
-typedef void fs_func_impl(struct fs_context *);
-extern fs_func_impl fs_cli;
-extern fs_func_impl fs_examine;
-extern fs_func_impl fs_open;
-extern fs_func_impl fs_close;
-extern fs_func_impl fs_cat_header;
-extern fs_func_impl fs_getbyte;
-extern fs_func_impl fs_putbyte;
-extern fs_func_impl fs_getbytes;
-extern fs_func_impl fs_putbytes;
-extern fs_func_impl fs_load;
-extern fs_func_impl fs_get_args;
-extern fs_func_impl fs_set_args;
-extern fs_func_impl fs_get_discs;
-extern fs_func_impl fs_get_info;
-extern fs_func_impl fs_set_info;
-extern fs_func_impl fs_get_uenv;
-extern fs_func_impl fs_get_eof;
-extern fs_func_impl fs_get_users_on;
-extern fs_func_impl fs_get_user;
-extern fs_func_impl fs_get_time;
-extern fs_func_impl fs_set_opt4;
-extern fs_func_impl fs_logoff;
-extern fs_func_impl fs_delete;
-extern fs_func_impl fs_get_version;
-extern fs_func_impl fs_get_disc_free;
-extern fs_func_impl fs_cdirn;
-extern fs_func_impl fs_create;
-extern fs_func_impl fs_get_user_free;
-
 struct fs_client_head fs_clients = LIST_HEAD_INITIALIZER(fs_clients);
 
 char *discname;

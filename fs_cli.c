@@ -81,8 +81,6 @@ static const struct fs_cmd cmd_tab[] = {
 
 #define NCMDS (sizeof(cmd_tab) / sizeof(cmd_tab[0]))
 
-void fs_cli(struct fs_context *);
-
 /*
  * Handle a command-line packet from a client.  This is rarely used by
  * new clients (but NetFS still uses *I am).

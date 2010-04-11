@@ -51,12 +51,6 @@
 #include "fileserver.h"
 #include "version.h"
 
-void fs_get_discs(struct fs_context *);
-void fs_get_info(struct fs_context *);
-void fs_set_info(struct fs_context *);
-void fs_get_uenv(struct fs_context *);
-void fs_logoff(struct fs_context *);
-
 void
 fs_get_discs(struct fs_context *c)
 {

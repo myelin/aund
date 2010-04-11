@@ -53,8 +53,6 @@ static int fs_examine_name(FTSENT *, struct ec_fs_reply_examine **, size_t *);
 static int fs_examine_shorttxt(FTSENT *, struct ec_fs_reply_examine **,
     size_t *);
 
-void fs_examine(struct fs_context *);
-
 void
 fs_examine(struct fs_context *c)
 {
