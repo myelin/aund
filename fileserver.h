@@ -144,7 +144,7 @@ extern mode_t fs_access_to_mode(unsigned char, int);
 extern char *fs_access_to_string(char *, uint8_t);
 extern uint64_t fs_read_val(uint8_t *, size_t);
 extern void fs_write_val(uint8_t *, uint64_t, size_t);
-extern uint64_t fs_riscos_date(time_t);
+extern uint64_t fs_riscos_date(time_t, unsigned);
 extern void fs_get_meta(FTSENT *, struct ec_fs_meta *);
 extern int fs_set_meta(FTSENT *, struct ec_fs_meta *);
 extern void fs_del_meta(FTSENT *);

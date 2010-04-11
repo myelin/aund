@@ -25,6 +25,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
+
 #include <sys/errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -186,7 +188,13 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 	}
 	st = f->fts_statp;
 	if (st != NULL) {
-		stamp = fs_riscos_date(st->st_mtime);
+		stamp = fs_riscos_date(st->st_mtime,
+#if HAVE_STRUCT_STAT_ST_MTIMENSEC
+		    st->st_mtimensec / 10000000
+#else
+		    0
+#endif
+);
 		type = fs_guess_type(f);
 		fs_write_val(meta->load_addr,
 			     0xfff00000 | (type << 8) | (stamp >> 32), 4);
@@ -274,11 +282,13 @@ fs_get_sin(FTSENT *f)
 
 
 /*
- * Convert a Unix time_t (non-leap seconds since 1970-01-01) to a RISC
- * OS time (non-leap(?) centiseconds since 1900-01-01(?)).
+ * Convert a Unix time_t (non-leap seconds since 1970-01-01) and odd
+ * centiseconds to a RISC OS time (non-leap(?) centiseconds since
+ * 1900-01-01(?)).
  */
 
-uint64_t fs_riscos_date(time_t time)
+uint64_t
+fs_riscos_date(time_t time, unsigned csec)
 {
 	uint64_t base;
 
