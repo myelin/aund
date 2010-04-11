@@ -259,7 +259,6 @@ fs_cmd_i_am(struct fs_context *c, char *tail)
 		return;
 	}
 	c->client->login = strdup(login);
-	c->client->urd = oururd;
 	reply.std_tx.command_code = EC_FS_CC_LOGON;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	/* Initial user environment.  Note that we can't use the same handle twice. */
