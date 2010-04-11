@@ -73,7 +73,7 @@ fs_examine(struct fs_context *c)
 	}
 	switch (request->arg) {
 	default:
-		fs_error(c, 0xff, "Not yet implemented!");
+		fs_err(c, EC_FS_E_BADEXAMINE);
 		return;
 	case EC_FS_EXAMINE_ALL: case EC_FS_EXAMINE_NAME:
 	case EC_FS_EXAMINE_SHORTTXT: case EC_FS_EXAMINE_LONGTXT:
