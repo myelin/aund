@@ -1,0 +1,4 @@
+AC_INIT
+AC_CHECK_HEADERS([crypt.h])
+AC_CONFIG_HEADERS([config.h])
+AC_OUTPUT

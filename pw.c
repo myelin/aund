@@ -2,17 +2,22 @@
  * Password file management for aund.
  */
 
+#include "config.h"
+
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/time.h>
 
 #include <assert.h>
+#if HAVE_CRYPT_H
+#include <crypt.h>
+#endif
 #include <err.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include "extern.h"
 
