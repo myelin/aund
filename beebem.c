@@ -314,10 +314,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 }
 
 static ssize_t
-beebem_xmit(spkt, len, vto)
-	struct aun_packet *spkt;
-	size_t len;
-	struct aun_srcaddr *vto;
+beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 {
 	union internal_addr *ato = (union internal_addr *)vto;
 	int theiraddr, ackaddr;

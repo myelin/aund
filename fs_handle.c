@@ -42,8 +42,7 @@
 /*
  * Check a client context for validity.  Zero invalid handles.
  */
-void fs_check_handles(c)
-	struct fs_context *c;
+void fs_check_handles(struct fs_context *c)
 {
 	switch (c->req->function) {
 	default:
@@ -69,9 +68,7 @@ void fs_check_handles(c)
  * Check a handle for validity.  Return the handle if it's valid and 0
  * if it isn't.
  */
-int fs_check_handle(client, h)
-	struct fs_client *client;
-	int h;
+int fs_check_handle(struct fs_client *client, int h)
 {
 	if (client && h < client->nhandles && client->handles[h])
 		return h;
@@ -83,10 +80,7 @@ int fs_check_handle(client, h)
  * Open a new handle for a client.  path gives the Unix path of the
  * file or directory to open.
  */
-int fs_open_handle(client, path, must_exist)
-	struct fs_client *client;
-	char *path;
-	int must_exist;
+int fs_open_handle(struct fs_client *client, char *path, int must_exist)
 {
 	struct stat sb;
 	char *newpath;
@@ -132,10 +126,9 @@ int fs_open_handle(client, path, must_exist)
  */
 
 void
-fs_close_handle(client, h)
-	struct fs_client *client;
-	int h;
+fs_close_handle(struct fs_client *client, int h)
 {
+
 	if (h == 0) return;
 	switch (client->handles[h]->type) {
 	case FS_HANDLE_FILE:
@@ -149,10 +142,10 @@ fs_close_handle(client, h)
 }
 
 int
-fs_alloc_handle(client)
-	struct fs_client *client;
+fs_alloc_handle(struct fs_client *client)
 {
 	int h;
+
 	/*
 	 * Try to find a free handle first.  Handle 0 is special, so
 	 * skip it.
@@ -190,10 +183,9 @@ fs_alloc_handle(client)
 }
 
 void
-fs_free_handle(client, h)
-	int h;
-	struct fs_client *client;
+fs_free_handle(struct fs_client *client, int h)
 {
+
 	/* very simple */
 	free(client->handles[h]);
 	client->handles[h] = 0;

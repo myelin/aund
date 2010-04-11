@@ -66,9 +66,7 @@ static void sig_init(void);
 static void sigcatcher(int);
 
 int
-main(argc, argv)
-	int argc;
-	char *argv[];
+main(int argc, char *argv[])
 {
 	const char *conffile = "/etc/aund.conf";
 	int c;
@@ -156,7 +154,7 @@ main(argc, argv)
 }
 
 static void
-sig_init()
+sig_init(void)
 {
 	struct sigaction sa;
 
@@ -167,8 +165,7 @@ sig_init()
 }
 
 static void
-sigcatcher(s)
-	int s;
+sigcatcher(int s)
 {
 	painful_death = 1;
 }

@@ -24,8 +24,10 @@ static FILE *fp, *newfp;
 
 extern int default_opt4;
 
-int pw_open(int write)
+int
+pw_open(int write)
 {
+
 	assert(pwfile);		       /* shouldn't even be called otherwise */
 
 	fp = fopen(pwfile, "r");
@@ -63,16 +65,20 @@ int pw_open(int write)
 	return 1;
 }
 
-void pw_close(void)
+void
+pw_close(void)
 {
+
 	fclose(fp);
 	if (newfp)
 		fclose(newfp);
 	fp = newfp = NULL;
 }
 
-int pw_close_rename(void)
+int
+pw_close_rename(void)
 {
+
 	fclose(fp);
 	fp = NULL;
 	if (newfp) {
@@ -86,10 +92,12 @@ int pw_close_rename(void)
 	}
 }
 
-int pw_read_line(char **user, char **pw, char **urd, int *opt4)
+int
+pw_read_line(char **user, char **pw, char **urd, int *opt4)
 {
 	static char buffer[16384];
 	char *p, *q, *r;
+
 	if (!fgets(buffer, sizeof(buffer), fp))
 		return 0;
 	pwline++;
@@ -119,12 +127,15 @@ int pw_read_line(char **user, char **pw, char **urd, int *opt4)
 	return 1;
 }
 
-void pw_write_line(char *user, char *pw, char *urd, int opt4)
+void
+pw_write_line(char *user, char *pw, char *urd, int opt4)
 {
+
 	fprintf(newfp, "%s:%s:%s:%d\n", user, pw, urd, opt4);
 }
 
-extern char *pw_validate(char *user, const char *pw, int *opt4)
+char *
+pw_validate(char *user, const char *pw, int *opt4)
 {
 	char *u, *p, *d;
 	char *ret;
@@ -156,7 +167,8 @@ extern char *pw_validate(char *user, const char *pw, int *opt4)
 	return NULL;
 }
 
-extern int pw_change(const char *user, const char *oldpw, const char *newpw)
+int
+pw_change(const char *user, const char *oldpw, const char *newpw)
 {
 	char *u, *p, *d;
 	int opt4;
@@ -194,7 +206,8 @@ extern int pw_change(const char *user, const char *oldpw, const char *newpw)
 	return pw_close_rename();
 }
 
-extern int pw_set_opt4(const char *user, int newopt4)
+int
+pw_set_opt4(const char *user, int newopt4)
 {
 	char *u, *p, *d;
 	int opt4;

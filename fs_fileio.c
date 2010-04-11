@@ -63,8 +63,7 @@ static ssize_t fs_data_recv(struct fs_context *, int, size_t, int);
 static int fs_close1(struct fs_context *c, int h);
 
 void
-fs_open(c)
-	struct fs_context *c;
+fs_open(struct fs_context *c)
 {
 	struct ec_fs_reply_open reply;
 	struct ec_fs_req_open *request;
@@ -111,8 +110,7 @@ fs_open(c)
 }
 
 void
-fs_close(c)
-	struct fs_context *c;
+fs_close(struct fs_context *c)
 {
 	struct ec_fs_reply reply;
 	struct ec_fs_req_close *request;
@@ -146,9 +144,7 @@ fs_close(c)
  * Close a single handle.
  */
 static int
-fs_close1(c, h)
-	struct fs_context *c;
-	int h;
+fs_close1(struct fs_context *c, int h)
 {
 	struct fs_handle *hp;
 	int error = 0;
@@ -168,8 +164,7 @@ fs_close1(c, h)
 }
 
 void
-fs_get_args(c)
-	struct fs_context *c;
+fs_get_args(struct fs_context *c)
 {
 	struct stat st;
 	struct ec_fs_reply_get_args reply;
@@ -224,8 +219,7 @@ fs_get_args(c)
 }
 
 void
-fs_set_args(c)
-	struct fs_context *c;
+fs_set_args(struct fs_context *c)
 {
 	struct ec_fs_reply reply;
 	struct ec_fs_req_set_args *request;
@@ -267,8 +261,7 @@ fs_set_args(c)
 }
 
 void
-fs_putbyte(c)
-	struct fs_context *c;
+fs_putbyte(struct fs_context *c)
 {
 	struct ec_fs_reply reply;
 	struct ec_fs_req_putbyte *request;
@@ -304,8 +297,7 @@ at_eof(int fd)
 }
 
 void
-fs_get_eof(c)
-	struct fs_context *c;
+fs_get_eof(struct fs_context *c)
 {
 	struct ec_fs_reply_get_eof reply;
 	struct ec_fs_req_get_eof *request;
@@ -329,8 +321,7 @@ fs_get_eof(c)
 }
 
 void
-fs_getbytes(c)
-	struct fs_context *c;
+fs_getbytes(struct fs_context *c)
 {
 	struct ec_fs_reply reply1;
 	struct ec_fs_reply_getbytes2 reply2;
@@ -376,8 +367,7 @@ fs_getbytes(c)
 }
 
 void
-fs_getbyte(c)
-	struct fs_context *c;
+fs_getbyte(struct fs_context *c)
 {
 	struct ec_fs_reply_getbyte reply;
 	struct ec_fs_req_getbyte *request;
@@ -410,8 +400,7 @@ fs_getbyte(c)
 }
 
 void
-fs_putbytes(c)
-	struct fs_context *c;
+fs_putbytes(struct fs_context *c)
 {
 	struct ec_fs_reply_putbytes1 reply1;
 	struct ec_fs_reply_putbytes2 reply2;
@@ -458,8 +447,7 @@ fs_putbytes(c)
 }
 
 void
-fs_load(c)
-	struct fs_context *c;
+fs_load(struct fs_context *c)
 {
 	struct ec_fs_reply_load1 reply1;
 	struct ec_fs_reply_load2 reply2;
@@ -512,8 +500,7 @@ fs_load(c)
 }
 
 void
-fs_save(c)
-	struct fs_context *c;
+fs_save(struct fs_context *c)
 {
 	struct ec_fs_reply_save1 reply1;
 	struct ec_fs_reply_save2 reply2;
@@ -580,8 +567,7 @@ fs_save(c)
 }
 
 void
-fs_create(c)
-	struct fs_context *c;
+fs_create(struct fs_context *c)
 {
 	struct ec_fs_reply_create reply;
 	struct ec_fs_req_create *request;
@@ -641,10 +627,7 @@ fs_create(c)
 }
 
 static ssize_t
-fs_data_send(c, fd, size)
-	struct fs_context *c;
-	int fd;
-	size_t size;
+fs_data_send(struct fs_context *c, int fd, size_t size)
 {
 	struct aun_packet *pkt;
 	void *buf;
@@ -684,11 +667,7 @@ fs_data_send(c, fd, size)
 }
 
 static ssize_t
-fs_data_recv(c, fd, size, ackport)
-	struct fs_context *c;
-	int fd;
-	size_t size;
-	int ackport;
+fs_data_recv(struct fs_context *c, int fd, size_t size, int ackport)
 {
 	struct aun_packet *pkt, *ack;
 	void *buf;

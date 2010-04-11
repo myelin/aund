@@ -30,12 +30,10 @@
 #include "aun.h"
 #include "printserver.h"
 void
-print_status(pkt, len, from)
-	struct aun_packet *pkt;
-	ssize_t len;
-	struct aun_srcaddr *from;
+print_status(struct aun_packet *pkt, ssize_t len, struct aun_srcaddr *from)
 {
 	struct ec_ps_status_enq *question = (struct ec_ps_status_enq *)pkt->data;
+
 	printf("name %6s, reason %d", question->name, question->reason);
 	if (strncasecmp(question->name, "SPOOL ", 6) == 0 ||
 	    strncasecmp(question->name, "PRINT ", 6) == 0) {
@@ -56,10 +54,7 @@ print_status(pkt, len, from)
 }
 
 void
-print_job(pkt, len, from)
-	struct aun_packet *pkt;
-	ssize_t len;
-	struct aun_srcaddr *from;
+print_job(struct aun_packet *pkt, ssize_t len, struct aun_srcaddr *from)
 {
 	/* XXX Where do I get the flag byte? */
 	unsigned char flag;

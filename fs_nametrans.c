@@ -55,8 +55,7 @@ static void fs_trans_simple(char *, char *);
  * Converts in place.
  */
 char *
-fs_acornify_name(name)
-	char *name;
+fs_acornify_name(char *name)
 {
 	size_t len;
 	char *p, *q;
@@ -87,8 +86,7 @@ fs_acornify_name(name)
  * (after stripping two dots off dot-stuffed ones).
  */
 int
-fs_hidden_name(name)
-	char *name;
+fs_hidden_name(char *name)
 {
 	if (*name == '.') {
 		/*
@@ -113,9 +111,7 @@ fs_hidden_name(name)
  * responsible for freeing it.
  */
 char *
-fs_unixify_path(c, path)
-	struct fs_context *c;
-	char *path;
+fs_unixify_path(struct fs_context *c, char *path)
 {
 	const char *base;
 	int nnames;
@@ -241,8 +237,7 @@ fs_unixify_path(c, path)
  * Remove '/foo/^' constructs from a path
  */
 static char *
-fs_unhat_path(path)
-	char *path;
+fs_unhat_path(char *path)
 {
 	char *p, *q;
 
@@ -284,7 +279,8 @@ fs_unhat_path(path)
  * Case-insensitively match a file name against a potential
  * wildcard.
  */
-static int wcfrag(char *frag, char *file)
+static int
+wcfrag(char *frag, char *file)
 {
 	while (*frag && *frag != '*') {
 		if (*frag != '?' && (toupper((unsigned char)*file) !=
@@ -295,7 +291,9 @@ static int wcfrag(char *frag, char *file)
 	}
 	return 1;
 }
-static int wcmatch(char *wc, char *file, int len)
+
+static int
+wcmatch(char *wc, char *file, int len)
 {
 	char *fragend;
 	char *filestart = file;
@@ -345,8 +343,7 @@ static int wcmatch(char *wc, char *file, int len)
  *  - appending ,??? for a RISC OS file type
  */
 static void
-fs_match_path(path)
-	char *path;
+fs_match_path(char *path)
 {
 	struct stat st;
 	char *pathcopy, *parentpath, *leaf, *wc;
@@ -405,9 +402,7 @@ fs_match_path(path)
  * '.', '..' and '.Acorn'.)
  */
 static void
-fs_trans_simple(pathret, path)
-	char *pathret;
-	char *path;
+fs_trans_simple(char *pathret, char *path)
 {
 	/*
 	 * Loop over each pathname component.

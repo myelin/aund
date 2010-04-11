@@ -120,8 +120,7 @@ const static struct {
 #define NMSGS (sizeof(errmsgtab)/sizeof(errmsgtab[0]))
 
 void
-fs_errno(c)
-	struct fs_context *c;
+fs_errno(struct fs_context *c)
 {
 	int i;
 
@@ -135,9 +134,7 @@ fs_errno(c)
 
 
 void
-fs_err(c, err)
-	struct fs_context *c;
-	u_int8_t err;
+fs_err(struct fs_context *c, u_int8_t err)
 {
 	int i;
 
@@ -150,12 +147,10 @@ fs_err(c, err)
 }
 
 void
-fs_error(c, err, report)
-	struct fs_context *c;
-	u_int8_t err;
-	const char *report;
+fs_error(struct fs_context *c, u_int8_t err, const char *report)
 {
 	struct ec_fs_reply *reply;
+
 	if ((reply = malloc(sizeof(*reply) + strlen(report)+2)) == NULL) exit(2);
 	reply->command_code = EC_FS_CC_DONE;
 	reply->return_code = err;

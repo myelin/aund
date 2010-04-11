@@ -127,10 +127,7 @@ aun_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 }
 
 static void
-aun_ack(sock, pkt, from)
-	int sock;
-	struct aun_packet *pkt;
-	struct sockaddr_in *from;
+aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from)
 {
 	struct aun_packet ack; /* No data */
 	int i;
@@ -145,10 +142,7 @@ aun_ack(sock, pkt, from)
 }
 
 static ssize_t
-aun_xmit(pkt, len, vto)
-	struct aun_packet *pkt;
-	size_t len;
-	struct aun_srcaddr *vto;
+aun_xmit(struct aun_packet *pkt, size_t len, struct aun_srcaddr *vto)
 {
 	static u_int32_t sequence = 2;
 	struct aun_packet buf;

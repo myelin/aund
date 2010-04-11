@@ -57,8 +57,7 @@ void fs_get_uenv(struct fs_context *);
 void fs_logoff(struct fs_context *);
 
 void
-fs_get_discs(c)
-	struct fs_context *c;
+fs_get_discs(struct fs_context *c)
 {
 	struct ec_fs_reply_get_discs *reply;
 	struct ec_fs_req_get_discs *request = (struct ec_fs_req_get_discs *)(c->req);
@@ -83,8 +82,7 @@ fs_get_discs(c)
 }
 
 void
-fs_get_info(c)
-	struct fs_context *c;
+fs_get_info(struct fs_context *c)
 {
 	char *upath, *path_argv[2];
 	struct ec_fs_req_get_info *request;
@@ -241,8 +239,7 @@ fs_get_info(c)
 }
 
 void
-fs_set_info(c)
-	struct fs_context *c;
+fs_set_info(struct fs_context *c)
 {
 	char *path, *upath, *path_argv[2];
 	struct ec_fs_req_set_info *request;
@@ -370,8 +367,7 @@ out:
 }
 
 void
-fs_get_uenv(c)
-	struct fs_context *c;
+fs_get_uenv(struct fs_context *c)
 {
 	struct ec_fs_reply_get_uenv reply;
 	char tmp[11];
@@ -405,8 +401,7 @@ fs_get_uenv(c)
 }
 
 void
-fs_cat_header(c)
-	struct fs_context *c;
+fs_cat_header(struct fs_context *c)
 {
 	struct ec_fs_req_cat_header *request;
 	struct ec_fs_reply_cat_header reply;
@@ -457,8 +452,7 @@ fs_cat_header(c)
 }
 
 void
-fs_logoff(c)
-	struct fs_context *c;
+fs_logoff(struct fs_context *c)
 {
 	struct ec_fs_reply reply;
 
@@ -471,8 +465,7 @@ fs_logoff(c)
 }
 
 void
-fs_get_users_on(c)
-	struct fs_context *c;
+fs_get_users_on(struct fs_context *c)
 {
 	struct ec_fs_reply_get_users_on *reply;
 	struct ec_fs_req_get_users_on *request;
@@ -530,8 +523,7 @@ fs_get_users_on(c)
 }
 
 void
-fs_get_user(c)
-	struct fs_context *c;
+fs_get_user(struct fs_context *c)
 {
 	struct ec_fs_reply_get_user reply;
 	struct ec_fs_req_get_user *request;
@@ -559,8 +551,7 @@ fs_get_user(c)
 }
 
 void
-fs_delete(c)
-	struct fs_context *c;
+fs_delete(struct fs_context *c)
 {
 	struct ec_fs_reply_delete reply;
 	struct ec_fs_req_delete *request;
@@ -618,8 +609,7 @@ out:
 }
 
 void
-fs_cdirn(c)
-	struct fs_context *c;
+fs_cdirn(struct fs_context *c)
 {
 	struct ec_fs_reply reply;
 	struct ec_fs_req_cdirn *request;
@@ -648,9 +638,7 @@ fs_cdirn(c)
 }
 
 void
-fs_set_opt4(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_set_opt4(struct fs_context *c)
 {
 	struct ec_fs_reply reply;
 	struct ec_fs_req_set_opt4 *request;
@@ -674,8 +662,7 @@ fs_set_opt4(c, tail)
 }
 
 void
-fs_get_time(c)
-	struct fs_context *c;
+fs_get_time(struct fs_context *c)
 {
 	struct ec_fs_reply_get_time reply;
 	time_t t;
@@ -701,8 +688,7 @@ fs_get_time(c)
 }
 
 void
-fs_get_version(c)
-	struct fs_context *c;
+fs_get_version(struct fs_context *c)
 {
 	struct {
 		struct ec_fs_reply_get_version reply;
@@ -737,8 +723,7 @@ fs_get_version(c)
 }
 
 void
-fs_get_disc_free(c)
-	struct fs_context *c;
+fs_get_disc_free(struct fs_context *c)
 {
 	struct ec_fs_reply_get_disc_free reply;
 	struct ec_fs_req_get_disc_free *request;
@@ -771,8 +756,7 @@ fs_get_disc_free(c)
 }
 
 void
-fs_get_user_free(c)
-	struct fs_context *c;
+fs_get_user_free(struct fs_context *c)
 {
 	struct ec_fs_reply_get_user_free reply;
 	struct ec_fs_req_get_user_free *request;

@@ -88,8 +88,7 @@ void fs_cli(struct fs_context *);
  * new clients (but NetFS still uses *I am).
  */
 void
-fs_cli(c)
-	struct fs_context *c;
+fs_cli(struct fs_context *c)
 {
 	int i;
 	char *head, *tail, *backup;
@@ -124,9 +123,7 @@ fs_cli(c)
 }
 
 static void
-fs_cli_unrec(c, cmd)
-	struct fs_context *c;
-	char *cmd;
+fs_cli_unrec(struct fs_context *c, char *cmd)
 {
 	struct ec_fs_reply *reply;
 
@@ -146,10 +143,7 @@ fs_cli_unrec(c, cmd)
  */
 
 static int
-fs_cli_match(cmdline, tail, cmd)
-	char *cmdline;
-	char **tail;
-	const struct fs_cmd *cmd;
+fs_cli_match(char *cmdline, char **tail, const struct fs_cmd *cmd)
 {
 	int i;
 
@@ -184,8 +178,7 @@ fs_cli_match(cmdline, tail, cmd)
  */
 
 char *
-fs_cli_getarg(stringp)
-	char **stringp;
+fs_cli_getarg(char **stringp)
 {
 	char *start;
 	/* Skip leading whitespace */
@@ -229,9 +222,7 @@ fs_cli_getarg(stringp)
 }
 
 static void
-fs_cmd_i_am(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_cmd_i_am(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply_logon reply;
 	char *login, *password, *oururd;
@@ -283,9 +274,7 @@ fs_cmd_i_am(c, tail)
 }
 
 static void
-fs_cmd_pass(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_cmd_pass(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply reply;
 	char *oldpw, *newpw, *oururd;
@@ -311,9 +300,7 @@ fs_cmd_pass(c, tail)
 }
 
 static void
-fs_cmd_rename(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_cmd_rename(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply reply;
 	struct ec_fs_meta meta;
@@ -363,9 +350,7 @@ fs_cmd_rename(c, tail)
 }
 
 static void
-fs_cmd_sdisc(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_cmd_sdisc(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply_sdisc reply;
 
@@ -387,9 +372,7 @@ fs_cmd_sdisc(c, tail)
 }
 
 static void
-fs_cmd_dir(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_cmd_dir(struct fs_context *c, char *tail)
 {
 	char *upath;
 	struct stat st;
@@ -422,9 +405,7 @@ burn:
 }
 
 static void
-fs_cmd_lib(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_cmd_lib(struct fs_context *c, char *tail)
 {
 	char *upath;
 	struct stat st;
@@ -456,9 +437,7 @@ burn:
 
 
 static void
-fs_cmd_logoff(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_cmd_logoff(struct fs_context *c, char *tail)
 {
 	/*
 	 * This is an SJism, apparently; the vanilla Beeb command is
@@ -607,9 +586,7 @@ fs_long_info(char *string, FTSENT *f)
 }
 
 static void
-fs_cmd_info(c, tail)
-	struct fs_context *c;
-	char *tail;
+fs_cmd_info(struct fs_context *c, char *tail)
 {
 	char *upath;
 	struct ec_fs_reply *reply;

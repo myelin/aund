@@ -84,7 +84,7 @@ int default_opt4 = 0;
 enum fs_info_format infoformat = FS_INFO_RISCOS;
 
 void
-fs_init()
+fs_init(void)
 {
 	discname = malloc(MAXHOSTNAMELEN > 17 ? MAXHOSTNAMELEN : 17);
 	if (gethostname(discname, MAXHOSTNAMELEN) == -1)
@@ -97,8 +97,7 @@ fs_init()
 #if 0
 static void dump_handles(struct fs_client *);
 
-static void dump_handles(client)
-	struct fs_client *client;
+static void dump_handles(struct fs_client *client)
 {
 	if (debug && client) {
 		int i;
@@ -115,10 +114,7 @@ static void dump_handles(client)
 #endif
 
 void
-file_server(pkt, len, from)
-	struct aun_packet *pkt;
-	ssize_t len;
-	struct aun_srcaddr *from;
+file_server(struct aun_packet *pkt, ssize_t len, struct aun_srcaddr *from)
 {
 	struct fs_context cont;
 	struct fs_context *c = &cont;
@@ -227,8 +223,7 @@ file_server(pkt, len, from)
 }
 
 void
-fs_unrec(c)
-	struct fs_context *c;
+fs_unrec(struct fs_context *c)
 {
 	struct ec_fs_reply reply;
 	reply.command_code = EC_FS_CC_UNREC;
@@ -237,10 +232,7 @@ fs_unrec(c)
 }
 
 void
-fs_reply(c, reply, len)
-	struct fs_context *c;
-	struct ec_fs_reply *reply;
-	size_t len;
+fs_reply(struct fs_context *c, struct ec_fs_reply *reply, size_t len)
 {
 	reply->aun.type = AUN_TYPE_UNICAST;
 	reply->aun.dest_port = c->req->reply_port;
@@ -250,8 +242,7 @@ fs_reply(c, reply, len)
 }
 
 struct fs_client *
-fs_new_client(from)
-	struct aun_srcaddr *from;
+fs_new_client(struct aun_srcaddr *from)
 {
 	struct fs_client *client;
 	client = calloc(1, sizeof(*client));
@@ -283,8 +274,7 @@ fs_new_client(from)
 }
 
 struct fs_client *
-fs_find_client(from)
-	struct aun_srcaddr *from;
+fs_find_client(struct aun_srcaddr *from)
 {
 	struct fs_client *c;
 	for (c = fs_clients.lh_first; c != NULL; c = c->link.le_next)
@@ -294,8 +284,7 @@ fs_find_client(from)
 }
 
 void
-fs_delete_client(client)
-	struct fs_client *client;
+fs_delete_client(struct fs_client *client)
 {
 	int i;
 	LIST_REMOVE(client, link);

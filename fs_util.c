@@ -45,21 +45,20 @@
 #include "fs_proto.h"
 #include "fileserver.h"
 
-char *strpad(s, c, len)
-	char *s;
-	int c;
-	size_t len;
+char *
+strpad(char *s, int c, size_t len)
 {
 	int i;
+
 	for (i = strlen(s); i < len; i++)
 		s[i] = c;
 	return s;
 }
 
 u_int8_t
-fs_mode_to_type(mode)
-	mode_t mode;
+fs_mode_to_type(mode_t mode)
 {
+
 	if (S_ISDIR(mode)) return EC_FS_TYPE_DIR;
 	return EC_FS_TYPE_FILE;
 	/* Old clients may prefer EC_FS_TYPE_SOME */
@@ -73,10 +72,10 @@ fs_mode_to_type(mode)
  */
 
 u_int8_t
-fs_mode_to_access(mode)
-	mode_t mode;
+fs_mode_to_access(mode_t mode)
 {
 	unsigned char access;
+
 	access = 0;
 	if (mode & S_IRUSR) access |= EC_FS_ACCESS_UR;
 	if (mode & S_IWUSR) access |= EC_FS_ACCESS_UW;
@@ -86,11 +85,11 @@ fs_mode_to_access(mode)
 	return access;
 }
 
-mode_t fs_access_to_mode(access, usergroup)
-	unsigned char access;
-	int usergroup;
+mode_t
+fs_access_to_mode(unsigned char access, int usergroup)
 {
 	mode_t mode;
+
 	mode = 0;
 	if (access & EC_FS_ACCESS_UR) mode |= S_IRUSR | (usergroup ? S_IRGRP : 0);
 	if (access & EC_FS_ACCESS_UW) mode |= S_IWUSR | (usergroup ? S_IWGRP : 0);
@@ -100,10 +99,9 @@ mode_t fs_access_to_mode(access, usergroup)
 }
 
 char *
-fs_access_to_string(buf, access)
-	char *buf;
-	u_int8_t access;
+fs_access_to_string(char *buf, u_int8_t access)
 {
+
 	buf[0] = '\0';
 	/*
 	 * FIXME: this should take account of whether you own the
@@ -121,9 +119,7 @@ fs_access_to_string(buf, access)
 }
 
 u_int64_t
-fs_read_val(p, len)
-	u_int8_t *p;
-	size_t len;
+fs_read_val(u_int8_t *p, size_t len)
 {
 	u_int64_t value;
 
@@ -139,10 +135,7 @@ fs_read_val(p, len)
 }
 
 void
-fs_write_val(p, value, len)
-	u_int8_t *p;
-	u_int64_t value;
-	size_t len;
+fs_write_val(u_int8_t *p, u_int64_t value, size_t len)
 {
 	u_int64_t max;
 
@@ -158,9 +151,7 @@ fs_write_val(p, value, len)
 }
 
 void
-fs_get_meta(f, meta)
-	FTSENT *f;
-	struct ec_fs_meta *meta;
+fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 {
 	struct stat *st, sb;
 	char *lastslash, *dir, *metapath, rawinfo[24];
@@ -205,9 +196,7 @@ fs_get_meta(f, meta)
 }
 
 int
-fs_set_meta(f, meta)
-	FTSENT *f;
-	struct ec_fs_meta *meta;
+fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 {
 	char *lastslash, *metapath, rawinfo[24];
 	int ret;
@@ -248,8 +237,7 @@ fs_set_meta(f, meta)
 }
 
 void
-fs_del_meta(f)
-	FTSENT *f;
+fs_del_meta(FTSENT *f)
 {
 	char *lastslash, *metapath, rawinfo[24];
 	int dirlen, ret;
@@ -276,8 +264,7 @@ fs_del_meta(f)
  * optimal.
  */
 int
-fs_get_sin(f)
-	FTSENT *f;
+fs_get_sin(FTSENT *f)
 {
 
 	return f->fts_statp->st_ino & 0xFFFFFF;
@@ -289,8 +276,7 @@ fs_get_sin(f)
  * OS time (non-leap(?) centiseconds since 1900-01-01(?)).
  */
 
-u_int64_t fs_riscos_date(time)
-	time_t time;
+u_int64_t fs_riscos_date(time_t time)
 {
 	u_int64_t base;
 
@@ -299,18 +285,14 @@ u_int64_t fs_riscos_date(time)
 }
 
 /*
- * Convert a date stamp from Unix to Acorn fileserver.  Unfortunately,
- * the old file server format overflowed at the start of 1998.  I know
- * that Acorn filched some bits from elsewhere to add to the year, and
- * I think I've got this right.
+ * Convert a date stamp from Unix to Acorn fileserver.
  */
 void
-fs_write_date(date, time)
-	struct ec_fs_date *date;
-	time_t time;
+fs_write_date(struct ec_fs_date *date, time_t time)
 {
 	struct tm *t;
 	int year81;
+
 	t = localtime(&time);
 	if (t->tm_year < 81) {
 		/* Too early -- return lowest date possible */
@@ -328,11 +310,10 @@ fs_write_date(date, time)
  * information on the symlink itself.
  */
 int
-fs_stat(path, sb)
-	const char *path;
-	struct stat *sb;
+fs_stat(const char *path, struct stat *sb)
 {
 	int rc;
+
 	rc = stat(path, sb);
 	if (rc == -1 && errno == ENOENT)
 		/* Could be a broken symlink */
@@ -341,8 +322,7 @@ fs_stat(path, sb)
 }
 
 const char *
-fs_leafname(path)
-	const char *path;
+fs_leafname(const char *path)
 {
 	char *leaf;
 	if ((leaf = strrchr(path,'/')) != NULL)

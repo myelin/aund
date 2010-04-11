@@ -56,8 +56,7 @@ static int fs_examine_shorttxt(FTSENT *, struct ec_fs_reply_examine **,
 void fs_examine(struct fs_context *);
 
 void
-fs_examine(c)
-	struct fs_context *c;
+fs_examine(struct fs_context *c)
 {
 	/* LINTED subclass */
 	struct ec_fs_req_examine *request = (struct ec_fs_req_examine *)(c->req);
@@ -169,10 +168,7 @@ fs_filename_compare(const FTSENT **a, const FTSENT **b)
 }
 
 static int
-fs_examine_read(c, upath, start)
-	struct fs_context *c;
-	const char *upath;
-	int start;
+fs_examine_read(struct fs_context *c, const char *upath, int start)
 {
 	char *path_argv[2];
 	struct fs_dir_cache *dc;
@@ -229,10 +225,8 @@ fs_examine_read(c, upath, start)
 }
 
 static int
-fs_examine_all(ent, replyp, reply_sizep)
-	FTSENT *ent;
-	struct ec_fs_reply_examine **replyp;
-	size_t *reply_sizep;
+fs_examine_all(FTSENT *ent, struct ec_fs_reply_examine **replyp,
+    size_t *reply_sizep)
 {
 	struct ec_fs_exall *exall;
 	void *new_reply;
@@ -261,10 +255,8 @@ burn:
 }
 
 static int
-fs_examine_name(ent, replyp, reply_sizep)
-	FTSENT *ent;
-	struct ec_fs_reply_examine **replyp;
-	size_t *reply_sizep;
+fs_examine_name(FTSENT *ent, struct ec_fs_reply_examine **replyp,
+    size_t *reply_sizep)
 {
 	struct ec_fs_exname *exname;
 	void *new_reply;
@@ -287,10 +279,8 @@ burn:
 }
 
 static int
-fs_examine_shorttxt(ent, replyp, reply_sizep)
-	FTSENT *ent;
-	struct ec_fs_reply_examine **replyp;
-	size_t *reply_sizep;
+fs_examine_shorttxt(FTSENT *ent, struct ec_fs_reply_examine **replyp,
+    size_t *reply_sizep)
 {
 	void *new_reply;
 	char accstring[8];
@@ -311,10 +301,8 @@ burn:
 }
 
 static int
-fs_examine_longtxt(ent, replyp, reply_sizep)
-	FTSENT *ent;
-	struct ec_fs_reply_examine **replyp;
-	size_t *reply_sizep;
+fs_examine_longtxt(FTSENT *ent, struct ec_fs_reply_examine **replyp,
+    size_t *reply_sizep)
 {
 	void *new_reply;
 	char *string;
