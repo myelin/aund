@@ -33,6 +33,8 @@
 #ifndef _FS_ERRORS_H
 #define _FS_ERRORS_H
 
+#define EC_FS_E_BADEXAMINE	0x4f
+
 #define EC_FS_E_BADINFO		0x8e
 #define EC_FS_E_BADARGS		0x8f
 
