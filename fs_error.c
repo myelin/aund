@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 1998 Ben Harris
+ * Copyright (c) 1998, 2010 Ben Harris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
