@@ -83,6 +83,40 @@ static void dump_handles(struct fs_client *client)
 }
 #endif
 
+fs_func_impl * const fs_dispatch[] = {
+	[EC_FS_FUNC_CLI] = fs_cli,
+	[EC_FS_FUNC_LOAD] = fs_load,
+	[EC_FS_FUNC_SAVE] = fs_save,
+	[EC_FS_FUNC_EXAMINE] = fs_examine,
+	[EC_FS_FUNC_CAT_HEADER] = fs_cat_header,
+	[EC_FS_FUNC_LOAD_COMMAND] = fs_load, /* should be distinct */
+	[EC_FS_FUNC_OPEN] = fs_open,
+	[EC_FS_FUNC_CLOSE] = fs_close,
+	[EC_FS_FUNC_GETBYTE] = fs_getbyte,
+	[EC_FS_FUNC_PUTBYTE] = fs_putbyte,
+	[EC_FS_FUNC_GETBYTES] = fs_getbytes,
+	[EC_FS_FUNC_PUTBYTES] = fs_putbytes,
+	[EC_FS_FUNC_GET_ARGS] = fs_get_args,
+	[EC_FS_FUNC_SET_ARGS] = fs_set_args,
+	[EC_FS_FUNC_GET_EOF] = fs_get_eof,
+	[EC_FS_FUNC_GET_DISCS] = fs_get_discs,
+	[EC_FS_FUNC_GET_INFO] = fs_get_info,
+	[EC_FS_FUNC_SET_INFO] = fs_set_info,
+	[EC_FS_FUNC_GET_UENV] = fs_get_uenv,
+	[EC_FS_FUNC_LOGOFF] = fs_logoff,
+	[EC_FS_FUNC_GET_USERS_ON] = fs_get_users_on,
+	[EC_FS_FUNC_GET_USER] = fs_get_user,
+	[EC_FS_FUNC_GET_TIME] = fs_get_time,
+	[EC_FS_FUNC_SET_OPT4] = fs_set_opt4,
+	[EC_FS_FUNC_DELETE] = fs_delete,
+	[EC_FS_FUNC_GET_VERSION] = fs_get_version,
+	[EC_FS_FUNC_GET_DISC_FREE] = fs_get_disc_free,
+	[EC_FS_FUNC_CDIRN] = fs_cdirn,
+	[EC_FS_FUNC_CREATE] = fs_create,
+	[EC_FS_FUNC_GET_USER_FREE] = fs_get_user_free,
+};
+#define NFUNC (sizeof(fs_dispatch) / sizeof(fs_dispatch[0]))
+
 void
 file_server(struct aun_packet *pkt, ssize_t len, struct aun_srcaddr *from)
 {
@@ -96,96 +130,9 @@ file_server(struct aun_packet *pkt, ssize_t len, struct aun_srcaddr *from)
 	fs_check_handles(c);
 	((char *)(c->req))[c->req_len] = '\0'; /* Null-terminate in case client is silly */
 
-	switch (c->req->function) {
-	case EC_FS_FUNC_CLI:
-		fs_cli(c);
-		break;
-	case EC_FS_FUNC_LOAD:
-	case EC_FS_FUNC_LOAD_COMMAND:  /* as yet we don't distinguish these */
-		fs_load(c);
-		break;
-	case EC_FS_FUNC_SAVE:
-		fs_save(c);
-		break;
-	case EC_FS_FUNC_EXAMINE:
-		fs_examine(c);
-		break;
-	case EC_FS_FUNC_CAT_HEADER:
-		fs_cat_header(c);
-		break;
-	case EC_FS_FUNC_OPEN:
-		fs_open(c);
-		break;
-	case EC_FS_FUNC_CLOSE:
-		fs_close(c);
-		break;
-	case EC_FS_FUNC_GETBYTE:
-		fs_getbyte(c);
-		break;
-	case EC_FS_FUNC_PUTBYTE:
-		fs_putbyte(c);
-		break;
-	case EC_FS_FUNC_GETBYTES:
-		fs_getbytes(c);
-		break;
-	case EC_FS_FUNC_PUTBYTES:
-		fs_putbytes(c);
-		break;
-	case EC_FS_FUNC_GET_ARGS:
-		fs_get_args(c);
-		break;
-	case EC_FS_FUNC_SET_ARGS:
-		fs_set_args(c);
-		break;
-	case EC_FS_FUNC_GET_EOF:
-		fs_get_eof(c);
-		break;
-	case EC_FS_FUNC_GET_DISCS:
-		fs_get_discs(c);
-		break;
-	case EC_FS_FUNC_GET_INFO:
-		fs_get_info(c);
-		break;
-	case EC_FS_FUNC_SET_INFO:
-		fs_set_info(c);
-		break;
-	case EC_FS_FUNC_GET_UENV:
-		fs_get_uenv(c);
-		break;
-	case EC_FS_FUNC_LOGOFF:
-		fs_logoff(c);
-		break;
-	case EC_FS_FUNC_GET_USERS_ON:
-		fs_get_users_on(c);
-		break;
-	case EC_FS_FUNC_GET_USER:
-		fs_get_user(c);
-		break;
-	case EC_FS_FUNC_GET_TIME:
-		fs_get_time(c);
-		break;
-	case EC_FS_FUNC_SET_OPT4:
-		fs_set_opt4(c);
-		break;
-	case EC_FS_FUNC_DELETE:
-		fs_delete(c);
-		break;
-	case EC_FS_FUNC_GET_VERSION:
-		fs_get_version(c);
-		break;
-	case EC_FS_FUNC_GET_DISC_FREE:
-		fs_get_disc_free(c);
-		break;
-	case EC_FS_FUNC_CDIRN:
-		fs_cdirn(c);
-		break;
-	case EC_FS_FUNC_CREATE:
-		fs_create(c);
-		break;
-	case EC_FS_FUNC_GET_USER_FREE:
-		fs_get_user_free(c);
-		break;
-	default:
+	if (c->req->function < NFUNC && fs_dispatch[c->req->function])
+		fs_dispatch[c->req->function](c);
+	else {
 		if (debug) printf("unknown function %d\n", c->req->function);
 		/*fs_unrec(sock, request, from);*/
 		fs_error(c, 0xff, "Not yet implemented!");
