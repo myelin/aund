@@ -41,7 +41,7 @@ AC_CONFIG_FILES([Makefile])
 if test "x$GCC" = "xyes"; then
   :
   AC_SUBST(GCCWARNINGS, ['-Wall -Wdeclaration-after-statement -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wno-pointer-sign -Wno-uninitialized'])
-  AC_SUBST(GCCFEWERWARNINGS, ['$(GCCWARNINGS) -Wno-redundant-decls -Wno-unused'])
+  AC_SUBST(GCCFEWERWARNINGS, ['$(GCCWARNINGS) -Wno-old-style-definition -Wno-redundant-decls -Wno-unused'])
 else
   :
   AC_SUBST(GCCWARNINGS, [])
