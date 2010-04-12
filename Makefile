@@ -17,6 +17,9 @@ aund: $(AUND)
 .c.o:
 	gcc -MM $*.c > $*.d && gcc -g -O2 $(WARNINGS) -c $*.c
 
+# Some of the warnings we just turned on are violated by flex's skeleton
+conf_lex.o : override WARNINGS += -Wno-redundant-decls -Wno-unused
+
 -include *.d
 
 clean:
