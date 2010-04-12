@@ -72,6 +72,8 @@ const static struct {
 	uint8_t err;
 	char *msg;
 } errmsgtab[] = {
+	{EC_FS_E_BADEXAMINE,	"Bad EXAMINE argument"},
+
 	{0x69, "Object not a file"},
 
 	{EC_FS_E_BADINFO,	"Bad INFO argument"},

@@ -1,5 +1,6 @@
 /*-
- * Copyright (c) 1998 Ben Harris
+ * Copyright (c) 2010 Simon Tatham
+ * Copyright (c) 1998, 2010 Ben Harris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,28 +123,51 @@ fs_unixify_path(struct fs_context *c, char *path)
 {
 	const char *base;
 	int nnames;
-	char *csd, *lib;
+	char *urd = NULL, *csd = NULL, *lib = NULL;
 	size_t disclen;
 	char *path2;
 	char *path3;
 	char *p, *q;
 
-	csd = c->req->csd ? c->client->handles[c->req->csd]->path : NULL;
-	lib = c->req->lib ? c->client->handles[c->req->lib]->path : NULL;
+	switch (c->req->function) {
+	default:
+		urd = c->req->urd ?
+		    c->client->handles[c->req->urd]->path : NULL;
+		/* FALLTHROUGH */
+	case EC_FS_FUNC_LOAD:
+	case EC_FS_FUNC_LOAD_COMMAND:
+	case EC_FS_FUNC_SAVE:
+	case EC_FS_FUNC_GETBYTES:
+	case EC_FS_FUNC_PUTBYTES:
+		/* In these calls, the URD is replaced by a port number */
+		csd = c->req->csd ?
+		    c->client->handles[c->req->csd]->path : NULL;
+		lib = c->req->lib ?
+		    c->client->handles[c->req->lib]->path : NULL;
+		/* FALLTHROUGH */
+	case EC_FS_FUNC_GETBYTE:
+	case EC_FS_FUNC_PUTBYTE:
+		/* And these ones don't pass context at all. */
+		break;
+	}
 	/*
 	 * Plenty of space.
 	 */
-	path2 = malloc(strlen(c->client->urd) + (csd ? strlen(csd) : 0) +
+	path2 = malloc((urd ? strlen(urd) : 0) + (csd ? strlen(csd) : 0) +
 		       (lib ? strlen(lib) : 0) +
 		       2 * strlen(path) + 100);
 
 	if (debug) printf("fs_unixify_path: [%s]", path);
 
+	/* By default, resolve things from the CSD. */
+	base = csd;
 	/*
-	 * Skip disc name if one is supplied.  It would be better to
-	 * check it for correctness too.
+	 * Disc names can start with either ':' or '$', the latter
+	 * being an SJism.  In either case, this means paths are
+	 * resolved from the root of that disc.
 	 */
-	if (path[0] == ':') {
+	if ((path[0] == ':' || path[0] == '$') &&
+	    (path[1] != '.' && path[1] != '\0')) {
 		path++;
 		disclen = strcspn(path, ".");
 		/* 
@@ -152,6 +176,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 		 */
 		path += disclen;
 		if (*path) path++;
+		base = NULL;
 	}
 	/*
 	 * Decide what base path this pathname is relative to, by
@@ -161,28 +186,18 @@ fs_unixify_path(struct fs_context *c, char *path)
 	if (path[0] && strchr("$&%@", path[0]) &&
 	    (path[0] == '$' || !path[1] || path[1] == '.')) {
 		switch (path[0]) {
-		    case '$':
-			base = NULL;
-			/*
-			 * I remember SJ fileservers used to support
-			 * disc names using the syntax '$discname'
-			 * rather than ':discname.$' as supported
-			 * above. So skip a disc name here too.
-			 */
-			while (path[1] && path[1] != '.')
-				path++;
-			break;
-		    case '&':
-			base = c->client->urd; break;
-		    case '@':
+		case '$':
+		case ':': /* SJ alias */
+			base = NULL; break;
+		case '&':
+			base = urd; break;
+		case '@':
 			base = csd; break;
-		    case '%':
+		case '%':
 			base = lib; break;
 		}
 		path++;
 		if (*path) path++;
-	} else {
-		base = csd;
 	}
 	if (base) {
 		sprintf(path2, "%s/", base);

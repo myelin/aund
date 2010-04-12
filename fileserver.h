@@ -71,7 +71,6 @@ struct fs_client {
 	int nhandles;
 	struct fs_handle **handles; /* array of handles for this client */
 	char *login;
-	char *urd;
 	struct fs_dir_cache dir_cache;
 };
 
