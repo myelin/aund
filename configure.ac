@@ -1,4 +1,5 @@
 dnl Copyright (c) 2010 Ben Harris
+dnl Copyright (c) 2010 Simon Tatham
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -23,8 +24,16 @@ dnl THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 dnl (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 dnl THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AC_INIT
+AC_INIT([aund], [0.99], [bjh21@bjh21.me.uk])
+AC_CONFIG_SRCDIR([aund.c])
+AM_INIT_AUTOMAKE
+AC_PROG_CC
+AC_PROG_CC_C99
+AC_PROG_INSTALL
+AM_PROG_LEX
 AC_CHECK_HEADERS([crypt.h])
 AC_CHECK_MEMBERS([struct stat.st_mtimensec])
 AC_CONFIG_HEADERS([config.h])
+AC_SEARCH_LIBS(crypt, crypt)
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
