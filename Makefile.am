@@ -29,6 +29,15 @@ aund_SOURCES = aund.c fileserver.c fs_cli.c fs_examine.c \
 	fs_nametrans.c fs_filetype.c aun.c beebem.c pw.c
 aund_LDADD = libconf_lex.a $(LIBOBJS)
 AM_CFLAGS = $(GCCWARNINGS)
+
+# conf_lex.l goes into a trivial library file and is then linked
+# into the main program. This is because it needs slightly different
+# gcc warning options (the fixed code imported by flex doesn't obey
+# all the cleanliness properties we enforce for aund proper), and
+# the automake docs say that per-file options aren't supported -
+# only per-project, so any file that needs special options has to be
+# turned into a small sub-project like this.
+
 libconf_lex_a_SOURCES = conf_lex.l
 libconf_lex_a_CFLAGS = $(GCCFEWERWARNINGS)
 noinst_LIBRARIES = libconf_lex.a
