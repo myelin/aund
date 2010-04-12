@@ -24,7 +24,8 @@ dnl THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 dnl (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 dnl THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AC_INIT([aund], [0.99], [bjh21@bjh21.me.uk])
+define(aund_version,esyscmd([perl -ne '/MAJOR\s*0x(.)/ and print "$1"; /MINOR\s*0x(..)/ and print ".$1";' version.h]))
+AC_INIT([aund], aund_version, [bjh21@bjh21.me.uk])
 AC_CONFIG_SRCDIR([aund.c])
 AM_INIT_AUTOMAKE
 AC_PROG_CC
