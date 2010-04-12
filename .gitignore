@@ -1,6 +1,7 @@
 *.o
 *.d
 conf_lex.c
+libconf_lex.a
 aund
 my.conf
 passwd

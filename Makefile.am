@@ -24,7 +24,11 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 bin_PROGRAMS = aund
-aund_SOURCES = aund.c conf_lex.l fileserver.c fs_cli.c fs_examine.c \
+aund_SOURCES = aund.c fileserver.c fs_cli.c fs_examine.c \
 	fs_fileio.c fs_misc.c fs_handle.c fs_util.c fs_error.c \
 	fs_nametrans.c fs_filetype.c aun.c beebem.c pw.c
-aund_LDADD = $(LIBOBJS)
+aund_LDADD = libconf_lex.a $(LIBOBJS)
+AM_CFLAGS = $(GCCWARNINGS)
+libconf_lex_a_SOURCES = conf_lex.l
+libconf_lex_a_CFLAGS = $(GCCFEWERWARNINGS)
+noinst_LIBRARIES = libconf_lex.a

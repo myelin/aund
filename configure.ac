@@ -30,6 +30,7 @@ AC_CONFIG_SRCDIR([aund.c])
 AM_INIT_AUTOMAKE
 AC_PROG_CC
 AC_PROG_CC_C99
+AC_PROG_RANLIB
 AC_PROG_INSTALL
 AM_PROG_LEX
 AC_CHECK_HEADERS([crypt.h])
@@ -37,4 +38,13 @@ AC_CHECK_MEMBERS([struct stat.st_mtimensec])
 AC_CONFIG_HEADERS([config.h])
 AC_SEARCH_LIBS(crypt, crypt)
 AC_CONFIG_FILES([Makefile])
+if test "x$GCC" = "xyes"; then
+  :
+  AC_SUBST(GCCWARNINGS, ['-Wall -Wdeclaration-after-statement -Wold-style-definition -Wmissing-prototypes -Wredundant-decls -Wno-pointer-sign -Wno-uninitialized'])
+  AC_SUBST(GCCFEWERWARNINGS, ['$(GCCWARNINGS) -Wno-redundant-decls -Wno-unused'])
+else
+  :
+  AC_SUBST(GCCWARNINGS, [])
+  AC_SUBST(GCCFEWERWARNINGS, [])
+fi
 AC_OUTPUT
