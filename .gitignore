@@ -5,3 +5,9 @@ aund
 my.conf
 passwd
 root/
+autom4te.cache/
+config.h
+config.h.in
+config.log
+config.status
+configure
