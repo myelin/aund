@@ -1,4 +1,5 @@
 # Copyright (c) 2010 Simon Tatham
+# Copyright (c) 2010 Ben Harris
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -24,9 +25,13 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 bin_PROGRAMS = aund
-aund_SOURCES = aund.c fileserver.c fs_cli.c fs_examine.c \
+aund_SOURCES = extern.h aund.c \
+	fileserver.h fs_errors.h fs_proto.h \
+	fileserver.c fs_cli.c fs_examine.c \
 	fs_fileio.c fs_misc.c fs_handle.c fs_util.c fs_error.c \
-	fs_nametrans.c fs_filetype.c aun.c beebem.c pw.c
+	fs_nametrans.c fs_filetype.c \
+	aun.h aun.c beebem.c pw.c \
+	version.h
 aund_LDADD = libconf_lex.a $(LIBOBJS)
 AM_CFLAGS = $(GCCWARNINGS)
 
