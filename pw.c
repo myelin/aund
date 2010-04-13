@@ -29,7 +29,9 @@
  * Password file management for aund.
  */
 
+#if HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #include <sys/types.h>
 #include <sys/file.h>
