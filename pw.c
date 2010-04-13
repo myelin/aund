@@ -56,8 +56,6 @@ char *pwtmp = NULL;
 static int pwline;
 static FILE *fp, *newfp;
 
-extern int default_opt4;
-
 static int
 pw_open(int write)
 {
