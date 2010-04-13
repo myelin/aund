@@ -225,26 +225,15 @@ fs_cmd_i_am(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply_logon reply;
 	char *login, *password, *oururd;
-	int opt4 = default_opt4;
+	int opt4;
 
 	login = fs_cli_getarg(&tail);
 	password = fs_cli_getarg(&tail);
 	if (debug) printf("cli: log on [%s]\n", login);
-	if (pwfile) {
-		/*
-		 * If no universal user root directory is set up, we
-		 * instead validate user logins based on a password
-		 * file, and look up the root directory for the
-		 * given user.
-		 */
-		oururd = pw_validate(login, password, &opt4);
-		if (!oururd) {
-			fs_err(c, EC_FS_E_WRONGPW);
-			return;
-		}
-	} else {
-		assert(fixedurd);
-		oururd = strdup(fixedurd);
+	oururd = userfuncs->validate(login, password, &opt4);
+	if (!oururd) {
+		fs_err(c, EC_FS_E_WRONGPW);
+		return;
 	}
 	/*
 	 * They're authenticated, so add them to the list of clients.
@@ -286,13 +275,8 @@ fs_cmd_pass(struct fs_context *c, char *tail)
 		fs_error(c, 0xff, "Who are you?");
 		return;
 	}
-	if (pwfile) {
-		if (!pw_change(c->client->login, oldpw, newpw)) {
-			fs_err(c, EC_FS_E_BADPW);
-			return;
-		}
-	} else {
-		fs_err(c, EC_FS_E_LOCKED);
+	if (!userfuncs->change(c->client->login, oldpw, newpw)) {
+		fs_err(c, EC_FS_E_BADPW);
 		return;
 	}
 	reply.command_code = EC_FS_CC_DONE;

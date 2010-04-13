@@ -47,6 +47,7 @@
 #include <unistd.h>
 
 #include "extern.h"
+#include "fileserver.h"
 
 char *pwfile = NULL;
 char *pwtmp = NULL; 
@@ -165,7 +166,7 @@ pw_write_line(char *user, char *pw, char *urd, int opt4)
 	fprintf(newfp, "%s:%s:%s:%d\n", user, pw, urd, opt4);
 }
 
-char *
+static char *
 pw_validate(char *user, const char *pw, int *opt4)
 {
 	char *u, *p, *d;
@@ -198,7 +199,7 @@ pw_validate(char *user, const char *pw, int *opt4)
 	return NULL;
 }
 
-int
+static int
 pw_change(const char *user, const char *oldpw, const char *newpw)
 {
 	char *u, *p, *d;
@@ -236,7 +237,7 @@ pw_change(const char *user, const char *oldpw, const char *newpw)
 	return pw_close_rename();
 }
 
-int
+static int
 pw_set_opt4(const char *user, int newopt4)
 {
 	char *u, *p, *d;
@@ -255,3 +256,7 @@ pw_set_opt4(const char *user, int newopt4)
 
 	return pw_close_rename();
 }
+
+struct user_funcs const user_pw = {
+	pw_validate, pw_change, pw_set_opt4
+};

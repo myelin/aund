@@ -54,6 +54,8 @@ char *lib = ".";		       /* default to the root dir */
 int default_opt4 = 0;
 enum fs_info_format infoformat = FS_INFO_RISCOS;
 
+struct user_funcs const * userfuncs;
+
 void
 fs_init(void)
 {
@@ -68,6 +70,14 @@ fs_init(void)
 	else
 		fullname[MAXHOSTNAMELEN - 1] = '\0'; /* paranoia */
 	strcpy(discname, fullname);
+
+	if (!fixedurd && !pwfile)
+		errx(1,
+		    "must specify either 'urd' or 'pwfile' in configuration");
+	if (pwfile)
+		userfuncs = &user_pw;
+	else
+		userfuncs = &user_null;
 }
 
 #if 0

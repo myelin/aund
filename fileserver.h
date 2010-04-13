@@ -162,4 +162,14 @@ extern int fs_add_typemap_name(const char *, int);
 extern int fs_add_typemap_mode(mode_t, mode_t, int);
 extern int fs_add_typemap_default(int);
 
+struct user_funcs {
+	char *(*validate)(char *, char *, int *);
+	int (*change)(char const *, char const *, char const *);
+	int (*set_opt4)(char const *, int);
+};
+
+extern struct user_funcs const *userfuncs;
+extern struct user_funcs const user_pw;
+extern struct user_funcs const user_null;
+
 #endif

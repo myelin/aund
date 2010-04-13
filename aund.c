@@ -97,14 +97,11 @@ main(int argc, char *argv[])
 	}
 
 	sig_init();
-	fs_init();
 	conf_init(conffile);
-
-	if (!fixedurd && !pwfile)
-		errx(1, "must specify either 'urd' or 'pwfile' in configuration");
-
 	if (beebem_cfg_file)
 		aunfuncs = &beebem;
+
+	fs_init();
 
 	/*
 	 * Override specifications from the configuration file with
