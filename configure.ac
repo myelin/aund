@@ -27,7 +27,7 @@ dnl THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 define(aund_version,esyscmd([perl -ne '/MAJOR\s*0x(.)/ and print "$1"; /MINOR\s*0x(..)/ and print ".$1";' version.h]))
 AC_INIT([aund], aund_version, [bjh21@bjh21.me.uk])
 AC_CONFIG_SRCDIR([aund.c])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AC_PROG_CC_C99
 AC_PROG_RANLIB
