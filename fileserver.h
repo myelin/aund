@@ -163,7 +163,7 @@ extern int fs_add_typemap_mode(mode_t, mode_t, int);
 extern int fs_add_typemap_default(int);
 
 struct user_funcs {
-	char *(*validate)(char *, char *, int *);
+	char *(*validate)(char *, char const *, int *);
 	int (*change)(char const *, char const *, char const *);
 	int (*set_opt4)(char const *, int);
 };
