@@ -27,7 +27,8 @@
 
 #include <sys/types.h>
 #include <string.h>
-#include "aun.h"
+#include <stdio.h>
+#include "extern.h"
 #include "printserver.h"
 void
 print_status(struct aun_packet *pkt, ssize_t len, struct aun_srcaddr *from)
@@ -62,13 +63,13 @@ print_job(struct aun_packet *pkt, ssize_t len, struct aun_srcaddr *from)
 	case EC_PS_FLAG_MODE_OPEN:
 		/* A client wants to send a job. */
 		/* XXX How do we know what printer to send this to? */
-		if (flag & EC_PS_FLAG_TASKID_MASK == EC_PS_FLAG_TASKID_NEW) {
+		if ((flag & EC_PS_FLAG_TASKID_MASK) == EC_PS_FLAG_TASKID_NEW) {
 			/* Client wants a task ID assigned */
 			/* XXX ... but I can't be bothered */
-			flag = flag & ~EC_PS_FLAG_MODE_MASK | EC_PS_FLAG_MODE_LBLK;
+			flag = (flag & ~EC_PS_FLAG_MODE_MASK) | EC_PS_FLAG_MODE_LBLK;
 		} else {
 			/* They didn't ask for a taskid or long blocks */
-			flag = flag & ~EC_PS_FLAG_MODE_MASK | EC_PS_FLAG_MODE_SBLK;
+			flag = (flag & ~EC_PS_FLAG_MODE_MASK) | EC_PS_FLAG_MODE_SBLK;
 		}
 		/* FIXME send reply */
 		/* FIXME other modes */
