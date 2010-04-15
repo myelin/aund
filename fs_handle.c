@@ -104,10 +104,11 @@ int fs_open_handle(struct fs_client *client, char *path, int must_exist)
 	}
 	if (S_ISDIR(sb.st_mode))
 		client->handles[h]->type = FS_HANDLE_DIR;
-	else if (S_ISREG(sb.st_mode))
+	else if (S_ISREG(sb.st_mode)) {
 		/* FIXME: open the file here? */
 		client->handles[h]->type = FS_HANDLE_FILE;
-	else {
+		client->handles[h]->sequence = 0;
+	} else {
 		warnx("fs_open_handle: tried to open something odd");
 		fs_free_handle(client, h);
 		errno = ENOENT;

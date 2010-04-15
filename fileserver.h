@@ -53,6 +53,7 @@ enum fs_handle_type { FS_HANDLE_FILE, FS_HANDLE_DIR };
 
 struct fs_handle {
 	char	*path;
+	off_t	oldoffset; /* files only */
 	enum 	fs_handle_type type;
 	int	fd; /* Only for files at present */
 	uint8_t	sequence; /* ditto */
