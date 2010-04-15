@@ -643,7 +643,7 @@ fs_set_opt4(struct fs_context *c)
 		return;
 	}
 
-	if (!userfuncs->set_opt4(c->client->login, opt4)) {
+	if (userfuncs->set_opt4(c->client->login, opt4)) {
 		fs_err(c, EC_FS_E_BADPW);
 		return;
 	}

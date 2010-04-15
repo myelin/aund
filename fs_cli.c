@@ -275,7 +275,7 @@ fs_cmd_pass(struct fs_context *c, char *tail)
 		fs_error(c, 0xff, "Who are you?");
 		return;
 	}
-	if (!userfuncs->change(c->client->login, oldpw, newpw)) {
+	if (userfuncs->change(c->client->login, oldpw, newpw)) {
 		fs_err(c, EC_FS_E_BADPW);
 		return;
 	}

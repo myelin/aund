@@ -66,7 +66,7 @@ pw_open(int write)
 	if (!fp) {
 		warn("%s: open", pwfile);
 		newfp = NULL;
-		return 0;
+		return -1;
 	}
 
 	if (write) {
@@ -80,21 +80,21 @@ pw_open(int write)
 			warn("%s: open", pwtmp);
 			fclose(fp);
 			fp = NULL;
-			return 0;
+			return -1;
 		}
 		newfp = fdopen(newfd, "w");
 		if (!newfp) {
 			warn("%s: fdopen", pwtmp);
 			fclose(fp);
 			fp = NULL;
-			return 0;
+			return -1;
 		}
 	} else {
 		newfp = NULL;
 	}
 
 	pwline = 0;
-	return 1;
+	return 0;
 }
 
 static void
@@ -118,10 +118,10 @@ pw_close_rename(void)
 		newfp = NULL;
 		if (rename(pwtmp, pwfile) < 0) {
 			warn("%s -> %s: rename", pwfile, pwtmp);
-			return 0;
+			return -1;
 		}
 	}
-	return 1;
+	return 0;
 }
 
 static int
@@ -130,15 +130,17 @@ pw_read_line(char **user, char **pw, char **urd, int *opt4)
 	static char buffer[16384];
 	char *p, *q, *r;
 
-	if (!fgets(buffer, sizeof(buffer), fp))
-		return 0;
+	if (!fgets(buffer, sizeof(buffer), fp)) {
+		warn("%s", pwfile);
+		return -1;
+	}
 	pwline++;
 
 	buffer[strcspn(buffer, "\r\n")] = '\0';
 	if ((p = strchr(buffer, ':')) == NULL ||
 	    (q = strchr(p+1, ':')) == NULL) {
 		warnx("%s:%d: malformatted line\n", pwfile, pwline);
-		return 0;
+		return -1;
 	}
 
 	*p++ = '\0';
@@ -156,7 +158,7 @@ pw_read_line(char **user, char **pw, char **urd, int *opt4)
 	*pw = p;
 	*urd = q;
 
-	return 1;
+	return 0;
 }
 
 static void
@@ -207,7 +209,7 @@ pw_change(const char *user, const char *oldpw, const char *newpw)
 	int done = 0;
 
 	if (!pw_open(1))
-		return 0;
+		return -1;
 
 	while (pw_read_line(&u, &p, &d, &opt4)) {
 		if (!done && !strcasecmp(user, u)) {
@@ -223,7 +225,7 @@ pw_change(const char *user, const char *oldpw, const char *newpw)
 			}
 			if (!ok) {
 				pw_close();
-				return 0;
+				return -1;
 			}
 			gettimeofday(&tv, NULL);
 			sprintf(salt, "$6$%08lx%08lx$",
@@ -245,7 +247,7 @@ pw_set_opt4(const char *user, int newopt4)
 	int done = 0;
 
 	if (!pw_open(1))
-		return 0;
+		return -1;
 
 	while (pw_read_line(&u, &p, &d, &opt4)) {
 		if (!done && !strcasecmp(user, u)) {
