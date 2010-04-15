@@ -338,21 +338,26 @@ static void
 fs_cmd_sdisc(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply_sdisc reply;
+	char *oururd;
 
 	if (debug) printf(" -> sdisc\n");
 	if (c->client == NULL) {
 		fs_error(c, 0xff, "Who are you?");
 		return;
 	}
+	oururd = userfuncs->urd(c->client->login);
 	reply.std_tx.command_code = EC_FS_CC_LOGON;
 	reply.std_tx.return_code = EC_FS_RC_OK;
-	/* Reset user environment.  Note that we can't use the same handle twice. */
+	/*
+	 * Reset user environment.  Note that we can't use the same
+	 * handle twice.
+	 */
 	fs_close_handle(c->client, c->req->urd);
 	fs_close_handle(c->client, c->req->csd);
 	fs_close_handle(c->client, c->req->lib);
-	reply.urd = fs_open_handle(c->client, "", 1);
-	reply.csd = fs_open_handle(c->client, "", 1);
-	reply.lib = fs_open_handle(c->client, "", 1);
+	reply.urd = fs_open_handle(c->client, oururd, 1);
+	reply.csd = fs_open_handle(c->client, oururd, 1);
+	reply.lib = fs_open_handle(c->client, lib, 1);
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
 }
 
