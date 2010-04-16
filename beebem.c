@@ -86,6 +86,8 @@ static int eccount = 0;
 /* (FIXME: probably should make this configurable) */
 static int our_econet_addr = 254;      /* 0.254 */
 
+int beebem_ingress = 0;		       /* set by conf_lex.l */
+
 static void
 beebem_setup(void)
 {
@@ -209,10 +211,14 @@ static ssize_t beebem_listen(unsigned *addr, int forever)
 		/* Who's it from? */
 		their_addr = 256 * rbuf[PKTOFF+3] + rbuf[PKTOFF+2];
 
-		/* Is it _really_ from them? */
+		/*
+		 * Ingress-filter to see if it's _really_ from the
+		 * address (and, optionally, port) it should be.
+		 */
 		if (!ec2ip[their_addr].port ||
 		    from.sin_addr.s_addr != ec2ip[their_addr].addr.s_addr ||
-		    ntohs(from.sin_port) != ec2ip[their_addr].port) {
+		    (beebem_ingress &&
+		     ntohs(from.sin_port) != ec2ip[their_addr].port)) {
 			if (debug)
 				printf("failed ingress filter from %s:%d (claimed to be %d.%d)\n",
 				       inet_ntoa(from.sin_addr), ntohs(from.sin_port),

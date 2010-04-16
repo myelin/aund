@@ -55,6 +55,7 @@ extern void file_server(struct aun_packet *, ssize_t, struct aun_srcaddr *);
 extern int debug;
 extern int using_syslog;
 extern char *beebem_cfg_file;
+extern int beebem_ingress;
 
 struct aun_funcs {
 	int max_block;

@@ -237,9 +237,16 @@ conf_cmd_lib(void)
 static void
 conf_cmd_beebem(void)
 {
+	int ret = cfylex(BORING, NULL);
 
-	if (cfylex(BORING, NULL) != CF_WORD)
+	if (ret == CF_WORD && !strcasecmp(cfytext, "ingress")) {
+		beebem_ingress = 1;
+		ret = cfylex(BORING, NULL);
+	}
+
+	if (ret != CF_WORD)
 		errx(1, "no beebem configuration file specified");
+
 	beebem_cfg_file = malloc(cfyleng + 1);
 	strcpy(beebem_cfg_file, cfytext);
 }
