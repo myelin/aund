@@ -285,18 +285,21 @@ conf_cmd_lib(union cfything *thing)
 static void
 conf_cmd_beebem(union cfything *thing)
 {
-	int ret = cfylex(BORING, NULL);
+	int ret;
 
-	if (ret == CF_WORD && !strcasecmp(cfytext, "ingress")) {
-		beebem_ingress = 1;
-		ret = cfylex(BORING, NULL);
-	}
-
-	if (ret != CF_WORD)
+	if (cfylex(BORING, NULL) != CF_WORD)
 		errx(1, "no beebem configuration file specified");
-
 	beebem_cfg_file = malloc(cfyleng + 1);
 	strcpy(beebem_cfg_file, cfytext);
+
+	while ((ret = cfylex(BORING, NULL)) == CF_WORD) {
+		if (!strcasecmp(cfytext, "ingress"))
+			beebem_ingress = 1;
+		else if (!strcasecmp(cfytext, "noingress"))
+			beebem_ingress = 0;
+		else
+			errx(1, "unrecognised beebem option: '%s'", cfytext);
+	}
 }
 
 static void
