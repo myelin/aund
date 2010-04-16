@@ -116,6 +116,14 @@ main(int argc, char *argv[])
 
 	aunfuncs->setup();
 
+	/*
+	 * We'll use relative pathnames for all our file accesses,
+	 * so start by setting our cwd to the root of the fs we're
+	 * serving.
+	 */
+	if (chdir(root) < 0)
+		err(1, "%s: chdir", root);
+
 	if (!debug)
 		if (daemon(0, 0) != 0)
 			err(1, "daemon");
@@ -124,13 +132,6 @@ main(int argc, char *argv[])
 			LOG_DAEMON);
 		syslog(LOG_NOTICE, "started");
 	}
-
-	/*
-	 * We'll use relative pathnames for all our file accesses,
-	 * so start by setting our cwd to the root of the fs we're
-	 * serving.
-	 */
-	chdir(root);
 
 	for (;!painful_death;) {
 		ssize_t msgsize;
