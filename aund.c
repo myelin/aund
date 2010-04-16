@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 		err(1, "%s: chdir", root);
 
 	if (!debug)
-		if (daemon(0, 0) != 0)
+		if (daemon(1, 0) != 0)
 			err(1, "daemon");
 	if (using_syslog) {
 		openlog("aund", LOG_PID | (debug ? LOG_PERROR : 0),
