@@ -120,31 +120,31 @@ static int cfylex(int start, void *thing);
 
 <INITIAL>{
   typemap	BEGIN(TYPEMAP);
-  debug		BEGIN(BORING); conf_cmd_debug();
-  syslog	BEGIN(BORING); conf_cmd_syslog();
-  root		BEGIN(BORING); conf_cmd_root();
-  lib|library	BEGIN(BORING); conf_cmd_lib();
-  urd		BEGIN(BORING); conf_cmd_urd();
-  pwfile	BEGIN(BORING); conf_cmd_pwfile();
-  opt4		BEGIN(BORING); conf_cmd_opt4();
-  beebem	BEGIN(BORING); conf_cmd_beebem();
-  info([_-]?(fmt|format))	BEGIN(BORING); conf_cmd_infofmt();
+  debug		BEGIN(BORING); conf_cmd_debug(); BEGIN(INITIAL);
+  syslog	BEGIN(BORING); conf_cmd_syslog(); BEGIN(INITIAL);
+  root		BEGIN(BORING); conf_cmd_root(); BEGIN(INITIAL);
+  lib|library	BEGIN(BORING); conf_cmd_lib(); BEGIN(INITIAL);
+  urd		BEGIN(BORING); conf_cmd_urd(); BEGIN(INITIAL);
+  pwfile	BEGIN(BORING); conf_cmd_pwfile(); BEGIN(INITIAL);
+  opt4		BEGIN(BORING); conf_cmd_opt4(); BEGIN(INITIAL);
+  beebem	BEGIN(BORING); conf_cmd_beebem(); BEGIN(INITIAL);
+  info([_-]?(fmt|format))	BEGIN(BORING); conf_cmd_infofmt(); BEGIN(INITIAL);
 }
 <TYPEMAP>{
-  name		BEGIN(BORING); conf_cmd_typemap_name(); 
-  perm		BEGIN(BORING); conf_cmd_typemap_perm();
+  name		BEGIN(BORING); conf_cmd_typemap_name(); BEGIN(INITIAL);
+  perm		BEGIN(BORING); conf_cmd_typemap_perm(); BEGIN(INITIAL);
   type		BEGIN(TYPEMAP_TYPE);
-  default	BEGIN(BORING); conf_cmd_typemap_default();
+  default	BEGIN(BORING); conf_cmd_typemap_default(); BEGIN(INITIAL);
 }
 <TYPEMAP_TYPE>{
-  fifo		BEGIN(BORING); conf_cmd_typemap_type(S_IFIFO);
-  chr		BEGIN(BORING); conf_cmd_typemap_type(S_IFCHR);
-  dir		BEGIN(BORING); conf_cmd_typemap_type(S_IFDIR);
-  blk		BEGIN(BORING); conf_cmd_typemap_type(S_IFBLK);
-  reg		BEGIN(BORING); conf_cmd_typemap_type(S_IFREG);
-  lnk		BEGIN(BORING); conf_cmd_typemap_type(S_IFLNK);
-  sock		BEGIN(BORING); conf_cmd_typemap_type(S_IFSOCK);
-  wht		BEGIN(BORING); conf_cmd_typemap_type(S_IFWHT);
+  fifo		BEGIN(BORING); conf_cmd_typemap_type(S_IFIFO); BEGIN(INITIAL);
+  chr		BEGIN(BORING); conf_cmd_typemap_type(S_IFCHR); BEGIN(INITIAL);
+  dir		BEGIN(BORING); conf_cmd_typemap_type(S_IFDIR); BEGIN(INITIAL);
+  blk		BEGIN(BORING); conf_cmd_typemap_type(S_IFBLK); BEGIN(INITIAL);
+  reg		BEGIN(BORING); conf_cmd_typemap_type(S_IFREG); BEGIN(INITIAL);
+  lnk		BEGIN(BORING); conf_cmd_typemap_type(S_IFLNK); BEGIN(INITIAL);
+  sock		BEGIN(BORING); conf_cmd_typemap_type(S_IFSOCK); BEGIN(INITIAL);
+  wht		BEGIN(BORING); conf_cmd_typemap_type(S_IFWHT); BEGIN(INITIAL);
 }
 <BOOLEAN>{
   yes|on|true	*(int *)thing = 1; return CF_BOOLEAN;
@@ -173,7 +173,7 @@ conf_read_file(const char *path)
 	cfyin = f;
 	switch (cfylex(INITIAL, NULL)) {
 	case CF_ODDWORD:
-		errx(1, "Syntax error");
+		errx(1, "Syntax error: unrecognised keyword '%s'", cfytext);
 		fclose(f);
 	}
 }
