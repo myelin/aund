@@ -228,7 +228,6 @@ fs_set_args(struct fs_context *c)
 	val = fs_read_val(request->val, sizeof(request->val));
 	if (debug) printf("set args [%d, %d := %ju]\n", request->handle, request->arg, (uintmax_t)val);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
-		c->client->handles[h]->sequence ^= 1;
 		fd = c->client->handles[h]->fd;
 		switch (request->arg) {
 		case EC_FS_ARG_PTR:
@@ -254,6 +253,34 @@ fs_set_args(struct fs_context *c)
 		fs_err(c, EC_FS_E_CHANNEL);
 }
 
+static int
+fs_randomio_common(struct fs_context *c, int h)
+{
+	off_t off;
+	int fd;
+
+	fd = c->client->handles[h]->fd;
+	if (debug) printf("%c", (c->req->aun.flag & 1) ? '/' : '\\');
+	if ((c->req->aun.flag & 1) == c->client->handles[h]->sequence) {
+		/* Sequence numbers line up.  Save our current offset. */
+		if ((off = lseek(fd, 0, SEEK_CUR)) == -1) {
+			fs_errno(c);
+			return -1;
+		}
+		c->client->handles[h]->oldoffset = off;
+		c->client->handles[h]->sequence ^= 1;
+	} else {
+		/* Sequence number mismatch.  This is a repeated request. */
+		if (debug) printf("<repeat>");
+		off = c->client->handles[h]->oldoffset;
+		if (lseek(fd, off, SEEK_SET) == -1) {
+			fs_errno(c);
+			return -1;
+		}
+	}
+	return 0;
+}
+
 void
 fs_putbyte(struct fs_context *c)
 {
@@ -268,6 +295,7 @@ fs_putbyte(struct fs_context *c)
 	request = (struct ec_fs_req_putbyte *)(c->req);
 	if (debug) printf("putbyte [%d, 0x%02x]\n", request->handle, request->byte);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
+		if (fs_randomio_common(c, request->handle)) return;
 		fd = c->client->handles[h]->fd;
 		if (write(fd, &request->byte, 1) < 0) {
 			fs_errno(c);
@@ -329,6 +357,7 @@ fs_getbytes(struct fs_context *c)
 	off = fs_read_val(request->offset, sizeof(request->offset));
 	if (debug) printf("getbytes [%d, %zu%s%ju]\n", request->handle, size, request->use_ptr ? "!" : "@", (uintmax_t)off);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
+		if (fs_randomio_common(c, request->handle)) return;
 		fd = c->client->handles[h]->fd;
 		if (!request->use_ptr)
 			if (lseek(fd, off, SEEK_SET) == -1) {
@@ -370,6 +399,7 @@ fs_getbyte(struct fs_context *c)
 	request = (struct ec_fs_req_getbyte *)(c->req);
 	if (debug) printf("getbyte [%d]\n", request->handle);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
+		if (fs_randomio_common(c, request->handle)) return;
 		fd = c->client->handles[h]->fd;
 		if ((ret = read(fd, &reply.byte, 1)) < 0) {
 			fs_errno(c);
@@ -407,6 +437,7 @@ fs_putbytes(struct fs_context *c)
 	off = fs_read_val(request->offset, sizeof(request->offset));
 	if (debug) printf("putbytes [%d, %zu%s%ju]\n", request->handle, size, request->use_ptr ? "!" : "@", (uintmax_t)off);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
+		if (fs_randomio_common(c, request->handle)) return;
 		fd = c->client->handles[h]->fd;
 		if (!request->use_ptr)
 			if (lseek(fd, off, SEEK_SET) == -1) {

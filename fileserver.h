@@ -53,6 +53,7 @@ enum fs_handle_type { FS_HANDLE_FILE, FS_HANDLE_DIR };
 
 struct fs_handle {
 	char	*path;
+	off_t	oldoffset; /* files only */
 	enum 	fs_handle_type type;
 	int	fd; /* Only for files at present */
 	uint8_t	sequence; /* ditto */
@@ -164,6 +165,7 @@ extern int fs_add_typemap_default(int);
 
 struct user_funcs {
 	char *(*validate)(char *, char const *, int *);
+	char *(*urd)(char const *);
 	int (*change)(char const *, char const *, char const *);
 	int (*set_opt4)(char const *, int);
 };
