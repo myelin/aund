@@ -76,82 +76,101 @@
 #endif
 
 #define CF_EOF 0
-#define CF_ODDWORD 2
-#define CF_BOOLEAN 3
-#define CF_WORD 4
+#define CF_FUNC 1
+#define CF_BOOLEAN 2
+#define CF_WORD 3
+#define CF_NEWLINE 4
 
 static void conf_read_file(const char *);
-static void conf_cmd_debug(void);
-static void conf_cmd_syslog(void);
-static void conf_cmd_root(void);
-static void conf_cmd_urd(void);
-static void conf_cmd_pwfile(void);
-static void conf_cmd_lib(void);
-static void conf_cmd_beebem(void);
-static void conf_cmd_infofmt(void);
-static void conf_cmd_opt4(void);
-static void conf_cmd_typemap_name(void);
-static void conf_cmd_typemap_perm(void);
-static void conf_cmd_typemap_type(mode_t);
-static void conf_cmd_typemap_default(void);
 
-static int cfylex(int start, void *thing);
+union cfything {
+	int boolean;
+	struct {
+		void (*func)(union cfything *);
+		mode_t mode;
+	} func;
+};
 
-#define YY_DECL static int cfylex(int start, void *thing)
+static void conf_cmd_debug(union cfything *);
+static void conf_cmd_syslog(union cfything *);
+static void conf_cmd_root(union cfything *);
+static void conf_cmd_urd(union cfything *);
+static void conf_cmd_pwfile(union cfything *);
+static void conf_cmd_lib(union cfything *);
+static void conf_cmd_beebem(union cfything *);
+static void conf_cmd_infofmt(union cfything *);
+static void conf_cmd_opt4(union cfything *);
+static void conf_cmd_typemap_name(union cfything *);
+static void conf_cmd_typemap_perm(union cfything *);
+static void conf_cmd_typemap_type(union cfything *);
+static void conf_cmd_typemap_default(union cfything *);
+
+static int cfylex(int start, union cfything *thing);
+
+static int cfy_line;
+
+#define YY_DECL static int cfylex(int start, union cfything *thing)
 
 %}
 
 
 %s BORING
 %s TYPEMAP
-%s TYPEMAP_NAME
-%s TYPEMAP_PERM
 %s TYPEMAP_TYPE
 %s BOOLEAN
 %%
-	int cfy_line;
 
-	BEGIN(start);
+	if (start != -1) BEGIN(start);
 
-#[^\n]*\n		cfy_line++; BEGIN(INITIAL);
-[[:blank:]]+		/* Ignore whitespace except insofar as it splits words */
+ /* Backslash-escaped newline is completely ignored */
 \\\n			cfy_line++;
-\n			cfy_line++; BEGIN(INITIAL);
 
+ /* Newline, with optional comment before it. Ignored in INITIAL state;
+  * otherwise returned as a token so that commands can detect premature
+  * running-out-of-arguments. */
+(#[^\n]*)?\n		cfy_line++; if (YY_START != INITIAL) { BEGIN(INITIAL); return CF_NEWLINE; }
+
+ /* Ignore whitespace except insofar as it splits words */
+[[:blank:]]+		/* do nothing */
+
+ /* In starting state, recognise main config keywords, return them as
+  * function pointers, and switch into BORING state so that subsequent
+  * words will be returned as CF_WORD. */
 <INITIAL>{
   typemap	BEGIN(TYPEMAP);
-  debug		BEGIN(BORING); conf_cmd_debug(); BEGIN(INITIAL);
-  syslog	BEGIN(BORING); conf_cmd_syslog(); BEGIN(INITIAL);
-  root		BEGIN(BORING); conf_cmd_root(); BEGIN(INITIAL);
-  lib|library	BEGIN(BORING); conf_cmd_lib(); BEGIN(INITIAL);
-  urd		BEGIN(BORING); conf_cmd_urd(); BEGIN(INITIAL);
-  pwfile	BEGIN(BORING); conf_cmd_pwfile(); BEGIN(INITIAL);
-  opt4		BEGIN(BORING); conf_cmd_opt4(); BEGIN(INITIAL);
-  beebem	BEGIN(BORING); conf_cmd_beebem(); BEGIN(INITIAL);
-  info([_-]?(fmt|format))	BEGIN(BORING); conf_cmd_infofmt(); BEGIN(INITIAL);
+  debug		BEGIN(BORING); thing->func.func = conf_cmd_debug; return CF_FUNC;
+  syslog	BEGIN(BORING); thing->func.func = conf_cmd_syslog; return CF_FUNC;
+  root		BEGIN(BORING); thing->func.func = conf_cmd_root; return CF_FUNC;
+  lib|library	BEGIN(BORING); thing->func.func = conf_cmd_lib; return CF_FUNC;
+  urd		BEGIN(BORING); thing->func.func = conf_cmd_urd; return CF_FUNC;
+  pwfile	BEGIN(BORING); thing->func.func = conf_cmd_pwfile; return CF_FUNC;
+  opt4		BEGIN(BORING); thing->func.func = conf_cmd_opt4; return CF_FUNC;
+  beebem	BEGIN(BORING); thing->func.func = conf_cmd_beebem; return CF_FUNC;
+  info([_-]?(fmt|format))	BEGIN(BORING); thing->func.func = conf_cmd_infofmt; return CF_FUNC;
 }
 <TYPEMAP>{
-  name		BEGIN(BORING); conf_cmd_typemap_name(); BEGIN(INITIAL);
-  perm		BEGIN(BORING); conf_cmd_typemap_perm(); BEGIN(INITIAL);
+  name		BEGIN(BORING); thing->func.func = conf_cmd_typemap_name; return CF_FUNC;
+  perm		BEGIN(BORING); thing->func.func = conf_cmd_typemap_perm; return CF_FUNC;
   type		BEGIN(TYPEMAP_TYPE);
-  default	BEGIN(BORING); conf_cmd_typemap_default(); BEGIN(INITIAL);
+  default	BEGIN(BORING); thing->func.func = conf_cmd_typemap_default; return CF_FUNC;
 }
 <TYPEMAP_TYPE>{
-  fifo		BEGIN(BORING); conf_cmd_typemap_type(S_IFIFO); BEGIN(INITIAL);
-  chr		BEGIN(BORING); conf_cmd_typemap_type(S_IFCHR); BEGIN(INITIAL);
-  dir		BEGIN(BORING); conf_cmd_typemap_type(S_IFDIR); BEGIN(INITIAL);
-  blk		BEGIN(BORING); conf_cmd_typemap_type(S_IFBLK); BEGIN(INITIAL);
-  reg		BEGIN(BORING); conf_cmd_typemap_type(S_IFREG); BEGIN(INITIAL);
-  lnk		BEGIN(BORING); conf_cmd_typemap_type(S_IFLNK); BEGIN(INITIAL);
-  sock		BEGIN(BORING); conf_cmd_typemap_type(S_IFSOCK); BEGIN(INITIAL);
-  wht		BEGIN(BORING); conf_cmd_typemap_type(S_IFWHT); BEGIN(INITIAL);
+  fifo		BEGIN(BORING); thing->func.func = conf_cmd_typemap_type; thing->func.mode = S_IFIFO; return CF_FUNC;
+  chr		BEGIN(BORING); thing->func.func = conf_cmd_typemap_type; thing->func.mode = S_IFCHR; return CF_FUNC;
+  dir		BEGIN(BORING); thing->func.func = conf_cmd_typemap_type; thing->func.mode = S_IFDIR; return CF_FUNC;
+  blk		BEGIN(BORING); thing->func.func = conf_cmd_typemap_type; thing->func.mode = S_IFBLK; return CF_FUNC;
+  reg		BEGIN(BORING); thing->func.func = conf_cmd_typemap_type; thing->func.mode = S_IFREG; return CF_FUNC;
+  lnk		BEGIN(BORING); thing->func.func = conf_cmd_typemap_type; thing->func.mode = S_IFLNK; return CF_FUNC;
+  sock		BEGIN(BORING); thing->func.func = conf_cmd_typemap_type; thing->func.mode = S_IFSOCK; return CF_FUNC;
+  wht		BEGIN(BORING); thing->func.func = conf_cmd_typemap_type; thing->func.mode = S_IFWHT; return CF_FUNC;
 }
 <BOOLEAN>{
-  yes|on|true	*(int *)thing = 1; return CF_BOOLEAN;
-  no|off|false	*(int *)thing = 0; return CF_BOOLEAN;
+  yes|on|true	*(int *)thing = 1; BEGIN(BORING); return CF_BOOLEAN;
+  no|off|false	*(int *)thing = 0; BEGIN(BORING); return CF_BOOLEAN;
 }
 
-[^[:blank:]\n]+		return (YY_START == BORING) ? CF_WORD : CF_ODDWORD;
+ /* Any word without a specific meaning from context is returned as CF_WORD. */
+[^[:blank:]\n]+		return CF_WORD;
 <<EOF>>			return CF_EOF;
 
 %%
@@ -167,35 +186,64 @@ static void
 conf_read_file(const char *path)
 {
         FILE *f;
+	union cfything thing;
+	int tok, nl;
 
 	f = fopen(path, "r");
 	if (f == NULL) err(1, "%s", path);
 	cfyin = f;
-	switch (cfylex(INITIAL, NULL)) {
-	case CF_ODDWORD:
-		errx(1, "Syntax error: unrecognised keyword '%s'", cfytext);
-		fclose(f);
+	cfy_line = 1;
+	while ((tok = cfylex(-1, &thing)) != CF_EOF) {
+		switch (tok) {
+		    case CF_FUNC:
+			/*
+			 * Call the specified config subfunction,
+			 * which will call cfylex again in states
+			 * other than INITIAL. It won't
+			 * automatically reset the state to INITIAL,
+			 * though: that'll only happen if a newline
+			 * is parsed. So subfunctions can safely
+			 * just eat a fixed number of arguments, in
+			 * which case we'll come back here still in
+			 * BORING state and any further words on the
+			 * same line will be treated as syntax
+			 * errors; alternatively, a subfunction can
+			 * keep retrieving tokens until it sees
+			 * CF_NEWLINE, in which case we'll come back
+			 * here in INITIAL state and be ready to
+			 * parse the next directive.
+			 */
+			thing.func.func(&thing);
+			break;
+		    case CF_WORD:
+			errx(1, "%s:%d: Syntax error: '%s'", path, cfy_line,
+			     cfytext);
+			break;
+		}
 	}
+	fclose(f);
 }
 
 static void
-conf_cmd_debug(void)
+conf_cmd_debug(union cfything *xthing)
 {
-
-	if (cfylex(BOOLEAN, &debug) != CF_BOOLEAN)
+	union cfything thing;
+	if (cfylex(BOOLEAN, &thing) != CF_BOOLEAN)
 		errx(1, "no boolean for debug");
+	debug = thing.boolean;
 }
 
 static void
-conf_cmd_syslog(void)
+conf_cmd_syslog(union cfything *xthing)
 {
-
-	if (cfylex(BOOLEAN, &using_syslog) != CF_BOOLEAN)
+	union cfything thing;
+	if (cfylex(BOOLEAN, &thing) != CF_BOOLEAN)
 		errx(1, "no boolean for syslog");
+	using_syslog = thing.boolean;
 }
 
 static void
-conf_cmd_root(void)
+conf_cmd_root(union cfything *thing)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -205,7 +253,7 @@ conf_cmd_root(void)
 }
 
 static void
-conf_cmd_urd(void)
+conf_cmd_urd(union cfything *thing)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -215,7 +263,7 @@ conf_cmd_urd(void)
 }
 
 static void
-conf_cmd_pwfile(void)
+conf_cmd_pwfile(union cfything *thing)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -225,7 +273,7 @@ conf_cmd_pwfile(void)
 }
 
 static void
-conf_cmd_lib(void)
+conf_cmd_lib(union cfything *thing)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -235,7 +283,7 @@ conf_cmd_lib(void)
 }
 
 static void
-conf_cmd_beebem(void)
+conf_cmd_beebem(union cfything *thing)
 {
 	int ret = cfylex(BORING, NULL);
 
@@ -252,7 +300,7 @@ conf_cmd_beebem(void)
 }
 
 static void
-conf_cmd_infofmt(void)
+conf_cmd_infofmt(union cfything *thing)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
@@ -264,7 +312,7 @@ conf_cmd_infofmt(void)
 }
 
 static void
-conf_cmd_opt4(void)
+conf_cmd_opt4(union cfything *thing)
 {
 	char *endptr;
 
@@ -276,7 +324,7 @@ conf_cmd_opt4(void)
 }
 
 static void
-conf_cmd_typemap_name(void)
+conf_cmd_typemap_name(union cfything *thing)
 {
 	char *re;
 	int type;
@@ -294,7 +342,7 @@ conf_cmd_typemap_name(void)
 }
 
 static void
-conf_cmd_typemap_perm(void)
+conf_cmd_typemap_perm(union cfything *thing)
 {
 	mode_t perm;
 	int type;
@@ -312,7 +360,7 @@ conf_cmd_typemap_perm(void)
 }
 
 static void
-conf_cmd_typemap_type(mode_t utype)
+conf_cmd_typemap_type(union cfything *thing)
 {
 	int type;
 
@@ -320,12 +368,12 @@ conf_cmd_typemap_type(mode_t utype)
 		errx(1, "no type for typemap");
 	if (sscanf(cfytext, "%x", &type) != 1)
 		errx(1, "bad type for typemap");
-	if (fs_add_typemap_mode(utype, S_IFMT, type) == -1)
+	if (fs_add_typemap_mode(thing->func.mode, S_IFMT, type) == -1)
 		errx(1, "problem adding typemap");
 }
 
 static void
-conf_cmd_typemap_default(void)
+conf_cmd_typemap_default(union cfything *thing)
 {
 	int type;
 
