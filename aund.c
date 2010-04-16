@@ -132,6 +132,8 @@ main(int argc, char *argv[])
 			LOG_DAEMON);
 		syslog(LOG_NOTICE, "started");
 	}
+	if (debug)
+		printf("started\n");
 
 	for (;!painful_death;) {
 		ssize_t msgsize;
