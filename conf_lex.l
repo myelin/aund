@@ -43,6 +43,7 @@
 
 #include <err.h>
 #include <string.h>
+#include <assert.h>
 
 #include "extern.h"
 #include "fileserver.h"
@@ -105,6 +106,8 @@ static void conf_cmd_typemap_perm(union cfything *);
 static void conf_cmd_typemap_type(union cfything *);
 static void conf_cmd_typemap_default(union cfything *);
 
+static void dequote(char *);
+	
 static int cfylex(int start, union cfything *thing);
 
 static int cfy_line;
@@ -170,6 +173,7 @@ static int cfy_line;
 }
 
  /* Any word without a specific meaning from context is returned as CF_WORD. */
+'([^'\n]|'')*'		dequote(cfytext); return CF_WORD; /* [deconfuse jed syntax highlighting: '] */
 [^[:blank:]\n]+		return CF_WORD;
 <<EOF>>			return CF_EOF;
 
@@ -222,6 +226,31 @@ conf_read_file(const char *path)
 		}
 	}
 	fclose(f);
+}
+
+static void
+dequote(char *str)
+{
+	/*
+	 * Given a string starting and ending with a single quote,
+	 * strip the quotes off, and reduce doubled quotes in the
+	 * middle of it. This is applied to any single-quoted
+	 * CF_WORD.
+	 */
+	char *p = str;
+	assert(*str == '\'');
+	str++;
+	while (1) {
+		if (*str == '\'' && str[1] == '\'') {
+			*p++ = '\'';
+			str += 2;
+		} else if (*str && *str != '\'') {
+			*p++ = *str++;
+		} else
+			break;
+	}
+	assert(*str == '\'' && !str[1]);
+	*p = '\0';
 }
 
 static void
