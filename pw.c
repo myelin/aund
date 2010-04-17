@@ -207,6 +207,9 @@ pw_urd(char const *user)
 	char *u, *p, *d;
 	int o4;
 
+	if (pw_open(1) < 0)
+		return NULL;
+
 	while (pw_read_line(&u, &p, &d, &o4) == 0) {
 		if (!strcasecmp(user, u)) {
 			pw_close();
