@@ -228,6 +228,9 @@ fs_cmd_i_am(struct fs_context *c, char *tail)
 	int opt4;
 
 	login = fs_cli_getarg(&tail);
+	if (isdigit((unsigned char)login[0]))
+		/* Client passed us a station number.  Skip it. */
+		login = fs_cli_getarg(&tail);
 	password = fs_cli_getarg(&tail);
 	if (debug) printf("cli: log on [%s]\n", login);
 	oururd = userfuncs->validate(login, password, &opt4);
