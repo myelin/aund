@@ -202,7 +202,7 @@ pw_validate(char *user, const char *pw, int *opt4)
 }
 
 static char *
-pw_getdata(char const *user, int *opt4)
+pw_urd(char const *user)
 {
 	char *u, *p, *d;
 	int o4;
@@ -213,7 +213,6 @@ pw_getdata(char const *user, int *opt4)
 	while (pw_read_line(&u, &p, &d, &o4) == 0) {
 		if (!strcasecmp(user, u)) {
 			pw_close();
-			*opt4 = o4;
 			return strdup(d);
 		}
 	}
@@ -280,5 +279,5 @@ pw_set_opt4(const char *user, int newopt4)
 }
 
 struct user_funcs const user_pw = {
-	pw_validate, pw_getdata, pw_change, pw_set_opt4
+	pw_validate, pw_urd, pw_change, pw_set_opt4
 };

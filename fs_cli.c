@@ -339,19 +339,18 @@ fs_cmd_sdisc(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply_sdisc reply;
 	char *oururd;
-	int opt4;
 
 	if (debug) printf(" -> sdisc\n");
 	if (c->client == NULL) {
 		fs_error(c, 0xff, "Who are you?");
 		return;
 	}
-	oururd = userfuncs->getdata(c->client->login, &opt4);
+	oururd = userfuncs->urd(c->client->login);
 	if (!oururd) {
 		fs_error(c, 0xff, "Failed lookup");
 		return;
 	}
-	reply.std_tx.command_code = EC_FS_CC_LOGON;
+	reply.std_tx.command_code = EC_FS_CC_SDISC;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	/*
 	 * Reset user environment.  Note that we can't use the same
@@ -363,7 +362,6 @@ fs_cmd_sdisc(struct fs_context *c, char *tail)
 	reply.urd = fs_open_handle(c->client, oururd, 1);
 	reply.csd = fs_open_handle(c->client, oururd, 1);
 	reply.lib = fs_open_handle(c->client, lib, 1);
-        reply.opt4 = opt4;
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
 }
 
