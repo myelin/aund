@@ -261,14 +261,15 @@ fs_randomio_common(struct fs_context *c, int h)
 
 	fd = c->client->handles[h]->fd;
 	if (debug) printf("%c", (c->req->aun.flag & 1) ? '/' : '\\');
-	if ((c->req->aun.flag & 1) == c->client->handles[h]->sequence) {
+	if (c->client->handles[h]->sequence > 1 ||
+	    c->client->handles[h]->sequence == (c->req->aun.flag & 1)) {
 		/* Sequence numbers line up.  Save our current offset. */
 		if ((off = lseek(fd, 0, SEEK_CUR)) == -1) {
 			fs_errno(c);
 			return -1;
 		}
 		c->client->handles[h]->oldoffset = off;
-		c->client->handles[h]->sequence ^= 1;
+		c->client->handles[h]->sequence = (c->req->aun.flag & 1) ^ 1;
 	} else {
 		/* Sequence number mismatch.  This is a repeated request. */
 		if (debug) printf("<repeat>");

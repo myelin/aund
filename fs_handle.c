@@ -107,7 +107,14 @@ int fs_open_handle(struct fs_client *client, char *path, int must_exist)
 	else if (S_ISREG(sb.st_mode)) {
 		/* FIXME: open the file here? */
 		client->handles[h]->type = FS_HANDLE_FILE;
-		client->handles[h]->sequence = 0;
+		/*
+		 * Initialise the sequence number to 'unknown', so
+		 * that the first request from the client will not
+		 * be considered a repeat regardless of its sequence
+		 * number.
+		 */
+		client->handles[h]->sequence = 0xFF;
+		client->handles[h]->oldoffset = 0;
 	} else {
 		warnx("fs_open_handle: tried to open something odd");
 		fs_free_handle(client, h);
