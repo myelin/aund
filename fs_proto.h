@@ -142,6 +142,13 @@ struct ec_fs_reply_sdisc {
 	uint8_t urd;
 	uint8_t csd;
 	uint8_t lib;
+	/*
+	 * SGT: The RISC OS PRM doesn't list the following field,
+	 * but an (emulated) BBC Master definitely expects to
+	 * receive it, and without it will immediately follow its
+	 * *SDISC with an OSCLI of random garbage.
+	 */
+	uint8_t opt4;
 };
 
 /* Response to *LIB or *DIR */
