@@ -56,7 +56,17 @@ struct fs_handle {
 	off_t	oldoffset; /* files only */
 	enum 	fs_handle_type type;
 	int	fd; /* Only for files at present */
-	uint8_t	sequence; /* ditto */
+	/*
+	 * The sequence number field here has three states: 0 and 1
+	 * mean we definitely expect that sequence number next from
+	 * the client, and 0xFF means that we haven't yet received
+	 * any requests from the client and will let it decide which
+	 * sequence number to start with.
+	 *
+	 * (The previous code here expected zero for the first
+	 * request, but the BBC Master sends 1.)
+	 */
+	uint8_t	sequence; /* also only for files */
 };
 
 struct fs_dir_cache {
@@ -165,7 +175,7 @@ extern int fs_add_typemap_default(int);
 
 struct user_funcs {
 	char *(*validate)(char *, char const *, int *);
-	char *(*urd)(char const *);
+	char *(*getdata)(char const *, int *);
 	int (*change)(char const *, char const *, char const *);
 	int (*set_opt4)(char const *, int);
 };

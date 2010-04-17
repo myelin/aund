@@ -174,10 +174,10 @@ pw_validate(char *user, const char *pw, int *opt4)
 	char *u, *p, *d;
 	char *ret;
 
-	if (!pw_open(0))
+	if (pw_open(0) < 0)
 		return NULL;
 
-	while (pw_read_line(&u, &p, &d, opt4)) {
+	while (pw_read_line(&u, &p, &d, opt4) == 0) {
 		if (!strcasecmp(user, u)) {
 			int ok = 0;
 
@@ -202,14 +202,18 @@ pw_validate(char *user, const char *pw, int *opt4)
 }
 
 static char *
-pw_urd(char const *user)
+pw_getdata(char const *user, int *opt4)
 {
 	char *u, *p, *d;
 	int o4;
 
-	while (pw_read_line(&u, &p, &d, &o4)) {
+	if (pw_open(1) < 0)
+		return NULL;
+
+	while (pw_read_line(&u, &p, &d, &o4) == 0) {
 		if (!strcasecmp(user, u)) {
 			pw_close();
+			*opt4 = o4;
 			return strdup(d);
 		}
 	}
@@ -224,10 +228,10 @@ pw_change(const char *user, const char *oldpw, const char *newpw)
 	int opt4;
 	int done = 0;
 
-	if (!pw_open(1))
+	if (pw_open(1) < 0)
 		return -1;
 
-	while (pw_read_line(&u, &p, &d, &opt4)) {
+	while (pw_read_line(&u, &p, &d, &opt4) == 0) {
 		if (!done && !strcasecmp(user, u)) {
 			int ok = 0;
 			char salt[64];
@@ -262,10 +266,10 @@ pw_set_opt4(const char *user, int newopt4)
 	int opt4;
 	int done = 0;
 
-	if (!pw_open(1))
+	if (pw_open(1) < 0)
 		return -1;
 
-	while (pw_read_line(&u, &p, &d, &opt4)) {
+	while (pw_read_line(&u, &p, &d, &opt4) == 0) {
 		if (!done && !strcasecmp(user, u)) {
 		    opt4 = newopt4;
 		}
@@ -276,5 +280,5 @@ pw_set_opt4(const char *user, int newopt4)
 }
 
 struct user_funcs const user_pw = {
-	pw_validate, pw_urd, pw_change, pw_set_opt4
+	pw_validate, pw_getdata, pw_change, pw_set_opt4
 };

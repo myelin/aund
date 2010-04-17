@@ -40,10 +40,10 @@ null_validate(char *user, char const *pw, int *opt4)
 }
 
 static char *
-null_urd(char *user)
+null_getdata(char const *user, int *opt4)
 {
-
 	assert(fixedurd);
+	*opt4 = default_opt4;
 	return strdup(fixedurd);
 }
 
@@ -62,5 +62,5 @@ null_set_opt4(char const *user, int opt4)
 }
 
 struct user_funcs const user_null = {
-	null_validate, null_urd, null_change, null_set_opt4
+	null_validate, null_getdata, null_change, null_set_opt4
 };
