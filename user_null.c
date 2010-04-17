@@ -40,7 +40,7 @@ null_validate(char *user, char const *pw, int *opt4)
 }
 
 static char *
-null_urd(char *user)
+null_urd(char const *user)
 {
 
 	assert(fixedurd);
