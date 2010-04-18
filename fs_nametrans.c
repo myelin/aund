@@ -247,6 +247,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 			*q++ = '/';
 		}
 	}
+	*q = '\0';
 	if (debug) printf("->[%s]\n", path3);
 
 	free(path2);
