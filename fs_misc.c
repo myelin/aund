@@ -624,7 +624,21 @@ fs_cdirn(struct fs_context *c)
 	request = (struct ec_fs_req_cdirn *)(c->req);
 	request->path[strcspn(request->path, "\r")] = '\0';
 	if (debug) printf("cdirn [%s]\n", request->path);
-	upath = fs_unixify_path(c, request->path);
+	fs_cdir1(c, request->path);
+}
+
+void
+fs_cdir1(struct fs_context *c, char *path)
+{
+	struct ec_fs_reply reply;
+	struct ec_fs_req_cdirn *request;
+	char *upath;
+
+	if (c->client == NULL) {
+		fs_err(c, EC_FS_E_WHOAREYOU);
+		return;
+	}
+	upath = fs_unixify_path(c, path);
 	if (upath == NULL) {
 		fs_err(c, EC_FS_E_NOMEM);
 		return;

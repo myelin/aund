@@ -59,6 +59,7 @@ struct fs_cmd {
 
 static fs_cmd_impl fs_cmd_bye;
 static fs_cmd_impl fs_cmd_cat;
+static fs_cmd_impl fs_cmd_cdir;
 static fs_cmd_impl fs_cmd_dir;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
@@ -75,6 +76,7 @@ static void fs_cli_unrec(struct fs_context *, char *);
 static const struct fs_cmd cmd_tab[] = {
 	{"BYE",		1, fs_cmd_bye,		},
 	{"CAT",		0, fs_cmd_cat,		},
+	{"CDIR",	2, fs_cmd_cdir,		},
 	{"DIR", 	3, fs_cmd_dir,		},
 	{"INFO",	1, fs_cmd_info,		},
 	{"I AM", 	2, fs_cmd_i_am,		},
@@ -103,7 +105,7 @@ fs_cli(struct fs_context *c)
 
 	if (debug) printf("cli ");
 	head = backup = strdup(c->req->data);
-	while (*strchr("* \t", *head)) head++;
+	while (strchr("* \t", *head)) head++;
 	if (!*head) {
 		struct ec_fs_reply reply;
 
@@ -376,6 +378,19 @@ fs_cmd_rename(struct fs_context *c, char *tail)
 	}
 	free(oldupath);
 	free(newupath);
+}
+
+static void
+fs_cmd_cdir(struct fs_context *c, char *tail)
+{
+	char *path;
+
+	path = fs_cli_getarg(&tail);
+	if (debug) printf(" -> cdir [%s]\n", path);
+	if (*path)
+		fs_cdir1(c, path);
+	else
+		fs_error(c, 0xff, "Syntax");
 }
 
 static void
