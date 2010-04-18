@@ -484,13 +484,22 @@ fs_load(struct fs_context *c)
 	}
 	request = (struct ec_fs_req_load *)(c->req);
 	request->path[strcspn(request->path, "\r")] = '\0';
-	if (debug) printf("load [%s]\n", request->path);
+	if (debug) printf("load%s [%s]\n",
+	    c->req->function == EC_FS_FUNC_LOAD_COMMAND ? " as command" : "",
+	    request->path);
+reopen:
 	upath = fs_unixify_path(c, request->path);
 	if (upath == NULL) {
 		fs_err(c, EC_FS_E_NOMEM);
 		return;
 	}
 	if ((fd = open(upath, O_RDONLY)) == -1) {
+		if (errno == ENOENT && c->req->csd != c->req->lib &&
+		    c->req->function == EC_FS_FUNC_LOAD_COMMAND) {
+			free(upath);
+			c->req->csd = c->req->lib;
+			goto reopen;
+		}
 		fs_errno(c);
 		free(upath);
 		return;
