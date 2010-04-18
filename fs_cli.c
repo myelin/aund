@@ -62,6 +62,7 @@ static fs_cmd_impl fs_cmd_dir;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
 static fs_cmd_impl fs_cmd_lib;
+static fs_cmd_impl fs_cmd_save;
 static fs_cmd_impl fs_cmd_sdisc;
 static fs_cmd_impl fs_cmd_pass;
 static fs_cmd_impl fs_cmd_rename;
@@ -78,6 +79,7 @@ static const struct fs_cmd cmd_tab[] = {
 	{"LOGOFF",	3, fs_cmd_bye,		},
 	{"PASS",      	1, fs_cmd_pass,		},
 	{"RENAME",      1, fs_cmd_rename,	},
+	{"SAVE",	1, fs_cmd_save,		},
 	{"SDISC",      	3, fs_cmd_sdisc,	},
 };
 
@@ -620,4 +622,49 @@ fs_cmd_info(struct fs_context *c, char *tail)
 	free(reply);
 	free(upath);
 	fts_close(ftsp);
+}
+
+/*
+ * *SAVE and *LOAD are a bit odd in that they don't actually do
+    anything.  Instead, they just parse the command and pass back the
+    bits for the client to do the actual load or save.
+ */
+static void
+fs_cmd_save(struct fs_context *c, char *tail)
+{
+	struct ec_fs_reply_cli_save *reply;
+	char *path, *p;
+	uint32_t start, end, exec;
+
+	path = fs_cli_getarg(&tail);
+	if (!*path) goto syntax;
+	reply = malloc(sizeof(*reply) + strlen(path) + 1);
+	p = fs_cli_getarg(&tail);
+	if (!*p) goto syntax;
+	start = strtoul(p, NULL, 16);
+	p = fs_cli_getarg(&tail);
+	if (!*p) goto syntax;
+	end = strtoul(p, NULL, 16);
+	p = fs_cli_getarg(&tail);
+	if (*p)
+		exec = strtoul(p, NULL, 16);
+	else
+		exec = start;
+	if (debug) printf(" -> save [%08x, %08x, %06x, %s]\n",
+	    start, exec, end - start, path);
+	fs_write_val(reply->meta.load_addr, start,
+	    sizeof(reply->meta.load_addr));
+	fs_write_val(reply->meta.exec_addr, exec,
+	    sizeof(reply->meta.load_addr));
+	fs_write_val(reply->size, end - start, sizeof(reply->size));
+	strcpy(reply->path, path);
+	reply->path[strlen(path)] = '\r';
+	reply->std_tx.command_code = EC_FS_CC_SAVE;
+	reply->std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &reply->std_tx, sizeof(*reply) + strlen(path) + 1);
+	free(reply);
+	return;
+syntax:
+	free(reply);
+	fs_error(c, 0xff, "Syntax");
 }
