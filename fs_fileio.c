@@ -472,8 +472,8 @@ fs_load(struct fs_context *c)
 	struct ec_fs_reply_load1 reply1;
 	struct ec_fs_reply_load2 reply2;
 	struct ec_fs_req_load *request;
-	char *upath, *path_argv[2];
-	int fd;
+	char *upath, *upathlib, *path_argv[3];
+	int fd, as_command;
 	size_t got;
 	FTS *ftsp;
 	FTSENT *f;
@@ -484,30 +484,43 @@ fs_load(struct fs_context *c)
 	}
 	request = (struct ec_fs_req_load *)(c->req);
 	request->path[strcspn(request->path, "\r")] = '\0';
+	as_command = c->req->function == EC_FS_FUNC_LOAD_COMMAND;
 	if (debug) printf("load%s [%s]\n",
-	    c->req->function == EC_FS_FUNC_LOAD_COMMAND ? " as command" : "",
-	    request->path);
-reopen:
+	     as_command ? " as command" : "", request->path);
 	upath = fs_unixify_path(c, request->path);
 	if (upath == NULL) {
 		fs_err(c, EC_FS_E_NOMEM);
 		return;
 	}
-	if ((fd = open(upath, O_RDONLY)) == -1) {
-		if (errno == ENOENT && c->req->csd != c->req->lib &&
-		    c->req->function == EC_FS_FUNC_LOAD_COMMAND) {
-			free(upath);
-			c->req->csd = c->req->lib;
-			goto reopen;
-		}
-		fs_errno(c);
-		free(upath);
-		return;
-	}
 	path_argv[0] = upath;
 	path_argv[1] = NULL;
+	if (as_command) {
+		c->req->csd = c->req->lib;
+		upathlib = fs_unixify_path(c, request->path);
+		if (upathlib == NULL) {
+			fs_err(c, EC_FS_E_NOMEM);
+			free(upath);
+			return;
+		}
+		path_argv[1] = upathlib;
+		path_argv[2] = NULL;
+	}
 	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
 	f = fts_read(ftsp);
+	if (as_command && f->fts_info == FTS_NS && f->fts_errno == ENOENT)
+		f = fts_read(ftsp);
+	if (f->fts_info == FTS_ERR || f->fts_info == FTS_NS) {
+		fs_errno(c);
+		goto out;
+	}
+	if (S_ISDIR(f->fts_statp->st_mode)) {
+		fs_err(c, EC_FS_E_ISDIR);
+		goto out;
+	}
+	if ((fd = open(f->fts_accpath, O_RDONLY)) == -1) {
+		fs_errno(c);
+		goto out;
+	}
 	fs_get_meta(f, &(reply1.meta));
 	fs_write_val(reply1.size, f->fts_statp->st_size, sizeof(reply1.size));
 	reply1.access = fs_mode_to_access(f->fts_statp->st_mode);
@@ -525,7 +538,10 @@ reopen:
 		fs_reply(c, &(reply2.std_tx), sizeof(reply2));
 	}
 	close(fd);
+out:
 	fts_close(ftsp);
+	free(upath);
+	if (as_command) free(upathlib);
 }
 
 void
