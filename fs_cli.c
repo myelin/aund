@@ -626,8 +626,8 @@ fs_cmd_info(struct fs_context *c, char *tail)
 
 /*
  * *SAVE and *LOAD are a bit odd in that they don't actually do
-    anything.  Instead, they just parse the command and pass back the
-    bits for the client to do the actual load or save.
+ * anything.  Instead, they just parse the command and pass back the
+ * bits for the client to do the actual load or save.
  */
 static void
 fs_cmd_save(struct fs_context *c, char *tail)
