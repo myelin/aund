@@ -103,7 +103,7 @@ fs_cli(struct fs_context *c)
 
 	if (debug) printf("cli ");
 	head = backup = strdup(c->req->data);
-	while (*head && strchr("* \t", *head)) head++;
+	while (*strchr("* \t", *head)) head++;
 	if (!*head) {
 		struct ec_fs_reply reply;
 
@@ -118,10 +118,7 @@ fs_cli(struct fs_context *c)
 		if (fs_cli_match(head, &tail, &(cmd_tab[i]))) {
 			/*
 			 * We print a diagnostic of the command for
-			 * all commands except *I AM and *PASS,
-			 * which will print their own truncated
-			 * diagnostics to avoid echoing passwords on
-			 * the screen.
+			 * all commands except *I AM and *PASS.
 			 */
 			if (debug) {
 				if (cmd_tab[i].impl == fs_cmd_i_am ||
