@@ -220,9 +220,11 @@ static ssize_t beebem_listen(unsigned *addr, int forever)
 		    (beebem_ingress &&
 		     ntohs(from.sin_port) != ec2ip[their_addr].port)) {
 			if (debug)
-				printf("failed ingress filter from %s:%d (claimed to be %d.%d)\n",
-				       inet_ntoa(from.sin_addr), ntohs(from.sin_port),
-				       rbuf[PKTOFF+1], rbuf[PKTOFF]);
+				printf("failed ingress filter from %s:%d "
+				    "(claimed to be %d.%d)\n",
+				    inet_ntoa(from.sin_addr),
+				    ntohs(from.sin_port),
+				    rbuf[PKTOFF+1], rbuf[PKTOFF]);
 			continue;
 		}
 
@@ -294,8 +296,9 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		}
 		if (msgsize != 6) {
 			if (debug)
-				printf("received wrong-size scout packet (%zd) from %d.%d\n",
-				       msgsize, scoutaddr>>8, scoutaddr&0xFF);
+				printf("received wrong-size scout packet "
+				    "(%zd) from %d.%d\n",
+				    msgsize, scoutaddr>>8, scoutaddr&0xFF);
 			continue;
 		}
 
@@ -318,10 +321,10 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 		while ((msgsize = beebem_listen(&mainaddr, 0)) == 0);
 		if (mainaddr != scoutaddr) {
 			if (debug)
-				printf("expected payload packet from %d.%d,"
-				       " received something from %d.%d instead\n",
-				       scoutaddr>>8, scoutaddr&0xFF,
-				       mainaddr>>8, mainaddr&0xFF);
+				printf("expected payload packet from %d.%d, "
+				    "received something from %d.%d instead\n",
+				    scoutaddr>>8, scoutaddr&0xFF,
+				    mainaddr>>8, mainaddr&0xFF);
 			continue;
 		}
 
@@ -388,8 +391,9 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 	}
 	if (msgsize != 4) {
 		if (debug)
-			printf("received wrong-size ack packet (%zd) from %d.%d\n",
-			       msgsize, theiraddr>>8, theiraddr&0xFF);
+			printf("received wrong-size ack packet (%zd) from "
+			    "%d.%d\n",
+			    msgsize, theiraddr>>8, theiraddr&0xFF);
 		return -1;
 	}
 
@@ -422,8 +426,9 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 	}
 	if (msgsize != 4) {
 		if (debug)
-			printf("received wrong-size ack packet (%zd) from %d.%d\n",
-			       msgsize, theiraddr>>8, theiraddr&0xFF);
+			printf("received wrong-size ack packet (%zd) "
+			    "from %d.%d\n",
+			    msgsize, theiraddr>>8, theiraddr&0xFF);
 		return -1;
 	}
 

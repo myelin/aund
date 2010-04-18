@@ -144,7 +144,8 @@ file_server(struct aun_packet *pkt, ssize_t len, struct aun_srcaddr *from)
 	c->from = from;
 	c->client = fs_find_client(from);
 	fs_check_handles(c);
-	((char *)(c->req))[c->req_len] = '\0'; /* Null-terminate in case client is silly */
+	/* Null-terminate in case client is silly */
+	((char *)(c->req))[c->req_len] = '\0';
 
 	if (c->req->function < NFUNC && fs_dispatch[c->req->function])
 		fs_dispatch[c->req->function](c);
@@ -229,6 +230,7 @@ fs_delete_client(struct fs_client *client)
 	if (client->dir_cache.ftsp)
 		fts_close(client->dir_cache.ftsp);
 	if (using_syslog)
-		syslog(LOG_INFO, "logout from %s", aunfuncs->ntoa(&client->host));
+		syslog(LOG_INFO, "logout from %s",
+		    aunfuncs->ntoa(&client->host));
 	free(client);
 }

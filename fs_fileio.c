@@ -72,8 +72,9 @@ fs_open(struct fs_context *c)
 	}
 	request = (struct ec_fs_req_open *)(c->req);
 	request->path[strcspn(request->path, "\r")] = '\0';
-	if (debug) printf("open [%s/%s, %s]\n", request->must_exist ? "exist":"create",
-			  request->read_only ? "read":"rdwr", request->path);
+	if (debug) printf("open [%s/%s, %s]\n",
+	    request->must_exist ? "exist":"create",
+	    request->read_only ? "read":"rdwr", request->path);
 	upath = fs_unixify_path(c, request->path);
 	if (upath == NULL) {
 		fs_err(c, EC_FS_E_NOMEM);
@@ -194,7 +195,8 @@ fs_get_args(struct fs_context *c)
 				fs_errno(c);
 				return;
 			}
-			fs_write_val(reply.val, st.st_blocks * S_BLKSIZE, sizeof(reply.val));
+			fs_write_val(reply.val, st.st_blocks * S_BLKSIZE,
+			    sizeof(reply.val));
 			break;
 		default:
 			if (debug) printf("\n");
@@ -226,7 +228,9 @@ fs_set_args(struct fs_context *c)
 	}
 	request = (struct ec_fs_req_set_args *)(c->req);
 	val = fs_read_val(request->val, sizeof(request->val));
-	if (debug) printf("set args [%d, %d := %ju]\n", request->handle, request->arg, (uintmax_t)val);
+	if (debug)
+		printf("set args [%d, %d := %ju]\n",
+		    request->handle, request->arg, (uintmax_t)val);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		fd = c->client->handles[h]->fd;
 		switch (request->arg) {
@@ -294,7 +298,9 @@ fs_putbyte(struct fs_context *c)
 		return;
 	}
 	request = (struct ec_fs_req_putbyte *)(c->req);
-	if (debug) printf("putbyte [%d, 0x%02x]\n", request->handle, request->byte);
+	if (debug)
+		printf("putbyte [%d, 0x%02x]\n",
+		    request->handle, request->byte);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		if (fs_randomio_common(c, request->handle)) return;
 		fd = c->client->handles[h]->fd;
@@ -356,7 +362,10 @@ fs_getbytes(struct fs_context *c)
 	request = (struct ec_fs_req_getbytes *)(c->req);
 	size = fs_read_val(request->nbytes, sizeof(request->nbytes));
 	off = fs_read_val(request->offset, sizeof(request->offset));
-	if (debug) printf("getbytes [%d, %zu%s%ju]\n", request->handle, size, request->use_ptr ? "!" : "@", (uintmax_t)off);
+	if (debug)
+		printf("getbytes [%d, %zu%s%ju]\n",
+		    request->handle, size, request->use_ptr ? "!" : "@",
+		    (uintmax_t)off);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		if (fs_randomio_common(c, request->handle)) return;
 		fd = c->client->handles[h]->fd;
@@ -436,7 +445,10 @@ fs_putbytes(struct fs_context *c)
 	request = (struct ec_fs_req_putbytes *)(c->req);
 	size = fs_read_val(request->nbytes, sizeof(request->nbytes));
 	off = fs_read_val(request->offset, sizeof(request->offset));
-	if (debug) printf("putbytes [%d, %zu%s%ju]\n", request->handle, size, request->use_ptr ? "!" : "@", (uintmax_t)off);
+	if (debug)
+		printf("putbytes [%d, %zu%s%ju]\n",
+		    request->handle, size, request->use_ptr ? "!" : "@",
+		    (uintmax_t)off);
 	if ((h = fs_check_handle(c->client, request->handle)) != 0) {
 		if (fs_randomio_common(c, request->handle)) return;
 		fd = c->client->handles[h]->fd;
@@ -680,7 +692,9 @@ fs_data_send(struct fs_context *c, int fd, size_t size)
 	size_t this, done;
 	int faking;
 
-	if ((pkt = malloc(sizeof(*pkt) + (size > aunfuncs->max_block ? aunfuncs->max_block : size))) == NULL) { 
+	if ((pkt = malloc(sizeof(*pkt) +
+	    (size > aunfuncs->max_block ? aunfuncs->max_block : size))) ==
+	    NULL) { 
 		fs_err(c, EC_FS_E_NOMEM);
 		return -1;
 	}
@@ -746,7 +760,8 @@ fs_data_recv(struct fs_context *c, int fd, size_t size, int ackport)
 			ack->dest_port = ackport;
 			ack->flag = 0;
 			ack->data[0] = 0;
-			if (aunfuncs->xmit(ack, sizeof(*ack) + 1, c->from) == -1)
+			if (aunfuncs->xmit(ack, sizeof(*ack) + 1, c->from) ==
+			    -1)
 				warn("send data");
 		}
 	}

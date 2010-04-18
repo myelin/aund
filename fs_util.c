@@ -97,10 +97,14 @@ fs_access_to_mode(unsigned char access, int usergroup)
 	mode_t mode;
 
 	mode = 0;
-	if (access & EC_FS_ACCESS_UR) mode |= S_IRUSR | (usergroup ? S_IRGRP : 0);
-	if (access & EC_FS_ACCESS_UW) mode |= S_IWUSR | (usergroup ? S_IWGRP : 0);
-	if (access & EC_FS_ACCESS_OR) mode |= S_IROTH | (usergroup ? 0 : S_IRGRP);
-	if (access & EC_FS_ACCESS_OW) mode |= S_IWOTH | (usergroup ? 0 : S_IWGRP);
+	if (access & EC_FS_ACCESS_UR)
+		mode |= S_IRUSR | (usergroup ? S_IRGRP : 0);
+	if (access & EC_FS_ACCESS_UW)
+		mode |= S_IWUSR | (usergroup ? S_IWGRP : 0);
+	if (access & EC_FS_ACCESS_OR)
+		mode |= S_IROTH | (usergroup ? 0 : S_IRGRP);
+	if (access & EC_FS_ACCESS_OW)
+		mode |= S_IWOTH | (usergroup ? 0 : S_IWGRP);
 	return mode;
 }
 
@@ -181,10 +185,12 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 		if (readlink(metapath, rawinfo, 23) == 23) {
 			for (i = 0; i < 4; i++)
 				/* LINTED strtoul result < 0x100 */
-				meta->load_addr[i] = strtoul(rawinfo+i*3, NULL, 16);
+				meta->load_addr[i] =
+				    strtoul(rawinfo+i*3, NULL, 16);
 			for (i = 0; i < 4; i++)
 				/* LINTED strtoul result < 0x100 */
-				meta->exec_addr[i] = strtoul(rawinfo+12+i*3, NULL, 16);
+				meta->exec_addr[i] =
+				    strtoul(rawinfo+12+i*3, NULL, 16);
 			return;
 		}
 		free(metapath);

@@ -529,7 +529,7 @@ fs_long_info(char *string, FTSENT *f)
 			currumask = umask(777);
 			umask(currumask);
 			fs_access_to_string(accstr2,
-					    fs_mode_to_access(0777 & ~currumask));
+			    fs_mode_to_access(0777 & ~currumask));
 
 			/*
 			 * Count the entries in a subdirectory.
@@ -556,7 +556,9 @@ fs_long_info(char *string, FTSENT *f)
 				ftsp2 = fts_open(path_argv, FTS_LOGICAL, NULL);
 				f2 = fts_read(ftsp2);
 				f2 = fts_children(ftsp2, FTS_NAMEONLY);
-				for (entries = 0; f2 != NULL; f2 = f2->fts_link) {
+				for (entries = 0;
+				     f2 != NULL;
+				     f2 = f2->fts_link) {
 					if (fs_hidden_name(f2->fts_name))
 						continue;      /* hidden file */
 					entries++;          /* count this one */
@@ -565,32 +567,40 @@ fs_long_info(char *string, FTSENT *f)
 			}
 
 			sprintf(string, "%-10.10s  Entries=%-4dDefault=%-6.6s  "
-				"%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d 000 (000)\r\x80",
-				acornname, entries, accstr2, accstring,
-				tm.tm_mday,
-				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
-				tm.tm_year % 100,
-				tm.tm_mday,
-				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
-				tm.tm_year % 100,
-				tm.tm_hour,
-				tm.tm_min);
+			    "%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d "
+			    "000 (000)\r\x80",
+			    acornname, entries, accstr2, accstring,
+			    tm.tm_mday,
+			    "janfebmaraprmayjunjulaugsepoctnovdec" +
+			        3*tm.tm_mon,
+			    tm.tm_year % 100,
+			    tm.tm_mday,
+			    "janfebmaraprmayjunjulaugsepoctnovdec" +
+			        3*tm.tm_mon,
+			    tm.tm_year % 100,
+			    tm.tm_hour,
+			    tm.tm_min);
 		} else {
 			fs_get_meta(f, &meta);
-			load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
-			exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
+			load =
+			    fs_read_val(meta.load_addr, sizeof(meta.load_addr));
+			exec =
+			    fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
 			sprintf(string, "%-10.10s %08lX %08lX     %06jX "
-				"%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d 000 (000)\r\x80",
-				acornname, load, exec,
-				(uintmax_t)f->fts_statp->st_size, accstring,
-				tm.tm_mday,
-				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
-				tm.tm_year % 100,
-				tm.tm_mday,
-				"janfebmaraprmayjunjulaugsepoctnovdec" + 3*tm.tm_mon,
-				tm.tm_year % 100,
-				tm.tm_hour,
-				tm.tm_min);
+			    "%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d "
+			    "000 (000)\r\x80",
+			    acornname, load, exec,
+			    (uintmax_t)f->fts_statp->st_size, accstring,
+			    tm.tm_mday,
+			    "janfebmaraprmayjunjulaugsepoctnovdec" +
+			        3*tm.tm_mon,
+			    tm.tm_year % 100,
+			    tm.tm_mday,
+			    "janfebmaraprmayjunjulaugsepoctnovdec" +
+			        3*tm.tm_mon,
+			    tm.tm_year % 100,
+			    tm.tm_hour,
+			    tm.tm_min);
 		}
 	} else {
 		/*

@@ -95,7 +95,8 @@ int fs_check_typemap(FTSENT *f, struct fs_typemap *map)
 	case FS_MAP_DEFAULT:
 		return 1;
 	case FS_MAP_MODE:
-		return (f->fts_statp->st_mode & map->crit.mode.mask) == map->crit.mode.val;
+		return (f->fts_statp->st_mode & map->crit.mode.mask) ==
+		    map->crit.mode.val;
 	case FS_MAP_NAME:
 		if (regexec(map->crit.name_re, f->fts_name, 0, NULL, 0) == 0)
 			return 1;
@@ -122,7 +123,8 @@ fs_add_typemap_name(const char *re, int type)
 		errno = ENOMEM;
 		return -1;
 	}
-	if ((rc = regcomp(newmap->crit.name_re, re, REG_EXTENDED | REG_NOSUB)))	{
+	if ((rc =
+		regcomp(newmap->crit.name_re, re, REG_EXTENDED | REG_NOSUB))) {
 		free(newmap->crit.name_re);
 		free(newmap);
 		errno = 0;

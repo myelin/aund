@@ -154,7 +154,8 @@ fs_error(struct fs_context *c, uint8_t err, const char *report)
 {
 	struct ec_fs_reply *reply;
 
-	if ((reply = malloc(sizeof(*reply) + strlen(report)+2)) == NULL) exit(2);
+	if ((reply = malloc(sizeof(*reply) + strlen(report)+2)) == NULL)
+		exit(2);
 	reply->command_code = EC_FS_CC_DONE;
 	reply->return_code = err;
 	strcpy(reply->data, report);

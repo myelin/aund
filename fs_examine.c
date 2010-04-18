@@ -66,7 +66,10 @@ fs_examine(struct fs_context *c)
 	int i, rc;
 
 	request->path[strcspn(request->path, "\r")] = '\0';	
-	if (debug) printf("examine [%d, %d/%d, %s]\n", request->arg, request->start, request->nentries, request->path);
+	if (debug)
+		printf("examine [%d, %d/%d, %s]\n",
+		    request->arg, request->start, request->nentries,
+		    request->path);
 	if (c->client == NULL) {
 		fs_error(c, 0xff, "Who are you?");
 		return;
@@ -144,7 +147,8 @@ bye:
 	reply->std_tx.return_code = EC_FS_RC_OK;
 	switch (request->arg) {
 	case EC_FS_EXAMINE_LONGTXT: case EC_FS_EXAMINE_SHORTTXT:
-		((unsigned char*)reply)[reply_size] = 0x80; /* space for this is reserved */
+		/* space for this is reserved */
+		((unsigned char*)reply)[reply_size] = 0x80;
 		reply_size++;
 	}
 	fs_reply(c, &(reply->std_tx), reply_size);
@@ -153,8 +157,10 @@ bye:
 		c->client->dir_cache.f = ent;
 		c->client->dir_cache.start = request->start + i;
 	} else {
-		fts_close(c->client->dir_cache.ftsp); c->client->dir_cache.ftsp = NULL;
-		free(c->client->dir_cache.path); c->client->dir_cache.path = NULL;
+		fts_close(c->client->dir_cache.ftsp);
+		c->client->dir_cache.ftsp = NULL;
+		free(c->client->dir_cache.path);
+		c->client->dir_cache.path = NULL;
 	}
 	free(reply);
 	free(upath);
@@ -163,6 +169,7 @@ bye:
 static int
 fs_filename_compare(const FTSENT **a, const FTSENT **b)
 {
+
 	return strcasecmp((*a)->fts_name, (*b)->fts_name);
 }
 
@@ -181,7 +188,8 @@ fs_examine_read(struct fs_context *c, const char *upath, int start)
 		if (debug) printf("cache HIT!\n");
 		return 0;
 	}
-	if (debug) printf("cache miss.  wanted %d; found %d.\n", start, dc->start);
+	if (debug)
+		printf("cache miss.  wanted %d; found %d.\n", start, dc->start);
 	if (dc->ftsp)
 		/* Dispose of old FTS structure */
 		fts_close(dc->ftsp);
@@ -260,7 +268,8 @@ fs_examine_name(FTSENT *ent, struct ec_fs_reply_examine **replyp,
 	struct ec_fs_exname *exname;
 	void *new_reply;
 	
-	if ((new_reply = realloc(*replyp, *reply_sizep + sizeof(*exname))) != NULL)
+	if ((new_reply = realloc(*replyp, *reply_sizep + sizeof(*exname))) !=
+	    NULL)
 		*replyp = new_reply;
 	if (new_reply == NULL) {
 		errno = ENOMEM;
@@ -291,8 +300,10 @@ fs_examine_shorttxt(FTSENT *ent, struct ec_fs_reply_examine **replyp,
 		goto burn;
 	}
 	fs_acornify_name(ent->fts_name);
-	fs_access_to_string(accstring, fs_mode_to_access(ent->fts_statp->st_mode));
-	sprintf((char*)(((void *)*replyp) + *reply_sizep), "%-10.10s %-7.7s", ent->fts_name, accstring);
+	fs_access_to_string(accstring,
+	    fs_mode_to_access(ent->fts_statp->st_mode));
+	sprintf((char*)(((void *)*replyp) + *reply_sizep), "%-10.10s %-7.7s",
+	    ent->fts_name, accstring);
 	*reply_sizep += 10+1+7+1; /* one byte spare to terminate */
 	return 0;
 burn:

@@ -86,7 +86,8 @@ aun_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 	while (1) {
 		socklen_t fromlen = sizeof(from);
 		int i;
-		msgsize = recvfrom(sock, pkt, sizeof(buf), 0, (struct sockaddr *)&from, &fromlen);
+		msgsize = recvfrom(sock, pkt, sizeof(buf), 0,
+		    (struct sockaddr *)&from, &fromlen);
 		if (msgsize == -1)
 			err(1, "recvfrom");
 		if (0) {
@@ -138,7 +139,8 @@ aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from)
 	ack.flag = 0;
 	ack.retrans = 0;
 	for (i=0;i<4;i++) ack.seq[i] = pkt->seq[i];
-	if (sendto(sock, &ack, sizeof(ack), 0, (struct sockaddr *)from, sizeof(*from)) == -1) {
+	if (sendto(sock, &ack, sizeof(ack), 0,
+	    (struct sockaddr *)from, sizeof(*from)) == -1) {
 		err(1, "sendto (ack)");
 	}
 }
@@ -172,7 +174,8 @@ aun_xmit(struct aun_packet *pkt, size_t len, struct aun_srcaddr *vto)
 		printf(" to UDP port %hu\n", ntohs(to.sin_port));
 	}
 	for(;;) {
-		retval = sendto(sock, pkt, len, 0, (struct sockaddr *)&to, sizeof(to));
+		retval = sendto(sock, pkt, len, 0, (struct sockaddr *)&to,
+		    sizeof(to));
 		/* Grotty hack to see if it works */
 		if (retval < 0) return retval;
 		if (pkt->type == AUN_TYPE_UNICAST) {
@@ -185,13 +188,20 @@ aun_xmit(struct aun_packet *pkt, size_t len, struct aun_srcaddr *vto)
 			FD_ZERO(&fdset);
 			FD_SET(sock, &fdset);
 			do {
-				nready = select(FD_SETSIZE, &fdset, NULL, NULL, &timeout);
+				nready = select(FD_SETSIZE, &fdset, NULL, NULL,
+				    &timeout);
 				if (FD_ISSET(sock, &fdset)) {
-					recvfrom(sock, &buf, 64, 0, (struct sockaddr *)&from, &fromlen);
-					/* Is this an ack of the right packet? */
-					if (from.sin_addr.s_addr == to.sin_addr.s_addr &&
+					recvfrom(sock, &buf, 64, 0,
+					    (struct sockaddr *)&from, &fromlen);
+					/*
+					 * Is this an ack of the right
+					 * packet?
+					 */
+					if (from.sin_addr.s_addr ==
+					    to.sin_addr.s_addr &&
 					    buf.type == AUN_TYPE_ACK &&
-					    memcmp(&(buf.seq), &(pkt->seq), 4) == 0)
+					    memcmp(&(buf.seq),
+					      &(pkt->seq), 4) == 0)
 						return retval;
 				}
 			} while (nready > 0);

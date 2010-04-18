@@ -175,8 +175,10 @@ fs_alloc_handle(struct fs_client *client)
 			int new_nhandles;
 			void *new_handles;
 			new_nhandles = client->nhandles + 1;
-			if (new_nhandles > MAX_HANDLES) new_nhandles = MAX_HANDLES;
-			new_handles = realloc(client->handles, new_nhandles * sizeof(struct fs_handle *));
+			if (new_nhandles > MAX_HANDLES)
+				new_nhandles = MAX_HANDLES;
+			new_handles = realloc(client->handles,
+			    new_nhandles * sizeof(struct fs_handle *));
 			if (new_handles != NULL) {
 				client->handles = new_handles;
 				client->nhandles = new_nhandles;

@@ -56,10 +56,12 @@ void
 fs_get_discs(struct fs_context *c)
 {
 	struct ec_fs_reply_get_discs *reply;
-	struct ec_fs_req_get_discs *request = (struct ec_fs_req_get_discs *)(c->req);
+	struct ec_fs_req_get_discs *request =
+	    (struct ec_fs_req_get_discs *)(c->req);
 	int nfound;
 
-	if (debug) printf("get discs [%d/%d]\n", request->sdrive, request->ndrives);
+	if (debug) printf("get discs [%d/%d]\n",
+	    request->sdrive, request->ndrives);
 	if (request->sdrive == 0 && request->ndrives > 0)
 		nfound = 1;
 	else
@@ -70,8 +72,10 @@ fs_get_discs(struct fs_context *c)
 	reply->ndrives = nfound;
 	if (nfound) {
 		reply->drives[0].num = 0;
-		strncpy(reply->drives[0].name, discname, sizeof(reply->drives[0].name));
-		strpad(reply->drives[0].name, ' ', sizeof(reply->drives[0].name));
+		strncpy(reply->drives[0].name, discname,
+		    sizeof(reply->drives[0].name));
+		strpad(reply->drives[0].name, ' ',
+		    sizeof(reply->drives[0].name));
 	}
 	fs_reply(c, &(reply->std_tx), SIZEOF_ec_fs_reply_discs(nfound));
 	free(reply);
@@ -130,7 +134,8 @@ fs_get_info(struct fs_context *c)
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
 			fs_get_meta(f, &(reply.meta));
-			fs_write_val(reply.size, f->fts_statp->st_size, sizeof(reply.size));
+			fs_write_val(reply.size, f->fts_statp->st_size,
+			    sizeof(reply.size));
 			reply.access = fs_mode_to_access(f->fts_statp->st_mode);
 			fs_write_date(&(reply.date), f->fts_statp->st_ctime);
 		}
@@ -177,7 +182,8 @@ fs_get_info(struct fs_context *c)
 			memset(&(reply.size), 0, sizeof(reply.size));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
-			fs_write_val(reply.size, f->fts_statp->st_size, sizeof(reply.size));
+			fs_write_val(reply.size,
+			    f->fts_statp->st_size, sizeof(reply.size));
 		}
 		fs_reply(c, &(reply.std_tx), sizeof(reply));
 	}
@@ -371,7 +377,9 @@ fs_get_uenv(struct fs_context *c)
 	strpad(reply.csd_discname, ' ', sizeof(reply.csd_discname));
 	tmp[10] = '\0';
 	if (c->req->csd) {
-		strncpy(tmp, fs_leafname(c->client->handles[c->req->csd]->path), sizeof(tmp) - 1);
+		strncpy(tmp,
+		    fs_leafname(c->client->handles[c->req->csd]->path),
+			sizeof(tmp) - 1);
 		fs_acornify_name(tmp);
 		if (tmp[0] == '\0') strcpy(tmp, "$");
 	}
@@ -380,7 +388,9 @@ fs_get_uenv(struct fs_context *c)
 	strncpy(reply.csd_leafname, tmp, sizeof(reply.csd_leafname));
 	strpad(reply.csd_leafname, ' ', sizeof(reply.csd_leafname));
 	if (c->req->lib) {
-		strncpy(tmp, fs_leafname(c->client->handles[c->req->lib]->path), sizeof(tmp) - 1);
+		strncpy(tmp,
+		    fs_leafname(c->client->handles[c->req->lib]->path),
+			sizeof(tmp) - 1);
 		fs_acornify_name(tmp);
 		if (tmp[0] == '\0') strcpy(tmp, "$");
 	}
@@ -469,7 +479,8 @@ fs_get_users_on(struct fs_context *c)
 		return;
 	}
 	request = (struct ec_fs_req_get_users_on *)(c->req);
-	if (debug) printf("users on [%d/%d]\n", request->start, request->nusers);
+	if (debug)
+		printf("users on [%d/%d]\n", request->start, request->nusers);
 	if (c->client == NULL) {
 		fs_error(c, 0xff, "Who are you?");
 		return;

@@ -401,7 +401,8 @@ struct ec_fs_reply_get_discs {
 	uint8_t ndrives;
 	struct ec_fs_disc drives[0];
 };
-#define SIZEOF_ec_fs_reply_discs(N) (sizeof(struct ec_fs_reply_get_discs) + (N)*sizeof(struct ec_fs_disc))
+#define SIZEOF_ec_fs_reply_discs(N) \
+    (sizeof(struct ec_fs_reply_get_discs) + (N)*sizeof(struct ec_fs_disc))
 
 /* Read logged on users - code 15 */
 #define EC_FS_FUNC_GET_USERS_ON	15
