@@ -57,11 +57,11 @@ struct fs_cmd {
 	fs_cmd_impl	*impl;
 };
 
+static fs_cmd_impl fs_cmd_bye;
 static fs_cmd_impl fs_cmd_dir;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
 static fs_cmd_impl fs_cmd_lib;
-static fs_cmd_impl fs_cmd_logoff;
 static fs_cmd_impl fs_cmd_sdisc;
 static fs_cmd_impl fs_cmd_pass;
 static fs_cmd_impl fs_cmd_rename;
@@ -70,11 +70,12 @@ static int fs_cli_match(char *cmdline, char **tail, const struct fs_cmd *cmd);
 static void fs_cli_unrec(struct fs_context *, char *);
 
 static const struct fs_cmd cmd_tab[] = {
+	{"BYE",		1, fs_cmd_bye,		},
 	{"DIR", 	3, fs_cmd_dir,		},
 	{"INFO",	1, fs_cmd_info,		},
 	{"I AM", 	2, fs_cmd_i_am,		},
 	{"LIB",		3, fs_cmd_lib,		},
-	{"LOGOFF",	3, fs_cmd_logoff,	},
+	{"LOGOFF",	3, fs_cmd_bye,		},
 	{"PASS",      	1, fs_cmd_pass,		},
 	{"RENAME",      1, fs_cmd_rename,	},
 	{"SDISC",      	3, fs_cmd_sdisc,	},
@@ -440,20 +441,14 @@ fs_cmd_lib(struct fs_context *c, char *tail)
 
 
 static void
-fs_cmd_logoff(struct fs_context *c, char *tail)
+fs_cmd_bye(struct fs_context *c, char *tail)
 {
 	/*
-	 * This is an SJism, apparently; the vanilla Beeb command is
-	 * *BYE, which is interpreted locally and converted into
-	 * EC_FS_FUNC_LOGOFF. But SJ file servers supported
-	 * OSCLI("LOGOFF") too.
-	 *
-	 * (Actually, documentation on the web suggests that *LOGOFF
-	 * was mostly an SJ _administrator_ command, used to
-	 * forcibly log off other users' sessions. But it worked
-	 * without arguments as an unprivileged command synonymous
-	 * with *BYE, and that's the only part I've implemented
-	 * here.)
+	 * On Acorn file servers, *LOGOFF is an administrator command
+	 * for logging off other users' sessions, but SJ file servers
+	 * also supported it without arguments as an unprivileged
+	 * command synonymous with *BYE, so we make it an alias for
+	 * *BYE.
 	 */
 	if (debug) printf(" -> logoff\n");
 	fs_logoff(c);
