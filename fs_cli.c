@@ -62,6 +62,7 @@ static fs_cmd_impl fs_cmd_dir;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
 static fs_cmd_impl fs_cmd_lib;
+static fs_cmd_impl fs_cmd_load;
 static fs_cmd_impl fs_cmd_save;
 static fs_cmd_impl fs_cmd_sdisc;
 static fs_cmd_impl fs_cmd_pass;
@@ -76,6 +77,7 @@ static const struct fs_cmd cmd_tab[] = {
 	{"INFO",	1, fs_cmd_info,		},
 	{"I AM", 	2, fs_cmd_i_am,		},
 	{"LIB",		3, fs_cmd_lib,		},
+	{"LOAD",	1, fs_cmd_load,		},
 	{"LOGOFF",	3, fs_cmd_bye,		},
 	{"PASS",      	1, fs_cmd_pass,		},
 	{"RENAME",      1, fs_cmd_rename,	},
@@ -660,6 +662,43 @@ fs_cmd_save(struct fs_context *c, char *tail)
 	strcpy(reply->path, path);
 	reply->path[strlen(path)] = '\r';
 	reply->std_tx.command_code = EC_FS_CC_SAVE;
+	reply->std_tx.return_code = EC_FS_RC_OK;
+	fs_reply(c, &reply->std_tx, sizeof(*reply) + strlen(path) + 1);
+	free(reply);
+	return;
+syntax:
+	free(reply);
+	fs_error(c, 0xff, "Syntax");
+}
+
+static void
+fs_cmd_load(struct fs_context *c, char *tail)
+{
+	struct ec_fs_reply_cli_load *reply;
+	char *path, *p;
+	uint32_t addr;
+
+	path = fs_cli_getarg(&tail);
+	if (!*path) goto syntax;
+	reply = malloc(sizeof(*reply) + strlen(path) + 1);
+	p = fs_cli_getarg(&tail);
+	if (*p) {
+		addr = strtoul(p, NULL, 16);
+		reply->load_addr_found = 0xff;
+	} else {
+		addr = 0;
+		reply->load_addr_found = 0;
+	}
+	if (debug) {
+		printf(" -> load [");
+		if (reply->load_addr_found)
+			printf("%08x, ", addr);
+		printf("%s]\n", path);
+	}
+	fs_write_val(reply->load_addr, addr, sizeof(reply->load_addr));
+	strcpy(reply->path, path);
+	reply->path[strlen(path)] = '\r';
+	reply->std_tx.command_code = EC_FS_CC_LOAD;
 	reply->std_tx.return_code = EC_FS_RC_OK;
 	fs_reply(c, &reply->std_tx, sizeof(*reply) + strlen(path) + 1);
 	free(reply);

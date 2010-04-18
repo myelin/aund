@@ -94,6 +94,7 @@ struct ec_fs_reply {
 /* This defines what we expect the client to do next */
 #define EC_FS_CC_DONE	0 /* No further action */
 #define EC_FS_CC_SAVE	1
+#define EC_FS_CC_LOAD	2
 #define EC_FS_CC_CAT	3
 #define EC_FS_CC_INFO	4
 #define EC_FS_CC_UNREC	8
