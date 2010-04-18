@@ -133,6 +133,7 @@ extern char *fs_cli_getarg(char **);
 extern void fs_long_info(char *, FTSENT *);
 extern void fs_reply(struct fs_context *, struct ec_fs_reply *, size_t);
 extern void fs_cdir1(struct fs_context *, char *);
+extern void fs_delete1(struct fs_context *, char *);
 
 extern void fs_errno(struct fs_context *);
 extern void fs_err(struct fs_context *, uint8_t);

@@ -60,6 +60,7 @@ struct fs_cmd {
 static fs_cmd_impl fs_cmd_bye;
 static fs_cmd_impl fs_cmd_cat;
 static fs_cmd_impl fs_cmd_cdir;
+static fs_cmd_impl fs_cmd_delete;
 static fs_cmd_impl fs_cmd_dir;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
@@ -77,6 +78,7 @@ static const struct fs_cmd cmd_tab[] = {
 	{"BYE",		1, fs_cmd_bye,		},
 	{"CAT",		0, fs_cmd_cat,		},
 	{"CDIR",	2, fs_cmd_cdir,		},
+	{"DELETE",	3, fs_cmd_delete,	},
 	{"DIR", 	3, fs_cmd_dir,		},
 	{"INFO",	1, fs_cmd_info,		},
 	{"I AM", 	2, fs_cmd_i_am,		},
@@ -389,6 +391,19 @@ fs_cmd_cdir(struct fs_context *c, char *tail)
 	if (debug) printf(" -> cdir [%s]\n", path);
 	if (*path)
 		fs_cdir1(c, path);
+	else
+		fs_error(c, 0xff, "Syntax");
+}
+
+static void
+fs_cmd_delete(struct fs_context *c, char *tail)
+{
+	char *path;
+
+	path = fs_cli_getarg(&tail);
+	if (debug) printf(" -> delete [%s]\n", path);
+	if (*path)
+		fs_delete1(c, path);
 	else
 		fs_error(c, 0xff, "Syntax");
 }

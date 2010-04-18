@@ -555,8 +555,17 @@ fs_get_user(struct fs_context *c)
 void
 fs_delete(struct fs_context *c)
 {
-	struct ec_fs_reply_delete reply;
 	struct ec_fs_req_delete *request;
+
+	request = (struct ec_fs_req_delete *)(c->req);
+	request->path[strcspn(request->path, "\r")] = '\0';
+	if (debug) printf("delete [%s]\n", request->path);
+	fs_delete1(c, request->path);
+}
+
+void
+fs_delete1(struct fs_context *c, char *path)
+{
 	char *upath, *acornpath, *path_argv[2];
 	FTS *ftsp;
 	FTSENT *f;
@@ -565,10 +574,7 @@ fs_delete(struct fs_context *c)
 		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
-	request = (struct ec_fs_req_delete *)(c->req);
-	request->path[strcspn(request->path, "\r")] = '\0';
-	if (debug) printf("delete [%s]\n", request->path);
-	upath = fs_unixify_path(c, request->path);
+	upath = fs_unixify_path(c, path);
 	acornpath = malloc(10 + strlen(upath));
 	if (upath == NULL || acornpath == NULL) {
 		fs_err(c, EC_FS_E_NOMEM);
@@ -594,18 +600,30 @@ fs_delete(struct fs_context *c)
 			goto out;
 		}
 	}
-	/*
-	 * I'm not quite sure why it's necessary to return
-	 * the metadata and size of something we've just
-	 * deleted, but there we go.
-	 */
-	fs_write_val(reply.size, f->fts_statp->st_size, sizeof(reply.size));
-	fs_get_meta(f, &(reply.meta));
+	if (c->req->function == EC_FS_FUNC_DELETE) {
+		struct ec_fs_reply_delete reply;
+
+		/*
+		 * I'm not quite sure why it's necessary to return
+		 * the metadata and size of something we've just
+		 * deleted, but there we go.
+		 */
+		fs_write_val(reply.size, f->fts_statp->st_size,
+		    sizeof(reply.size));
+		fs_get_meta(f, &(reply.meta));
+		reply.std_tx.command_code = EC_FS_CC_DONE;
+		reply.std_tx.return_code = EC_FS_RC_OK;
+		fs_reply(c, &(reply.std_tx), sizeof(reply));
+	} else {
+		struct ec_fs_reply reply;
+
+		reply.command_code = EC_FS_CC_DONE;
+		reply.return_code = EC_FS_RC_OK;
+		fs_reply(c, &reply, sizeof(reply));
+	}
 	fs_del_meta(f);
-	reply.std_tx.command_code = EC_FS_CC_DONE;
-	reply.std_tx.return_code = EC_FS_RC_OK;
-	fs_reply(c, &(reply.std_tx), sizeof(reply));
 out:
+	fts_close(ftsp);
 	free(acornpath);
 	free(upath);
 }
