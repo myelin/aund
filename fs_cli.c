@@ -101,8 +101,19 @@ fs_cli(struct fs_context *c)
 
 	c->req->data[strcspn(c->req->data, "\r")] = '\0';
 
+	if (debug) printf("cli ");
 	head = backup = strdup(c->req->data);
-	if (*head == '*') head++;
+	while (*head && strchr("* \t", *head)) head++;
+	if (!*head) {
+		struct ec_fs_reply reply;
+
+		if (debug) printf("[%s] -> ignore\n", c->req->data);
+		reply.command_code = EC_FS_CC_DONE;
+		reply.return_code = EC_FS_RC_OK;
+		fs_reply(c, &reply, sizeof(reply));
+		free(backup);
+		return;
+	}
 	for (i = 0; i < NCMDS; i++) {
 		if (fs_cli_match(head, &tail, &(cmd_tab[i]))) {
 			/*
@@ -112,17 +123,20 @@ fs_cli(struct fs_context *c)
 			 * diagnostics to avoid echoing passwords on
 			 * the screen.
 			 */
-			if (debug &&
-			    cmd_tab[i].impl != fs_cmd_i_am &&
-			    cmd_tab[i].impl != fs_cmd_pass)
-				printf("cli: [%s]", c->req->data);
+			if (debug) {
+				if (cmd_tab[i].impl == fs_cmd_i_am ||
+				    cmd_tab[i].impl == fs_cmd_pass)
+					printf("[<hidden>]");
+				else
+					printf("[%s]", c->req->data);
+			}
 			(cmd_tab[i].impl)(c, tail);
 			break;
 		}
 	}
 	if (i == NCMDS) {
 		if (debug)
-			printf("cli: [%s]", c->req->data);
+			printf("[%s]", c->req->data);
 		fs_cli_unrec(c, backup);
 	}
 	free(backup);
@@ -239,7 +253,7 @@ fs_cmd_i_am(struct fs_context *c, char *tail)
 		/* Client passed us a station number.  Skip it. */
 		login = fs_cli_getarg(&tail);
 	password = fs_cli_getarg(&tail);
-	if (debug) printf("cli: log on [%s]\n", login);
+	if (debug) printf(" -> log on [%s]\n", login);
 	oururd = userfuncs->validate(login, password, &opt4);
 	if (!oururd) {
 		fs_err(c, EC_FS_E_WRONGPW);
