@@ -203,7 +203,7 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 #else
 		    0
 #endif
-);
+		    );
 		type = fs_guess_type(f);
 		fs_write_val(meta->load_addr,
 			     0xfff00000 | (type << 8) | (stamp >> 32), 4);
