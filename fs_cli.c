@@ -58,6 +58,7 @@ struct fs_cmd {
 };
 
 static fs_cmd_impl fs_cmd_bye;
+static fs_cmd_impl fs_cmd_cat;
 static fs_cmd_impl fs_cmd_dir;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
@@ -73,6 +74,7 @@ static void fs_cli_unrec(struct fs_context *, char *);
 
 static const struct fs_cmd cmd_tab[] = {
 	{"BYE",		1, fs_cmd_bye,		},
+	{"CAT",		0, fs_cmd_cat,		},
 	{"DIR", 	3, fs_cmd_dir,		},
 	{"INFO",	1, fs_cmd_info,		},
 	{"I AM", 	2, fs_cmd_i_am,		},
@@ -290,6 +292,29 @@ fs_cmd_pass(struct fs_context *c, char *tail)
 	reply.command_code = EC_FS_CC_DONE;
 	reply.return_code = EC_FS_RC_OK;
 	fs_reply(c, &reply, sizeof(reply));
+}
+
+/*
+ * This bit of the protocol doesn't seem to be documented anyway, but
+ * the System 3 NOS (at least V.IIIP) doesn't interpret *CAT itself.
+ * The details here are reverse-engineered from the behaviour of an
+ * old Acorn file server.
+ */
+static void
+fs_cmd_cat(struct fs_context *c, char *tail)
+{
+	struct ec_fs_reply *reply;
+	char *path;
+
+	path = fs_cli_getarg(&tail);
+	if (debug) printf(" -> cat [%s]\n", path);
+	reply = malloc(sizeof(*reply) + strlen(path) + 1);
+	reply->command_code = EC_FS_CC_CAT;
+	reply->return_code = EC_FS_RC_OK;
+	strcpy(reply->data, path);
+	reply->data[strlen(path)] = '\r';
+	fs_reply(c, reply, sizeof(*reply) + strlen(path) + 1);
+	free(reply);
 }
 
 static void
