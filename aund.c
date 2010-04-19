@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
+#include <assert.h>
 #include <err.h>
 #include <signal.h>
 #include <stdio.h>
@@ -140,7 +141,8 @@ main(int argc, char *argv[])
 		struct aun_packet *pkt;
 		struct aun_srcaddr from;
 
-		pkt = aunfuncs->recv(&msgsize, &from);
+		memset(&from, 0, sizeof(from)); /* all hosts */
+		pkt = aunfuncs->recv(&msgsize, &from, EC_PORT_FS);
 
 		switch (pkt->dest_port) {
 		    case EC_PORT_FS:
@@ -148,6 +150,8 @@ main(int argc, char *argv[])
 			file_server(pkt, msgsize, &from);
 			if (debug) printf(")");
 			break;
+		default:
+			assert(!"Packet received from wrong port");
 		}
 		if (debug) printf("\n");
 	}

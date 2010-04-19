@@ -38,6 +38,7 @@
 #include <arpa/inet.h>
 
 #include <err.h>
+#include <errno.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -50,7 +51,8 @@
 #include "extern.h"
 #include "version.h"
 
-static void aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from);
+static void aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from,
+	int);
 
 int sock;
 unsigned char buf[65536];
@@ -76,7 +78,7 @@ aun_setup(void)
 }
 
 static struct aun_packet *
-aun_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
+aun_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 {
 	ssize_t msgsize;
 	struct aun_packet *pkt = (struct aun_packet *)buf;
@@ -118,23 +120,31 @@ aun_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
 			}
 			break;
 		case AUN_TYPE_UNICAST:
-			aun_ack(sock, pkt, &from);
-			/* FALLTHROUGH */
 		case AUN_TYPE_BROADCAST:
-			/* Real packet; return it. */
-			*outsize = msgsize;
-			afrom->sin_addr = from.sin_addr;
-			return pkt;
+			if ((want_port == 0 || pkt->dest_port == want_port) &&
+			    (afrom->sin_addr.s_addr == htons(INADDR_ANY) ||
+			     from.sin_addr.s_addr == afrom->sin_addr.s_addr)) {
+				if (pkt->type == AUN_TYPE_UNICAST)
+					aun_ack(sock, pkt, &from, AUN_TYPE_ACK);
+				/* Real packet; return it. */
+				*outsize = msgsize;
+				afrom->sin_addr = from.sin_addr;
+				return pkt;
+			} else {
+				if (pkt->type == AUN_TYPE_UNICAST)
+					aun_ack(sock, pkt, &from, AUN_TYPE_REJ);
+			}
+			break;
 		}
 	}
 }
 
 static void
-aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from)
+aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from, int type)
 {
 	struct aun_packet ack; /* No data */
 	int i;
-	ack.type = AUN_TYPE_ACK;
+	ack.type = type;
 	ack.dest_port = 0;
 	ack.flag = 0;
 	ack.retrans = 0;
@@ -155,6 +165,7 @@ aun_xmit(struct aun_packet *pkt, size_t len, struct aun_srcaddr *vto)
 	socklen_t fromlen;
 	int i;
 	ssize_t retval;
+	int count;
 
 	fromlen = sizeof(from);
 	pkt->retrans = 0;
@@ -173,7 +184,8 @@ aun_xmit(struct aun_packet *pkt, size_t len, struct aun_srcaddr *vto)
 		}
 		printf(" to UDP port %hu\n", ntohs(to.sin_port));
 	}
-	for(;;) {
+	count = 50;
+	while (count--) {
 		retval = sendto(sock, pkt, len, 0, (struct sockaddr *)&to,
 		    sizeof(to));
 		/* Grotty hack to see if it works */
@@ -209,7 +221,8 @@ aun_xmit(struct aun_packet *pkt, size_t len, struct aun_srcaddr *vto)
 		} else
 			return retval;
 	}
-	/* NOTREACHED */
+	errno = ETIMEDOUT;
+	return -1;
 }
 
 static char *

@@ -259,7 +259,7 @@ static void beebem_send(const void *data, ssize_t len)
 }
 
 static struct aun_packet *
-beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom)
+beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 {
 	ssize_t msgsize;
 	union internal_addr *afrom = (union internal_addr *)vfrom;

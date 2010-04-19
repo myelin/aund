@@ -61,7 +61,7 @@ struct aun_funcs {
 	int max_block;
 	void (*setup)(void);
 	struct aun_packet *(*recv)(ssize_t *outsize,
-				   struct aun_srcaddr *from);
+	    struct aun_srcaddr *from, int want_port);
 	ssize_t (*xmit)(struct aun_packet *pkt,
 			size_t len, struct aun_srcaddr *to);
 	char *(*ntoa)(struct aun_srcaddr *addr);

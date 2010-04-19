@@ -38,7 +38,7 @@ struct aun_packet {
 #define AUN_TYPE_BROADCAST	1
 #define AUN_TYPE_UNICAST	2
 #define AUN_TYPE_ACK		3
-/* NACK of some sort?		4 */
+#define AUN_TYPE_REJ		4
 #define AUN_TYPE_IMMEDIATE	5
 #define AUN_TYPE_IMM_REPLY	6
 	uint8_t dest_port;

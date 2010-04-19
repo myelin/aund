@@ -739,7 +739,8 @@ fs_data_recv(struct fs_context *c, int fd, size_t size, int ackport)
 	}
 	done = 0;
 	while (size) {
-		pkt = aunfuncs->recv(&msgsize, &from);
+		from = *c->from;
+		pkt = aunfuncs->recv(&msgsize, &from, OUR_DATA_PORT);
 		msgsize -= sizeof(struct aun_packet);
 		if (pkt->dest_port != OUR_DATA_PORT ||
 		    memcmp(&from, c->from, sizeof(from))) {
