@@ -266,16 +266,29 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 	union internal_addr *afrom = (union internal_addr *)vfrom;
 	int scoutaddr, mainaddr;
 	int ctlbyte, destport;
-	int count;
+	int count, forever;
 	unsigned char ack[8];
 
-	while (1) {
+	/*
+	 * If we're told to listen for a packet from a particular
+	 * station, impose a time limit after which we'll give up on
+	 * it, so that a client that goes away in the middle of a
+	 * load or save doesn't lock everyone else out indefinitely.
+	 */
+	count = 50;
+	forever = !(afrom->eaddr.network || afrom->eaddr.station);
+	while (count > 0) {
 		/*
 		 * Listen for a scout packet. This should be 6 bytes
 		 * long, and the second payload byte should indicate
 		 * the destination port.
 		 */
-		msgsize = beebem_listen(&scoutaddr, 1);
+		msgsize = beebem_listen(&scoutaddr, forever);
+
+		if (msgsize == 0) {
+			count--;
+			continue;
+		}
 
 		ack[0] = scoutaddr & 0xFF;
 		ack[1] = scoutaddr >> 8;
@@ -311,6 +324,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 				       " %d during other transaction\n",
 				       scoutaddr>>8, scoutaddr&0xFF,
 				       rbuf[PKTOFF+5]);
+			if (!forever) count--;
 			continue;
 		}
 
@@ -319,6 +333,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 				printf("received wrong-size scout packet "
 				    "(%zd) from %d.%d\n",
 				    msgsize, scoutaddr>>8, scoutaddr&0xFF);
+			if (!forever) count--;
 			continue;
 		}
 
@@ -382,6 +397,9 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 		afrom->eaddr.station = scoutaddr & 0xFF;
 		return rpkt;
 	}
+
+	errno = ETIMEDOUT;
+	return NULL;
 }
 
 static ssize_t
