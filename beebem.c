@@ -39,6 +39,7 @@
 
 #include <ctype.h>
 #include <err.h>
+#include <errno.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -265,6 +266,7 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 	union internal_addr *afrom = (union internal_addr *)vfrom;
 	int scoutaddr, mainaddr;
 	int ctlbyte, destport;
+	int count;
 	unsigned char ack[8];
 
 	while (1) {
@@ -294,6 +296,24 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 			beebem_send(ack, 8);
 			continue;
 		}
+
+		/*
+		 * If we've been told to listen for a particular
+		 * source address and/or port, loop round again
+		 * without ACK if we didn't get it.
+		 */
+		if (((afrom->eaddr.network || afrom->eaddr.station) &&
+		     (afrom->eaddr.network != (scoutaddr >> 8) ||
+		      afrom->eaddr.station != (scoutaddr & 0xFF))) ||
+		    (want_port && want_port != rbuf[PKTOFF+5])) {
+			if (debug)
+				printf("ignoring packet from %d.%d for port"
+				       " %d during other transaction\n",
+				       scoutaddr>>8, scoutaddr&0xFF,
+				       rbuf[PKTOFF+5]);
+			continue;
+		}
+
 		if (msgsize != 6) {
 			if (debug)
 				printf("received wrong-size scout packet "
@@ -316,15 +336,29 @@ beebem_recv(ssize_t *outsize, struct aun_srcaddr *vfrom, int want_port)
 		 * four-way handshake would tie up the bus for all
 		 * other stations until it had finished.)
 		 */
-		do
+		count = 50;
+		do {
 			beebem_send(ack, 4);
-		while ((msgsize = beebem_listen(&mainaddr, 0)) == 0);
-		if (mainaddr != scoutaddr) {
+			msgsize = beebem_listen(&mainaddr, 0);
+			if (msgsize != 0) {
+				if (mainaddr != scoutaddr) {
+					if (debug)
+						printf("ignoring packet from"
+						       " %d.%d during other"
+						       " transaction\n",
+						       mainaddr>>8,
+						       mainaddr&0xFF);
+					msgsize = 0;   /* go round again */
+				}
+			}
+			count--;
+		} while (count > 0 && msgsize == 0);
+
+		if (msgsize == 0) {
 			if (debug)
-				printf("expected payload packet from %d.%d, "
-				    "received something from %d.%d instead\n",
-				    scoutaddr>>8, scoutaddr&0xFF,
-				    mainaddr>>8, mainaddr&0xFF);
+				printf("received scout from %d.%d but "
+				       "payload packet never arrived\n",
+				       scoutaddr>>8, scoutaddr&0xFF);
 			continue;
 		}
 
@@ -355,6 +389,7 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 {
 	union internal_addr *ato = (union internal_addr *)vto;
 	int theiraddr, ackaddr;
+	int count;
 	ssize_t msgsize, payloadlen;
 
 	if (len > sizeof(sbuf) - 4) {
@@ -362,6 +397,8 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 			printf("outgoing packet too large (%zu)\n", len);
 		return -1;
 	}
+
+	theiraddr = ato->eaddr.network * 256 + ato->eaddr.station;
 
 	/*
 	 * Send the scout packet, and wait for an ACK.
@@ -372,23 +409,34 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 	sbuf[3] = our_econet_addr >> 8;
 	sbuf[4] = 0x80 | spkt->flag;
 	sbuf[5] = spkt->dest_port;
-	do
+	count = 50;
+	do {
 		beebem_send(sbuf, 6);
-	while ((msgsize = beebem_listen(&ackaddr, 0)) == 0);
+		msgsize = beebem_listen(&ackaddr, 0);
+		if (msgsize > 0) {
+			/*
+			 * We expect the ACK to have come from the
+			 * right address.
+			 */
+			if (ackaddr != theiraddr) {
+				if (debug)
+					printf("ignoring packet from %d.%d"
+					       " during other transaction\n",
+					       ackaddr>>8, ackaddr&0xFF);
+				msgsize = 0;   /* so we'll go round again */
+			}
+		}
+		count--;
+	} while (count > 0 && msgsize == 0);
 
-	/*
-	 * We expect the ACK to have come from the right address.
-	 * (See 'painfully single-threaded' caveat above.)
-	 */
-	theiraddr = ato->eaddr.network * 256 + ato->eaddr.station;
-	if (ackaddr != theiraddr) {
+	if (msgsize == 0) {
 		if (debug)
-			printf("expected ack packet from %d.%d,"
-			       " received something from %d.%d instead\n",
-			       theiraddr>>8, theiraddr&0xFF,
-			       ackaddr>>8, ackaddr&0xFF);
+			printf("scout ack never arrived from "
+			    "%d.%d\n", theiraddr>>8, theiraddr&0xFF);
+		errno = ETIMEDOUT;
 		return -1;
 	}
+
 	if (msgsize != 4) {
 		if (debug)
 			printf("received wrong-size ack packet (%zd) from "
@@ -407,23 +455,34 @@ beebem_xmit(struct aun_packet *spkt, size_t len, struct aun_srcaddr *vto)
 	sbuf[3] = our_econet_addr >> 8;
 	payloadlen = len - offsetof(struct aun_packet, data);
 	memcpy(sbuf + 4, spkt->data, payloadlen);
-	do
+	count = 50;
+	do {
 		beebem_send(sbuf, payloadlen+4);
-	while ((msgsize = beebem_listen(&ackaddr, 0)) == 0);
+		msgsize = beebem_listen(&ackaddr, 0);
+		if (msgsize > 0) {
+			/*
+			 * The second ACK, just as above, should
+			 * have come from the right address.
+			 */
+			if (ackaddr != theiraddr) {
+				if (debug)
+					printf("ignoring packet from %d.%d"
+					       " during other transaction\n",
+					       ackaddr>>8, ackaddr&0xFF);
+				msgsize = 0;   /* so we'll go round again */
+			}
+		}
+		count--;
+	} while (count > 0 && msgsize == 0);
 
-	/*
-	 * The second ACK, just as above, should have come from the
-	 * right address.
-	 */
-	theiraddr = ato->eaddr.network * 256 + ato->eaddr.station;
-	if (ackaddr != theiraddr) {
+	if (msgsize == 0) {
 		if (debug)
-			printf("expected ack packet from %d.%d,"
-			       " received something from %d.%d instead\n",
-			       theiraddr>>8, theiraddr&0xFF,
-			       ackaddr>>8, ackaddr&0xFF);
+			printf("payload ack never arrived from "
+			    "%d.%d\n", theiraddr>>8, theiraddr&0xFF);
+		errno = ETIMEDOUT;
 		return -1;
 	}
+
 	if (msgsize != 4) {
 		if (debug)
 			printf("received wrong-size ack packet (%zd) "
