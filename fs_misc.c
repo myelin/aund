@@ -631,9 +631,7 @@ out:
 void
 fs_cdirn(struct fs_context *c)
 {
-	struct ec_fs_reply reply;
 	struct ec_fs_req_cdirn *request;
-	char *upath;
 
 	if (c->client == NULL) {
 		fs_err(c, EC_FS_E_WHOAREYOU);
@@ -649,7 +647,6 @@ void
 fs_cdir1(struct fs_context *c, char *path)
 {
 	struct ec_fs_reply reply;
-	struct ec_fs_req_cdirn *request;
 	char *upath;
 
 	if (c->client == NULL) {
