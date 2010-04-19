@@ -645,13 +645,17 @@ fs_long_info(char *string, FTSENT *f)
 		}
 	} else {
 		/*
-		 * This is the format specified in the RISC OS PRM.
+		 * This is the format specified in the RISC OS PRM,
+		 * except that it includes a CR at the end.  The BBC
+		 * and System 3/4 clients seem to expect one, though,
+		 * and the Level 4 Fileserver generates one, so the
+		 * PRM is probably wrong.
 		 */
 		fs_get_meta(f, &meta);
 		load = fs_read_val(meta.load_addr, sizeof(meta.load_addr));
 		exec = fs_read_val(meta.exec_addr, sizeof(meta.exec_addr));
 		sprintf(string, "%-10.10s %08lX %08lX   %06jX   "
-			"%-6.6s     %02d:%02d:%02d %06x\x80",
+			"%-6.6s     %02d:%02d:%02d %06x\r\x80",
 			acornname, load, exec,
 			(uintmax_t)f->fts_statp->st_size, accstring,
 			tm.tm_mday,
