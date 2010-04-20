@@ -1,6 +1,11 @@
-This is a pile of programs to allow a NetBSD system to act as a very basic
-AUN (Acorn Universal Networking) fileserver.  This release is intended to
-be just about good enough to get a NetBSD/arm26 system booting from it.
+aund is a program to allow a Unix system to act as an AUN or Econet
+fileserer.  It supports:
+
+* Clients from System 3 to RISC OS 3.70 (and probably later)
+* Servers running Linux, NetBSD and probably others
+* Connectivity by AUN (over UDP) or BeebEm emulated Econet
+* Read/write operation
+* Multiple virtual users (all under one Unix UID)
 
 Hints:
 
