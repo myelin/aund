@@ -46,3 +46,5 @@ AM_CFLAGS = $(GCCWARNINGS)
 libconf_lex_a_SOURCES = conf_lex.l
 libconf_lex_a_CFLAGS = $(GCCFEWERWARNINGS)
 noinst_LIBRARIES = libconf_lex.a
+
+EXTRA_DIST = contrib
