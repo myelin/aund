@@ -42,6 +42,7 @@
 #include <crypt.h>
 #endif
 #include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -130,8 +131,10 @@ pw_read_line(char **user, char **pw, char **urd, int *opt4)
 	static char buffer[16384];
 	char *p, *q, *r;
 
+	errno = 0;
 	if (!fgets(buffer, sizeof(buffer), fp)) {
-		warn("%s", pwfile);
+		if (errno)	       /* distinguish clean EOF from error */
+			warn("%s", pwfile);
 		return -1;
 	}
 	pwline++;
