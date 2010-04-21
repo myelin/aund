@@ -1,5 +1,5 @@
 aund is a program to allow a Unix system to act as an AUN or Econet
-fileserer.  It supports:
+fileserver.  It supports:
 
 * Clients from System 3 to RISC OS 3.70 (and probably later)
 * Servers running Linux, NetBSD and probably others
