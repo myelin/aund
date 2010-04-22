@@ -60,13 +60,20 @@ int foreground = 0;
 int using_syslog = 1;
 char *beebem_cfg_file = NULL;
 const struct aun_funcs *aunfuncs = &aun;
+char *progname;
 
 volatile int painful_death = 0;
 
-int main(int, char*[]);
-
 static void sig_init(void);
 static void sigcatcher(int);
+
+static void
+usage(void)
+{
+
+	fprintf(stderr, "usage: %s [-dDfsS] [-c config]\n", progname);
+	exit(EXIT_FAILURE);
+}
 
 int
 main(int argc, char *argv[])
@@ -76,10 +83,11 @@ main(int argc, char *argv[])
 	int override_debug = -1;
 	int override_syslog = -1;
 
+	progname = argv[0];
 	while ((c = getopt(argc, argv, "c:dDfsS")) != -1) {
 		switch (c) {
 		    case '?':
-			return 1;      /* getopt parsing error */
+			usage();      /* getopt parsing error */
 		    case 'c':
 			conffile = optarg;
 			break;
@@ -132,7 +140,7 @@ main(int argc, char *argv[])
 		if (daemon(1, 0) != 0)
 			err(1, "daemon");
 	if (using_syslog) {
-		openlog("aund", LOG_PID | (debug ? LOG_PERROR : 0),
+		openlog(progname, LOG_PID | (debug ? LOG_PERROR : 0),
 			LOG_DAEMON);
 		syslog(LOG_NOTICE, "started");
 	}
