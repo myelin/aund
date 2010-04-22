@@ -1,0 +1,73 @@
+.\" Copyright (c) 2010 Ben Harris
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. The name of the author may not be used to endorse or promote products
+.\"    derived from this software without specific prior written permission.
+.\" 
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.Dd April 22, 2010
+.Dt AUND 8
+.Os
+.Sh NAME
+.Nm aund
+.Nd Acorn-compatible Econet/AUN fileserver
+.Sh SYNOPSIS
+.Nm Op Fl dDfsS
+.Op Fl c Ar config
+.Sh DESCRIPTION
+.Nm
+is a fileserver for Acorn clients, either real ones over
+.Tn AUN
+or emulated ones over BeebEm's virtual Econet.
+.Nm
+runs as a single process under a single user-ID, even when presenting
+multiple user accounts to clients.
+.Pp
+The following options can be used:
+.Bl -tag -width Fl
+.It Fl c Ar config
+Use
+.Ar config
+as a configuration file instead of
+.Pa /etc/aund.conf .
+.It Fl d
+Run in debugging mode, with debugging messages going to standard output.
+Implies
+.Fl f .
+.It Fl D
+Disable debugging mode, even if it's specified in the configuration file.
+.It Fl f
+Run in the foreground rather than becoming a daemon.
+.It Fl s
+Use
+.Xr syslog 3
+for logging even if it's disabled in the configuration file.
+.It Fl S
+Do not log using
+.Xr syslog 3 .
+.El
+.Sh FILES
+.Bl -tag -width Pa
+.Pa /etc/aund.conf
+Default configuration file location.
+.El
+.Sh SEE ALSO
+.Xr beebem 1 ,
+.Xr aund.conf 5
