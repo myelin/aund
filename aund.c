@@ -56,6 +56,7 @@
 extern const struct aun_funcs aun, beebem;
 
 int debug = 1;
+int foreground = 0;
 int using_syslog = 1;
 char *beebem_cfg_file = NULL;
 const struct aun_funcs *aunfuncs = &aun;
@@ -75,11 +76,11 @@ main(int argc, char *argv[])
 	int override_debug = -1;
 	int override_syslog = -1;
 
-	while ((c = getopt(argc, argv, "f:dDsS")) != -1) {
+	while ((c = getopt(argc, argv, "c:dDfsS")) != -1) {
 		switch (c) {
 		    case '?':
 			return 1;      /* getopt parsing error */
-		    case 'f':
+		    case 'c':
 			conffile = optarg;
 			break;
 		    case 'd':
@@ -88,6 +89,8 @@ main(int argc, char *argv[])
 		    case 'D':
 			override_debug = 0;
 			break;
+		    case 'f':
+			foreground = 1;
 		    case 's':
 			override_syslog = 1;
 			break;
@@ -125,7 +128,7 @@ main(int argc, char *argv[])
 	if (chdir(root) < 0)
 		err(1, "%s: chdir", root);
 
-	if (!debug)
+	if (!(debug || foreground))
 		if (daemon(1, 0) != 0)
 			err(1, "daemon");
 	if (using_syslog) {
