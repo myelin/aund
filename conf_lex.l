@@ -296,7 +296,7 @@ conf_cmd_pwfile(union cfything *thing)
 {
 
 	if (cfylex(BORING, NULL) != CF_WORD)
-		errx(1, "no urd specified");
+		errx(1, "no password file specified");
 	pwfile = malloc(cfyleng + 1);
 	strcpy(pwfile, cfytext);
 }
