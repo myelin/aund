@@ -86,23 +86,23 @@ main(int argc, char *argv[])
 	progname = argv[0];
 	while ((c = getopt(argc, argv, "c:dDfsS")) != -1) {
 		switch (c) {
-		    case '?':
+		case '?':
 			usage();      /* getopt parsing error */
-		    case 'c':
+		case 'c':
 			conffile = optarg;
 			break;
-		    case 'd':
+		case 'd':
 			override_debug = 1;
 			break;
-		    case 'D':
+		case 'D':
 			override_debug = 0;
 			break;
-		    case 'f':
+		case 'f':
 			foreground = 1;
-		    case 's':
+		case 's':
 			override_syslog = 1;
 			break;
-		    case 'S':
+		case 'S':
 			override_syslog = 0;
 			break;
 		}
@@ -156,7 +156,7 @@ main(int argc, char *argv[])
 		pkt = aunfuncs->recv(&msgsize, &from, EC_PORT_FS);
 
 		switch (pkt->dest_port) {
-		    case EC_PORT_FS:
+		case EC_PORT_FS:
 			if (debug) printf("\n\t(file server: ");
 			file_server(pkt, msgsize, &from);
 			if (debug) printf(")");
@@ -183,5 +183,6 @@ sig_init(void)
 static void
 sigcatcher(int s)
 {
+
 	painful_death = 1;
 }
