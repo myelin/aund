@@ -63,6 +63,26 @@ for logging even if it's disabled in the configuration file.
 Do not log using
 .Xr syslog 3 .
 .El
+.Ss Metadata
+By default,
+.Nm
+stores the Acorn load and execute addresses for each file in a sub-directory
+called
+.Pa .Acorn
+of the file's parent directory, in a symbolic link with the same name as
+the file.
+.Nm
+can also generate
+.Tn RISC OS
+file types for files based on rules in
+.Xr aund.conf 5 .
+.Ss Security Considerations
+The Acorn fileserver protocol is inherently insecure.  It passes both 
+login and file data over the network unencrypted, so it is trivial
+for an attacker with access to the network to intercept them.
+The protocol also has no authentication of individual requests other
+than by source address, so it is trivial for an attacker to inject
+requests that appear to be from a logged-in client.
 .Sh FILES
 .Bl -tag -width Pa
 .Pa /etc/aund.conf
@@ -71,3 +91,7 @@ Default configuration file location.
 .Sh SEE ALSO
 .Xr beebem 1 ,
 .Xr aund.conf 5
+.Sh BUGS
+.Nm
+is full of them.  Beware, and send patches to
+.Aq bjh21@bjh21.me.uk .

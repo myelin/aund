@@ -1,0 +1,162 @@
+.\" -*- nroff -*-
+.\" Copyright (c) 2010 Ben Harris
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. The name of the author may not be used to endorse or promote products
+.\"    derived from this software without specific prior written permission.
+.\" 
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.Dd April 22, 2010
+.Dt AUND.CONF 5
+.Sh NAME
+.Nm aund.conf
+.Nd configuration file for
+.Xr aund 8
+.Sh DESCRIPTION
+The
+.Nm
+file configured
+.Xr aund 8 ,
+an Acorn-compatible fileserver.
+It consists of a series of lines whose purpose is defined by their first
+word.
+Blank lines are ignored, as is the rest of each line after a
+.Ql #
+sign.
+The options are:
+.Bl -tag -width Ic
+.It Ic debug No on | off
+Enable or disable debugging mode.
+This is equivalent to the
+.Fl d
+and
+.Fl D
+flags.
+.It Ic syslog No on | off
+Enable or disable logging using
+.Xr syslog 3 .
+This is equivalent to the
+.Fl s
+and
+.Fl S
+flags.
+.It Ic root Ar path
+Sets the root of the fileserver to
+.Ar path .
+This directory will be exported as the root of the (only) disc of the
+fileserver.
+All other paths in the configuration file are relative to it.
+.It Ic library Ar path
+.It Ic lib Ar path
+Sets the default library directory, in which clients will look up commands
+that they cannot find in the current directory.
+This is specified relative to the root of the fileserver.
+.It Ic pwfile Ar path
+Selects a password file to use for the fileserver.
+See
+.Xr aund.passwd
+for its syntax.
+If this is not specified, all user names and passwords will be accepted
+by the server.
+.It Ic urd Ar path
+Sets the user root directory (home directory) for all users if
+.Ic pwfile
+is not specified.
+.It Ic opt4 Ar option
+Sets the boot option for those users without a boot option specified in
+the password file, or for all users if
+.Ic pwfile
+is not specified.
+This controls what clients will do when they log onto the fileserver.
+.Pp
+.Bl -tag -width 99 -compact
+.It 0
+Nothing.
+.It 1
+.Ql *LOAD !BOOT
+or
+.Ql *Load !ArmBoot .
+.It 2
+.Ql *RUN !BOOT
+or
+.Ql *Run !ArmBoot .
+.It 3
+.Ql *EXEC !BOOT
+or
+.Ql *Exec !ArmBoot .
+.El
+.It Ic infofmt No riscos | sj
+Sets the format of responses to
+.Ql *INFO .
+.Ql riscos
+chooses the format specified by the
+.Tn RISC OS
+Programmer's Reference Manual, similar to that produced by Acorn fileservers.
+.Ql sj
+chooses a format more akin to that produced by SJ Research fileservers.
+.It Ic beebem Pa config Op ingress | noingress
+Selects BeebEm encapsulation of Econet packets as opposed to the usual
+.Tn AUN
+encapsulations.
+.Pa config
+is the pathname of the BeebEm configuration file.
+The final option enables or disables ingress filtering.
+Using it needs special patches to BeebEm.
+.It Ic typemap ...
+The
+.Ic typemap
+option configures
+.Nm aund Ns 's
+automatic generation of 
+.Tn RISC OS
+file types.
+It has several sub-options:
+.It Ic typemap name Ar re type
+Sets the type for file which match the regular expression
+.Ar re
+to
+.Ar type .
+.It Ic typemap perm Ar mode type
+Sets the type for files whose permissions have any set bits in common with
+.Ar mode
+(expressed in octal) to
+.Ar type .
+.It Ic typemap type Ar kind type
+Sets the type of certain kinds of object to
+.Ar type .
+.Ar kind
+can be
+.Ql reg ,
+.Ql dir ,
+.Ql chr ,
+.Ql blk ,
+.Ql fifo ,
+.Ql lnk ,
+.Ql sock ,
+or
+.Ql wht
+to specify regular files, directories, character devices, block devices,
+named pipes, broken symlinks, sockets, and whiteouts respectively.
+.It Ic typemap default Ar type
+Sets the default type for files.
+.El
+.Sh SEE ALSO
+.Xr aund.passwd 5 ,
+.Xr aund 8
