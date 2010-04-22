@@ -86,21 +86,12 @@ the password file, or for all users if
 is not specified.
 This controls what clients will do when they log onto the fileserver.
 .Pp
-.Bl -tag -width 99 -compact
-.It Li 0
-Nothing.
-.It Li 1
-.Ql *LOAD !BOOT
-or
-.Ql *Load !ArmBoot .
-.It Li 2
-.Ql *RUN !BOOT
-or
-.Ql *Run !ArmBoot .
-.It Li 3
-.Ql *EXEC !BOOT
-or
-.Ql *Exec !ArmBoot .
+.Bl -column -offset indent "optionx" "*LOAD !BOOT" "*Load !Armboot"
+.It Ar option Ta Tn BBC Ta Tn RISC OS
+.It Li 0 Ta nothing Ta nothing
+.It Li 1 Ta Li *LOAD !BOOT Ta Li *Load !ArmBoot
+.It Li 2 Ta Li *RUN !BOOT Ta Li *Run !ArmBoot
+.It Li 3 Ta Li *EXEC !BOOT Ta Li *Exec !ArmBoot
 .El
 .It Ic infofmt Li riscos | sj
 Sets the format of responses to
