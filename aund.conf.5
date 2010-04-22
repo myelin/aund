@@ -42,14 +42,14 @@ Blank lines are ignored, as is the rest of each line after a
 sign.
 The options are:
 .Bl -tag -width Ic
-.It Ic debug No on | off
+.It Ic debug Li on | off
 Enable or disable debugging mode.
 This is equivalent to the
 .Fl d
 and
 .Fl D
 flags.
-.It Ic syslog No on | off
+.It Ic syslog Li on | off
 Enable or disable logging using
 .Xr syslog 3 .
 This is equivalent to the
@@ -71,7 +71,7 @@ This is specified relative to the root of the fileserver.
 .It Ic pwfile Ar path
 Selects a password file to use for the fileserver.
 See
-.Xr aund.passwd
+.Xr aund.passwd 5
 for its syntax.
 If this is not specified, all user names and passwords will be accepted
 by the server.
@@ -87,22 +87,22 @@ is not specified.
 This controls what clients will do when they log onto the fileserver.
 .Pp
 .Bl -tag -width 99 -compact
-.It 0
+.It Li 0
 Nothing.
-.It 1
+.It Li 1
 .Ql *LOAD !BOOT
 or
 .Ql *Load !ArmBoot .
-.It 2
+.It Li 2
 .Ql *RUN !BOOT
 or
 .Ql *Run !ArmBoot .
-.It 3
+.It Li 3
 .Ql *EXEC !BOOT
 or
 .Ql *Exec !ArmBoot .
 .El
-.It Ic infofmt No riscos | sj
+.It Ic infofmt Li riscos | sj
 Sets the format of responses to
 .Ql *INFO .
 .Ql riscos
@@ -111,11 +111,11 @@ chooses the format specified by the
 Programmer's Reference Manual, similar to that produced by Acorn fileservers.
 .Ql sj
 chooses a format more akin to that produced by SJ Research fileservers.
-.It Ic beebem Pa config Op ingress | noingress
+.It Ic beebem Ar config Op Li ingress | noingress
 Selects BeebEm encapsulation of Econet packets as opposed to the usual
 .Tn AUN
 encapsulations.
-.Pa config
+.Ar config
 is the pathname of the BeebEm configuration file.
 The final option enables or disables ingress filtering.
 Using it needs special patches to BeebEm.
