@@ -25,7 +25,7 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 bin_PROGRAMS = aund
-man_MANS = aund.conf.5 aund.8
+man_MANS = aund.conf.5 aund.passwd.5 aund.8
 aund_SOURCES = extern.h aund.c \
 	fileserver.h fs_errors.h fs_proto.h \
 	fileserver.c fs_cli.c fs_examine.c \

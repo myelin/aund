@@ -22,12 +22,14 @@
 .\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-.Dd April 22, 2010
+.Dd April 23, 2010
 .Dt AUND 8
 .Os
 .Sh NAME
 .Nm aund
-.Nd Acorn-compatible Econet/AUN fileserver
+.Nd Acorn-compatible
+.No Econet/ Ns Tn AUN
+fileserver
 .Sh SYNOPSIS
 .Nm Op Fl dDfsS
 .Op Fl c Ar config
@@ -76,6 +78,15 @@ can also generate
 .Tn RISC OS
 file types for files based on rules in
 .Xr aund.conf 5 .
+Files can also be named with the
+.Tn RISC OS
+type in hexadecimal at the end of their names, separated by a comma.
+The file type will be removed when the file is seen from
+.Tn RISC OS ,
+so
+.Pa TextFile,fff
+appears as a text (type 0xfff) file called
+.Pa TextFile .
 .Ss Security Considerations
 The Acorn fileserver protocol is inherently insecure.  It passes both 
 login and file data over the network unencrypted, so it is trivial
@@ -90,7 +101,8 @@ Default configuration file location.
 .El
 .Sh SEE ALSO
 .Xr beebem 1 ,
-.Xr aund.conf 5
+.Xr aund.conf 5 ,
+.Xr aund.passwd 5
 .Sh BUGS
 .Nm
 is full of them.  Beware, and send patches to
