@@ -105,11 +105,29 @@ chooses a format more akin to that produced by SJ Research fileservers.
 .It Ic beebem Ar config Op Li ingress | noingress
 Selects BeebEm encapsulation of Econet packets as opposed to the usual
 .Tn AUN
-encapsulations.
+encapsulations. With this option enabled,
+.Nm aund
+can act as a
+fileserver for emulated BBCs running in BeebEm.
 .Ar config
-is the pathname of the BeebEm configuration file.
-The final option enables or disables ingress filtering.
-Using it needs special patches to BeebEm.
+is the pathname of the BeebEm Econet configuration file mapping
+Econet stations to IP addresses and ports (typically
+called
+.Pa econet.cfg
+and found in
+.Pa $HOME/.beebem ) ;
+.Nm aund
+will always assign itself station number 254.
+The
+.Ql ingress
+option enables ingress filtering, in which
+.Nm aund
+verifies that the UDP port number of each incoming packet matches
+the one given in
+.Pa econet.cfg
+for the Econet station it claims to be. Standard BeebEm (as of
+0.0.13) does not control its source port numbers, so this option is
+disabled by default.
 .It Ic typemap ...
 The
 .Ic typemap
