@@ -184,7 +184,7 @@ fs_examine_read(struct fs_context *c, const char *upath, int start)
 	if (dc->path && strcmp(dc->path, upath) == 0 && dc->start == start) {
 		/* Already cached */
 		/* XXX this should see how recent the cache is */
-		/* XXX Won't spot if the client skipped a bit og a listing */
+		/* XXX Won't spot if the client skipped a bit of a listing */
 		if (debug) printf("cache HIT!\n");
 		return 0;
 	}
