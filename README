@@ -14,7 +14,11 @@ Building it on other systems is likely to be unpleasant.
 aund is highly experimental and likely to have bugs.  Patches to fix
 these will be gratefully received by Ben Harris <bjh21@bjh21.me.uk>.
 
-aund is released under the following licence:
+Among aund's bugs are likely to be several that make it unsafe to run
+on an untrustworthy network.  In any case, the fileserver protocol it
+uses has serious security flaws.  In short, keep it off the Internet.
+
+aund itself is released under the following licence:
 
 Copyright (c) 1998, 2010 Ben Harris
 Copyright (c) 2010 Simon Tatham
@@ -41,3 +45,6 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Various parts of its build system are derived from Automake, and these
+have their own copyright information embedded in them.
