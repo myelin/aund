@@ -459,6 +459,10 @@ fs_cmd_dir(struct fs_context *c, char *tail)
 		fs_errno(c);
 		goto burn;
 	}
+	if (!S_ISDIR(st.st_mode)) {
+		fs_err(c, EC_FS_E_NOTDIR);
+		goto burn;
+	}
 	fs_close_handle(c->client, c->req->csd);
 	reply.new_handle = fs_open_handle(c->client, upath, 1);
 	if (reply.new_handle == 0) {
@@ -493,6 +497,11 @@ fs_cmd_lib(struct fs_context *c, char *tail)
 		upath = fs_unixify_path(c, upath); /* Free it! */
 		if (fs_stat(upath, &st) == -1) {
 			fs_errno(c);
+			free(upath);
+			return;
+		}
+		if (!S_ISDIR(st.st_mode)) {
+			fs_err(c, EC_FS_E_NOTDIR);
 			free(upath);
 			return;
 		}
