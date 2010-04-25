@@ -190,12 +190,13 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 	struct stat *st;
 	char *metapath, rawinfo[24];
 	uint64_t stamp;
-	int type, i;
+	int type, i, ret;
 
 	metapath = fs_metapath(f);
 	if (metapath != NULL) {
  		rawinfo[23] = '\0';
-		if (readlink(metapath, rawinfo, 23) == 23) {
+		ret = readlink(metapath, rawinfo, 23);
+		if (ret == 23) {
 			for (i = 0; i < 4; i++)
 				/* LINTED strtoul result < 0x100 */
 				meta->load_addr[i] =
@@ -204,6 +205,14 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 				/* LINTED strtoul result < 0x100 */
 				meta->exec_addr[i] =
 				    strtoul(rawinfo+12+i*3, NULL, 16);
+			return;
+		} else if (ret == 17) {
+			fs_write_val(meta->load_addr,
+			    strtoul(rawinfo, NULL, 16),
+			    sizeof(meta->load_addr));
+			fs_write_val(meta->exec_addr,
+			    strtoul(rawinfo + 9, NULL, 16),
+			    sizeof(meta->load_addr));
 			return;
 		}
 		free(metapath);
@@ -249,11 +258,11 @@ fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 			goto fail;
 	}
 	*lastslash = '/'; /* metapath now points to the metadata again. */
-	sprintf(rawinfo, "%02x %02x %02x %02x %02x %02x %02x %02x",
-		meta->load_addr[0], meta->load_addr[1],
-		meta->load_addr[2], meta->load_addr[3],
-		meta->exec_addr[0], meta->exec_addr[1],
-		meta->exec_addr[2], meta->exec_addr[3]);
+	sprintf(rawinfo, "%08lX %08lX",
+	    (unsigned long)
+	    fs_read_val(meta->load_addr, sizeof(meta->load_addr)),
+	    (unsigned long)
+	    fs_read_val(meta->exec_addr, sizeof(meta->exec_addr)));
 	if (unlink(metapath) < 0 && errno != ENOENT)
 		goto fail;
 	if (symlink(rawinfo, metapath) < 0)
