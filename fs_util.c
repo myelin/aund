@@ -187,12 +187,10 @@ fs_metapath(FTSENT *f)
 void
 fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 {
-	struct stat *st, sb;
+	struct stat *st;
 	char *metapath, rawinfo[24];
 	uint64_t stamp;
 	int type, i;
-	
-	st = &sb;
 
 	metapath = fs_metapath(f);
 	if (metapath != NULL) {
