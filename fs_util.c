@@ -284,6 +284,8 @@ fs_del_meta(FTSENT *f)
 	metapath = fs_metapath(f);
 	if (metapath != NULL) {
 		unlink(metapath);
+		*strrchr(metapath, '/') = '\0';
+		rmdir(metapath); /* Don't worry if it fails. */
 		free(metapath);
 	}
 }
