@@ -252,7 +252,7 @@ fs_examine_all(FTSENT *ent, struct ec_fs_reply_examine **replyp,
 	strpad(exall->name, ' ', sizeof(exall->name));
 	exall->access = fs_mode_to_access(ent->fts_statp->st_mode);
 	fs_write_date(&(exall->date), fs_get_birthtime(ent));
-	fs_write_val(exall->sin, 0, sizeof(exall->sin)); /* XXX fake a SIN */
+	fs_write_val(exall->sin, fs_get_sin(ent), sizeof(exall->sin));
 	fs_write_val(exall->size, ent->fts_statp->st_size,
 		     sizeof(exall->size));
 	*reply_sizep += sizeof(*exall);
