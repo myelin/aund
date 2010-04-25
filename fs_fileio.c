@@ -536,7 +536,7 @@ fs_load(struct fs_context *c)
 	fs_get_meta(f, &(reply1.meta));
 	fs_write_val(reply1.size, f->fts_statp->st_size, sizeof(reply1.size));
 	reply1.access = fs_mode_to_access(f->fts_statp->st_mode);
-	fs_write_date(&(reply1.date), f->fts_statp->st_ctime);
+	fs_write_date(&(reply1.date), fs_get_birthtime(f));
 	reply1.std_tx.command_code = EC_FS_CC_DONE;
 	reply1.std_tx.return_code = EC_FS_RC_OK;
 	fs_reply(c, &(reply1.std_tx), sizeof(reply1));
@@ -614,7 +614,7 @@ fs_save(struct fs_context *c)
 		ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
 		f = fts_read(ftsp);
 		fs_set_meta(f, &meta);
-		fs_write_date(&(reply2.date), f->fts_statp->st_ctime);
+		fs_write_date(&(reply2.date), fs_get_birthtime(f));
 		reply2.access = fs_mode_to_access(f->fts_statp->st_mode);
 		fts_close(ftsp);
 		c->req->reply_port = replyport;
@@ -675,7 +675,7 @@ fs_create(struct fs_context *c)
 	ftsp = fts_open(path_argv, FTS_LOGICAL, NULL);
 	f = fts_read(ftsp);
 	fs_set_meta(f, &meta);
-	fs_write_date(&(reply.date), f->fts_statp->st_ctime);
+	fs_write_date(&(reply.date), fs_get_birthtime(f));
 	reply.access = fs_mode_to_access(f->fts_statp->st_mode);
 	fts_close(ftsp);
 	free(upath);

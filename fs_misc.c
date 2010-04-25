@@ -137,7 +137,7 @@ fs_get_info(struct fs_context *c)
 			fs_write_val(reply.size, f->fts_statp->st_size,
 			    sizeof(reply.size));
 			reply.access = fs_mode_to_access(f->fts_statp->st_mode);
-			fs_write_date(&(reply.date), f->fts_statp->st_ctime);
+			fs_write_date(&(reply.date), fs_get_birthtime(f));
 		}
 		fs_reply(c, &(reply.std_tx), sizeof(reply));
 	}
@@ -152,7 +152,7 @@ fs_get_info(struct fs_context *c)
 			memset(&(reply.date), 0, sizeof(reply.date));
 		} else {
 			reply.type = fs_mode_to_type(f->fts_statp->st_mode);
-			fs_write_date(&(reply.date), f->fts_statp->st_ctime);
+			fs_write_date(&(reply.date), fs_get_birthtime(f));
 		}
 		fs_reply(c, &(reply.std_tx), sizeof(reply));
 	}

@@ -528,7 +528,8 @@ void
 fs_long_info(char *string, FTSENT *f)
 {
 	struct ec_fs_meta meta;
-	struct tm tm;
+	struct tm mtm, btm;
+	time_t birthtime;
 	unsigned long load, exec;
 	char accstring[8], accstr2[8];
 	mode_t currumask;
@@ -543,18 +544,14 @@ fs_long_info(char *string, FTSENT *f)
 	fs_access_to_string(accstring,
 			    fs_mode_to_access(f->fts_statp->st_mode));
 
-	tm = *localtime(&f->fts_statp->st_mtime);
+	mtm = *localtime(&f->fts_statp->st_mtime);
+	birthtime = fs_get_birthtime(f);
+	btm = *localtime(&birthtime);
 
 	if (infoformat == FS_INFO_SJ) {
 		/*
 		 * These formats for *INFO are taken from the SJ
 		 * Research file server manual.
-		 *
-		 * The two dates are supposed to be creation and
-		 * modification respectively, but since Unix doesn't
-		 * give true creation dates I just set them both to
-		 * the same thing. (The time goes with the
-		 * modification date.)
 		 *
 		 * The two three-digit hex numbers at the end of the
 		 * line are the primary and secondary account
@@ -611,16 +608,16 @@ fs_long_info(char *string, FTSENT *f)
 			    "%-6.6s  %02d%.3s%02d %02d%.3s%02d %02d:%02d "
 			    "000 (000)\r\x80",
 			    acornname, entries, accstr2, accstring,
-			    tm.tm_mday,
+			    btm.tm_mday,
 			    "janfebmaraprmayjunjulaugsepoctnovdec" +
-			        3*tm.tm_mon,
-			    tm.tm_year % 100,
-			    tm.tm_mday,
+			        3*btm.tm_mon,
+			    btm.tm_year % 100,
+			    mtm.tm_mday,
 			    "janfebmaraprmayjunjulaugsepoctnovdec" +
-			        3*tm.tm_mon,
-			    tm.tm_year % 100,
-			    tm.tm_hour,
-			    tm.tm_min);
+			        3*mtm.tm_mon,
+			    mtm.tm_year % 100,
+			    mtm.tm_hour,
+			    mtm.tm_min);
 		} else {
 			fs_get_meta(f, &meta);
 			load =
@@ -632,16 +629,16 @@ fs_long_info(char *string, FTSENT *f)
 			    "000 (000)\r\x80",
 			    acornname, load, exec,
 			    (uintmax_t)f->fts_statp->st_size, accstring,
-			    tm.tm_mday,
+			    btm.tm_mday,
 			    "janfebmaraprmayjunjulaugsepoctnovdec" +
-			        3*tm.tm_mon,
-			    tm.tm_year % 100,
-			    tm.tm_mday,
+			        3*btm.tm_mon,
+			    btm.tm_year % 100,
+			    mtm.tm_mday,
 			    "janfebmaraprmayjunjulaugsepoctnovdec" +
-			        3*tm.tm_mon,
-			    tm.tm_year % 100,
-			    tm.tm_hour,
-			    tm.tm_min);
+			        3*mtm.tm_mon,
+			    mtm.tm_year % 100,
+			    mtm.tm_hour,
+			    mtm.tm_min);
 		}
 	} else {
 		/*
@@ -658,9 +655,9 @@ fs_long_info(char *string, FTSENT *f)
 			"%-6.6s     %02d:%02d:%02d %06x\r\x80",
 			acornname, load, exec,
 			(uintmax_t)f->fts_statp->st_size, accstring,
-			tm.tm_mday,
-			tm.tm_mon,
-			tm.tm_year % 100,
+			btm.tm_mday,
+			btm.tm_mon,
+			btm.tm_year % 100,
 			fs_get_sin(f));
 	}
 

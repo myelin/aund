@@ -299,6 +299,27 @@ fs_get_sin(FTSENT *f)
 	return f->fts_statp->st_ino & 0xFFFFFF;
 }
 
+/*
+ * Get the creation time of a file, or the best approximation we can
+ * manage.  Various bits of protocol return this as a fileserver date
+ * or as a string.
+ */
+time_t
+fs_get_birthtime(FTSENT *f)
+{
+
+#if HAVE_STRUCT_STAT_ST_BIRTHTIME
+	/*
+	 * NetBSD 5.0 seems to be confused over whether an unknown
+	 * birthtime should be 0 or VNOVAL (-1).
+	 */
+	if (f->fts_statp->st_birthtime &&
+	    f->fts_statp->st_birthtime != (time_t)(-1))
+		return f->fts_statp->st_birthtime;
+#endif
+	/* Ah well, mtime will have to do. */
+	return f->fts_statp->st_mtime;
+}
 
 /*
  * Convert a Unix time_t (non-leap seconds since 1970-01-01) and odd
