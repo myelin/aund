@@ -50,7 +50,7 @@
 
 extern const struct aun_funcs aun, beebem;
 
-int debug = 1;
+int debug = 0;
 int foreground = 0;
 int using_syslog = 1;
 char *beebem_cfg_file = NULL;
