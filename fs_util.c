@@ -245,10 +245,10 @@ fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 	*lastslash = '\0'; /* metapath now points to the .Acorn directory. */
 	ret = rmdir(metapath);
 	if (ret < 0 && errno != ENOENT && errno != ENOTEMPTY)
-		return 0;
+		goto fail;
 	if ((ret < 0 && errno == ENOENT) || ret == 0) {
 		if (mkdir(metapath, 0777) < 0)
-			return 0;
+			goto fail;
 	}
 	*lastslash = '/'; /* metapath now points to the metadata again. */
 	sprintf(rawinfo, "%02x %02x %02x %02x %02x %02x %02x %02x",
@@ -257,11 +257,14 @@ fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 		meta->exec_addr[0], meta->exec_addr[1],
 		meta->exec_addr[2], meta->exec_addr[3]);
 	if (unlink(metapath) < 0 && errno != ENOENT)
-		return 0;
+		goto fail;
 	if (symlink(rawinfo, metapath) < 0)
-		return 0;
+		goto fail;
 	free(metapath);
 	return 1;
+fail:
+	free(metapath);
+	return 0;
 }
 
 void
