@@ -1,0 +1,6 @@
+This version of aund is distantly derived from the version distributed
+as part of NetBSD "othersrc".  It has been heavily hacked to add
+support for read/write operation, BeebEm virtual Econet, and older
+clients.  It lacks many useful features and is full of bugs
+(especially memory leaks), but has nonetheless proved to be of real
+utility.
