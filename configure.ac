@@ -35,7 +35,9 @@ AC_PROG_RANLIB
 AC_PROG_INSTALL
 AM_PROG_LEX
 AC_CHECK_HEADERS([crypt.h])
-AC_CHECK_MEMBERS([struct stat.st_mtimensec, struct stat.st_birthtime])
+AC_CHECK_MEMBERS([struct stat.st_mtimensec,
+		  struct stat.st_mtim,
+		  struct stat.st_birthtime])
 AC_CONFIG_HEADERS([config.h])
 AC_SEARCH_LIBS(crypt, crypt)
 AC_CONFIG_FILES([Makefile])

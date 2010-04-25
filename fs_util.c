@@ -222,6 +222,8 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 		stamp = fs_riscos_date(st->st_mtime,
 #if HAVE_STRUCT_STAT_ST_MTIMENSEC
 		    st->st_mtimensec / 10000000
+#elif HAVE_STRUCT_STAT_ST_MTIM
+		    st->st_mtim.tv_nsec / 10000000
 #else
 		    0
 #endif
