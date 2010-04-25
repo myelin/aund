@@ -46,11 +46,6 @@
 #include "extern.h"
 #include "fileserver.h"
 
-#define MACHINE_MAKE 0
-#define MACHINE_MODEL 0x0e
-#define ECONET_SW_VERSION_MAJOR 0
-#define ECONET_SW_VERSION_MINOR 1
-
 #define EC_PORT_FS 0x99
 
 extern const struct aun_funcs aun, beebem;
