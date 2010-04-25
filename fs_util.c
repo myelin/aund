@@ -160,15 +160,14 @@ fs_write_val(uint8_t *p, uint64_t value, size_t len)
 	}
 }
 
-void
-fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
+/*
+ * Construct path to Acorn metadata for a file.  The caller must free the
+ * returned string itself.
+ */
+static char *
+fs_metapath(FTSENT *f)
 {
-	struct stat *st, sb;
-	char *lastslash, *metapath, rawinfo[24];
-	uint64_t stamp;
-	int type, i;
-	
-	st = &sb;
+	char *lastslash, *metapath;
 
 	lastslash = strrchr(f->fts_accpath, '/');
 	if (lastslash)
@@ -181,6 +180,22 @@ fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
 		sprintf(metapath, "%.*s.Acorn/%s",
 		    (int)(lastslash - f->fts_accpath),
 		    f->fts_accpath, f->fts_name);
+	}
+	return metapath;
+}
+
+void
+fs_get_meta(FTSENT *f, struct ec_fs_meta *meta)
+{
+	struct stat *st, sb;
+	char *metapath, rawinfo[24];
+	uint64_t stamp;
+	int type, i;
+	
+	st = &sb;
+
+	metapath = fs_metapath(f);
+	if (metapath != NULL) {
  		rawinfo[23] = '\0';
 		if (readlink(metapath, rawinfo, 23) == 23) {
 			for (i = 0; i < 4; i++)
@@ -220,19 +235,14 @@ fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 	char *lastslash, *metapath, rawinfo[24];
 	int ret;
 
-	lastslash = strrchr(f->fts_accpath, '/');
-	if (lastslash)
-		lastslash++;
-	else
-		lastslash = f->fts_accpath;
-	metapath = malloc((lastslash - f->fts_accpath) +
-			  f->fts_namelen + 8 + 1);
+	metapath = fs_metapath(f);
 	if (metapath == NULL) {
 		errno = ENOMEM;
 		return 0;
 	}
-	sprintf(metapath, "%.*s.Acorn", (int)(lastslash - f->fts_accpath),
-		f->fts_accpath);
+
+	lastslash = strrchr(metapath, '/');
+	*lastslash = '\0'; /* metapath now path to .Acorn directory */
 	ret = rmdir(metapath);
 	if (ret < 0 && errno != ENOENT && errno != ENOTEMPTY)
 		return 0;
@@ -240,8 +250,7 @@ fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 		if (mkdir(metapath, 0777) < 0)
 			return 0;
 	}
-	strcat(metapath, "/");
-	strcat(metapath, f->fts_name);
+	*lastslash = '/'; /* metapath now path to metadata again */
 	sprintf(rawinfo, "%02x %02x %02x %02x %02x %02x %02x %02x",
 		meta->load_addr[0], meta->load_addr[1],
 		meta->load_addr[2], meta->load_addr[3],
@@ -258,19 +267,10 @@ fs_set_meta(FTSENT *f, struct ec_fs_meta *meta)
 void
 fs_del_meta(FTSENT *f)
 {
-	char *lastslash, *metapath;
+	char *metapath;
 
-	lastslash = strrchr(f->fts_accpath, '/');
-	if (lastslash)
-		lastslash++;
-	else
-		lastslash = f->fts_accpath;
-	metapath = malloc((lastslash - f->fts_accpath) +
-			  f->fts_namelen + 8 + 1);
+	metapath = fs_metapath(f);
 	if (metapath != NULL) {
-		sprintf(metapath, "%.*s.Acorn/%s",
-		    (int)(lastslash - f->fts_accpath),
-		    f->fts_accpath, f->fts_name);
 		unlink(metapath);
 		free(metapath);
 	}
