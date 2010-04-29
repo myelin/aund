@@ -70,16 +70,42 @@ usage(void)
 	exit(EXIT_FAILURE);
 }
 
+static char const *curpidfile;
+
+static void
+unpidfile(void)
+{
+
+	unlink(curpidfile);
+}
+
+static void
+dopidfile(char const *pidfile)
+{
+	FILE *f;
+
+	if ((f = fopen(pidfile, "w")) == NULL) {
+		syslog(LOG_ERR, "%s: %m", pidfile);
+		return;
+	}
+	fprintf(f, "%d\n", getpid());
+	if (fclose(f) != 0)
+		syslog(LOG_ERR, "%s: %m", pidfile);
+	curpidfile = pidfile;
+	atexit(unpidfile);
+}
+
 int
 main(int argc, char *argv[])
 {
-	const char *conffile = "/etc/aund.conf";
+	char const *conffile = "/etc/aund.conf";
+	char const *pidfile = "/var/run/aund.pid";
 	int c;
 	int override_debug = -1;
 	int override_syslog = -1;
 
 	progname = argv[0];
-	while ((c = getopt(argc, argv, "c:dDfsS")) != -1) {
+	while ((c = getopt(argc, argv, "c:dDfp:sS")) != -1) {
 		switch (c) {
 		case '?':
 			usage();      /* getopt parsing error */
@@ -94,6 +120,9 @@ main(int argc, char *argv[])
 			break;
 		case 'f':
 			foreground = 1;
+			break;
+		case 'p':
+			pidfile = optarg;
 		case 's':
 			override_syslog = 1;
 			break;
@@ -139,6 +168,7 @@ main(int argc, char *argv[])
 			LOG_DAEMON);
 		syslog(LOG_NOTICE, "started");
 	}
+	dopidfile(pidfile);
 	if (debug)
 		printf("started\n");
 

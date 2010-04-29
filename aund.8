@@ -33,6 +33,7 @@ fileserver
 .Sh SYNOPSIS
 .Nm Op Fl dDfsS
 .Op Fl c Ar config
+.Op Fl p Ar pidfile
 .Sh DESCRIPTION
 .Nm
 is a fileserver for Acorn clients, either real ones over
@@ -57,6 +58,11 @@ Implies
 Disable debugging mode, even if it's specified in the configuration file.
 .It Fl f
 Run in the foreground rather than becoming a daemon.
+.It Fl p Ar pidfile
+Set the file in which
+.Nm
+should write its process-ID at startup.  Defaults to
+.Pa /var/run/aund.pid .
 .It Fl s
 Use
 .Xr syslog 3
@@ -96,8 +102,10 @@ than by source address, so it is trivial for an attacker to inject
 requests that appear to be from a logged-in client.
 .Sh FILES
 .Bl -tag -width Pa
-.Pa /etc/aund.conf
+.It Pa /etc/aund.conf
 Default configuration file location.
+.It Pa /var/run/aund.pid
+Default process-ID file.
 .El
 .Sh SEE ALSO
 .Xr beebem 1 ,
