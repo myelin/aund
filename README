@@ -13,6 +13,7 @@ Building it on other systems is likely to be unpleasant.
 
 aund is highly experimental and likely to have bugs.  Patches to fix
 these will be gratefully received by Ben Harris <bjh21@bjh21.me.uk>.
+aund has a Web site at <http://bjh21.me.uk/aund/>.
 
 Among aund's bugs are likely to be several that make it unsafe to run
 on an untrustworthy network.  In any case, the fileserver protocol it
