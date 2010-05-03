@@ -46,8 +46,8 @@
 #define AUND_VERSION_H
 
 /* The actual version number.  Coded in BCD for machine peek. */
-#define AUND_VERSION_MAJOR 0x0
-#define AUND_VERSION_MINOR 0x99
+#define AUND_VERSION_MAJOR 0x1
+#define AUND_VERSION_MINOR 0x00
 
 /* Description for "read file server version number".  Max 9 chars. */
 #define AUND_FS_DESCR "aund"

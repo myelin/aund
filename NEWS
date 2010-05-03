@@ -1,6 +1,10 @@
+aund 1.00
+
   This first standalone release of aund is distantly derived from the
   version distributed as part of NetBSD "othersrc".  It has been
   heavily hacked to add support for read/write operation, BeebEm
   virtual Econet, and older clients.  It lacks many useful features
   and is full of bugs (especially memory leaks), but has nonetheless
   proved to be of real utility.
+
+ -- Ben Harris <bjh21@bjh21.me.uk>  Mon, 03 May 2010 22:51:16 +0100
