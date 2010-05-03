@@ -184,7 +184,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 	 * course, it'll be relative to the csd.
 	 */
 	if (path[0] && strchr("$:&%@", path[0]) &&
-	    (path[0] == '$' || !path[1] || path[1] == '.')) {
+	    (!path[1] || path[1] == '.')) {
 		switch (path[0]) {
 		case '$':
 		case ':': /* SJ alias */
