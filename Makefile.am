@@ -48,4 +48,4 @@ libconf_lex_a_SOURCES = conf_lex.l
 libconf_lex_a_CFLAGS = $(GCCFEWERWARNINGS)
 noinst_LIBRARIES = libconf_lex.a
 
-EXTRA_DIST = contrib aund.conf.example
+EXTRA_DIST = contrib aund.conf.example $(man_MANS)
