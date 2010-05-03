@@ -127,7 +127,8 @@ fs_cli(struct fs_context *c)
 			if (debug) {
 				if (cmd_tab[i].impl == fs_cmd_i_am ||
 				    cmd_tab[i].impl == fs_cmd_pass)
-					printf("[<hidden>]");
+					printf("[%.*s <hidden>]",
+					    (int)(tail - backup), backup);
 				else
 					printf("[%s]", c->req->data);
 			}
