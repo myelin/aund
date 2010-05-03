@@ -156,6 +156,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 	path2 = malloc((urd ? strlen(urd) : 0) + (csd ? strlen(csd) : 0) +
 		       (lib ? strlen(lib) : 0) +
 		       2 * strlen(path) + 100);
+	if (path == NULL) return NULL;
 
 	if (debug) printf("fs_unixify_path: [%s]", path);
 
@@ -176,7 +177,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 		 */
 		path += disclen;
 		if (*path) path++;
-		base = NULL;
+		base = ".";
 	}
 	/*
 	 * Decide what base path this pathname is relative to, by
@@ -188,7 +189,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 		switch (path[0]) {
 		case '$':
 		case ':': /* SJ alias */
-			base = NULL; break;
+			base = "."; break;
 		case '&':
 			base = urd; break;
 		case '@':
@@ -199,11 +200,11 @@ fs_unixify_path(struct fs_context *c, char *path)
 		path++;
 		if (*path) path++;
 	}
-	if (base) {
-		sprintf(path2, "%s/", base);
-	} else {
-		*path2 = '\0';
+	if (base == NULL) {
+		free(path2);
+		return NULL;
 	}
+	sprintf(path2, "%s/", base);
 
 	/*
 	 * Append the supplied pathname to that prefix, performing
