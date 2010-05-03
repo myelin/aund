@@ -183,7 +183,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 	 * spotting magic characters at the front. Without any, of
 	 * course, it'll be relative to the csd.
 	 */
-	if (path[0] && strchr("$&%@", path[0]) &&
+	if (path[0] && strchr("$:&%@", path[0]) &&
 	    (path[0] == '$' || !path[1] || path[1] == '.')) {
 		switch (path[0]) {
 		case '$':
