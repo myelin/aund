@@ -31,6 +31,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -85,27 +86,26 @@ int fs_check_handle(struct fs_client *client, int h)
  * Open a new handle for a client.  path gives the Unix path of the
  * file or directory to open.
  */
-int fs_open_handle(struct fs_client *client, char *path, int must_exist)
+int fs_open_handle(struct fs_client *client, char *path, int open_flags)
 {
 	struct stat sb;
 	char *newpath;
-	int h;
+	int h, fd;
 
 	h = fs_alloc_handle(client);
 	if (h == 0) return h;
-	if (stat(path, &sb) == -1) {
-		if (must_exist) {
-			warn("fs_open_handle");
-			fs_free_handle(client, h);
-			return 0;
-		} else {
-			sb.st_mode = S_IFREG;
-		}
+	if ((fd = open(path, open_flags, 0666)) == -1) {
+		fs_free_handle(client, h);
+		return 0;
+	}
+	if (fstat(fd, &sb) == -1) {
+		close(fd);
+		fs_free_handle(client, h);
+		return 0;
 	}
 	if (S_ISDIR(sb.st_mode))
 		client->handles[h]->type = FS_HANDLE_DIR;
 	else if (S_ISREG(sb.st_mode)) {
-		/* FIXME: open the file here? */
 		client->handles[h]->type = FS_HANDLE_FILE;
 		/*
 		 * Initialise the sequence number to 'unknown', so
@@ -117,13 +117,16 @@ int fs_open_handle(struct fs_client *client, char *path, int must_exist)
 		client->handles[h]->oldoffset = 0;
 	} else {
 		warnx("fs_open_handle: tried to open something odd");
+		close(fd);
 		fs_free_handle(client, h);
 		errno = ENOENT;
 		return 0;
 	}
+	client->handles[h]->fd = fd;
 	newpath = client->handles[h]->path = malloc(strlen(path)+1);
 	if (newpath == NULL) {
 		warnx("fs_open_handle: malloc failed");
+		close(fd);
 		fs_free_handle(client, h);
 		errno = ENOMEM;
 		return 0;
@@ -145,13 +148,7 @@ fs_close_handle(struct fs_client *client, int h)
 
 	if (h == 0) return;
 	if (debug) printf("{%d closed} ", h);
-	switch (client->handles[h]->type) {
-	case FS_HANDLE_FILE:
-		close(client->handles[h]->fd);
-	        break;
-	case FS_HANDLE_DIR:
-		break;
-	}
+	close(client->handles[h]->fd);
 	free(client->handles[h]->path);
 	fs_free_handle(client, h);
 }

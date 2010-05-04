@@ -63,7 +63,7 @@ fs_open(struct fs_context *c)
 	struct ec_fs_reply_open reply;
 	struct ec_fs_req_open *request;
 	char *upath;
-	int openopt, fd;
+	int openopt;
 	uint8_t h;
 
 	if (c->client == NULL) {
@@ -80,24 +80,17 @@ fs_open(struct fs_context *c)
 		fs_err(c, EC_FS_E_NOMEM);
 		return;
 	}
-	if ((h = fs_open_handle(c->client, upath, request->must_exist)) == 0) {
-		fs_errno(c);
-		free(upath);
-		return;
-	}
 	openopt = 0;
 	if (!request->must_exist) openopt |= O_CREAT;
 	if (request->read_only)
 		openopt |= O_RDONLY;
 	else
 		openopt |= O_RDWR;
-	if ((fd = open(upath, openopt, 0666)) == -1) {
+	if ((h = fs_open_handle(c->client, upath, openopt)) == 0) {
 		fs_errno(c);
-		fs_close_handle(c->client, h);
 		free(upath);
 		return;
 	}
-	c->client->handles[h]->fd = fd;
 	reply.std_tx.command_code = EC_FS_CC_DONE;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	reply.handle = h;
