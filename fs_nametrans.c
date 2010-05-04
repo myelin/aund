@@ -176,7 +176,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 		path++;
 		disclen = strcspn(path, ".");
 		if (disclen != strlen(discname) ||
-		    strncmp(path, discname, disclen) != 0) {
+		    strncasecmp(path, discname, disclen) != 0) {
 			fs_err(c, EC_FS_E_NOTFOUND);
 			return NULL;
 		}
