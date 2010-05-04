@@ -97,10 +97,7 @@ fs_get_info(struct fs_context *c)
 	request->path[strcspn(request->path, "\r")] = '\0';
 	if (debug) printf("get info [%d, %s]\n", request->arg, request->path);
 	upath = fs_unixify_path(c, request->path); /* This must be freed */
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	errno = 0;
 	path_argv[0] = upath;
 	path_argv[1] = NULL;
@@ -316,10 +313,7 @@ fs_set_info(struct fs_context *c)
 	if (debug) printf("%s]\n", path);
 
 	upath = fs_unixify_path(c, path); /* This must be freed */
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	errno = 0;
 	path_argv[0] = upath;
 	path_argv[1] = NULL;
@@ -414,10 +408,7 @@ fs_cat_header(struct fs_context *c)
 	request->path[strcspn(request->path, "\r")] = '\0';
 	if (debug) printf("catalogue header [%s]\n", request->path);
 	upath = fs_unixify_path(c, request->path); /* This must be freed */
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	errno = 0;
 	path_argv[0] = upath;
 	path_argv[1] = NULL;
@@ -574,9 +565,10 @@ fs_delete1(struct fs_context *c, char *path)
 		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
-	upath = fs_unixify_path(c, path);
+	if ((upath = fs_unixify_path(c, path)) == NULL) return;
 	acornpath = malloc(10 + strlen(upath));
-	if (upath == NULL || acornpath == NULL) {
+	if (acornpath == NULL) {
+		free(upath);
 		fs_err(c, EC_FS_E_NOMEM);
 		return;
 	}
@@ -654,10 +646,7 @@ fs_cdir1(struct fs_context *c, char *path)
 		return;
 	}
 	upath = fs_unixify_path(c, path);
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	if (mkdir(upath, 0777) < 0) {
 		fs_errno(c);
 	} else {

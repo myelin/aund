@@ -83,10 +83,7 @@ fs_examine(struct fs_context *c)
 		break;
 	}
 	upath = fs_unixify_path(c, request->path);
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	errno = 0;
 	reply_size = sizeof(*reply);
 	if (request->arg == EC_FS_EXAMINE_SHORTTXT ||

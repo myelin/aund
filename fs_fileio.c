@@ -76,10 +76,7 @@ fs_open(struct fs_context *c)
 	    request->must_exist ? "exist":"create",
 	    request->read_only ? "read":"rdwr", request->path);
 	upath = fs_unixify_path(c, request->path);
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	openopt = 0;
 	if (!request->must_exist) openopt |= O_CREAT;
 	if (request->read_only)
@@ -493,17 +490,13 @@ fs_load(struct fs_context *c)
 	if (debug) printf("load%s [%s]\n",
 	     as_command ? " as command" : "", request->path);
 	upath = fs_unixify_path(c, request->path);
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	path_argv[0] = upath;
 	path_argv[1] = NULL;
 	if (as_command) {
 		c->req->csd = c->req->lib;
 		upathlib = fs_unixify_path(c, request->path);
 		if (upathlib == NULL) {
-			fs_err(c, EC_FS_E_NOMEM);
 			free(upath);
 			return;
 		}
@@ -573,10 +566,7 @@ fs_save(struct fs_context *c)
 	if (debug) printf("save [%s]\n", request->path);
 	size = fs_read_val(request->size, sizeof(request->size));
 	upath = fs_unixify_path(c, request->path);
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	if ((fd = open(upath, O_CREAT|O_TRUNC|O_RDWR, 0666)) == -1) {
 		fs_errno(c);
 		free(upath);
@@ -639,10 +629,7 @@ fs_create(struct fs_context *c)
 	if (debug) printf("create [%s]\n", request->path);
 	size = fs_read_val(request->size, sizeof(request->size));
 	upath = fs_unixify_path(c, request->path);
-	if (upath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
-		return;
-	}
+	if (upath == NULL) return;
 	if ((fd = open(upath, O_CREAT|O_TRUNC|O_RDWR, 0666)) == -1) {
 		fs_errno(c);
 		free(upath);

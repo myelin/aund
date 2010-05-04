@@ -352,10 +352,9 @@ fs_cmd_rename(struct fs_context *c, char *tail)
 		fs_error(c, 0xff, "Who are you?");
 		return;
 	}
-	oldupath = fs_unixify_path(c, oldname);
-	newupath = fs_unixify_path(c, newname);
-	if (oldupath == NULL || newupath == NULL) {
-		fs_err(c, EC_FS_E_NOMEM);
+	if ((oldupath = fs_unixify_path(c, oldname)) == NULL) return;
+	if ((newupath = fs_unixify_path(c, newname)) == NULL) {
+		free(oldupath);
 		return;
 	}
 	if (rename(oldupath, newupath) < 0) {
@@ -455,7 +454,7 @@ fs_cmd_dir(struct fs_context *c, char *tail)
 	if (!*upath)
 		upath = "&";
 	if (debug) printf(" -> dir [%s]\n", upath);
-	upath = fs_unixify_path(c, upath);
+	if ((upath = fs_unixify_path(c, upath)) == NULL) return;
 	reply.new_handle = fs_open_handle(c->client, upath, O_RDONLY);
 	free(upath);
 	if (reply.new_handle == 0) {
@@ -489,7 +488,7 @@ fs_cmd_lib(struct fs_context *c, char *tail)
 		reply.new_handle = fs_open_handle(c->client, lib, O_RDONLY);
 	} else {
 		if (debug) printf(" -> lib [%s]\n", upath);
-		upath = fs_unixify_path(c, upath); /* Free it! */
+		if ((upath = fs_unixify_path(c, upath)) == NULL) return;
 		reply.new_handle = fs_open_handle(c->client, upath, O_RDONLY);
 		free(upath);
 	}
@@ -678,7 +677,7 @@ fs_cmd_info(struct fs_context *c, char *tail)
 	}
 	upath = fs_cli_getarg(&tail);
 	if (debug) printf(" -> info [%s]\n", upath);
-	upath = fs_unixify_path(c, upath); /* Free it! */
+	if ((upath = fs_unixify_path(c, upath)) == NULL) return;
 
 	path_argv[0] = upath;
 	path_argv[1] = NULL;

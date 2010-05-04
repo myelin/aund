@@ -47,6 +47,7 @@
 
 #include "extern.h"
 #include "fileserver.h"
+#include "fs_errors.h"
 
 static char *fs_unhat_path(char *);
 static void fs_match_path(char *);
@@ -156,7 +157,10 @@ fs_unixify_path(struct fs_context *c, char *path)
 	path2 = malloc((urd ? strlen(urd) : 0) + (csd ? strlen(csd) : 0) +
 		       (lib ? strlen(lib) : 0) +
 		       2 * strlen(path) + 100);
-	if (path == NULL) return NULL;
+	if (path == NULL) {
+		fs_err(c, EC_FS_E_NOMEM);
+		return NULL;
+	}
 
 	if (debug) printf("fs_unixify_path: [%s]", path);
 
@@ -171,10 +175,11 @@ fs_unixify_path(struct fs_context *c, char *path)
 	    (path[1] != '.' && path[1] != '\0')) {
 		path++;
 		disclen = strcspn(path, ".");
-		/* 
-		 * if (disclen != strlen(discname)) return NULL;
-		 * if (strncmp(path, discname, disclen) != 0) return NULL;
-		 */
+		if (disclen != strlen(discname) ||
+		    strncmp(path, discname, disclen) != 0) {
+			fs_err(c, EC_FS_E_NOTFOUND);
+			return NULL;
+		}
 		path += disclen;
 		if (*path) path++;
 		base = ".";
@@ -202,6 +207,7 @@ fs_unixify_path(struct fs_context *c, char *path)
 	}
 	if (base == NULL) {
 		free(path2);
+		fs_err(c, EC_FS_E_CHANNEL);
 		return NULL;
 	}
 	sprintf(path2, "%s/", base);
