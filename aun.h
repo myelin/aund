@@ -48,7 +48,8 @@ struct aun_packet {
 	uint8_t data[0]; /* actually more */
 };
 
-#define AUN_MAX_BLOCK 4096
+/* Keep all data within a standard Ethernet packet */
+#define AUN_MAX_BLOCK 1024
 
 #define EC_PORT_FS 0x99
 #define EC_PORT_PS_STATUS_ENQ 0x9f
