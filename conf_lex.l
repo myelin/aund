@@ -101,6 +101,7 @@ static void conf_cmd_lib(union cfything *);
 static void conf_cmd_beebem(union cfything *);
 static void conf_cmd_infofmt(union cfything *);
 static void conf_cmd_opt4(union cfything *);
+static void conf_cmd_timeout(union cfything *);
 static void conf_cmd_typemap_name(union cfything *);
 static void conf_cmd_typemap_perm(union cfything *);
 static void conf_cmd_typemap_type(union cfything *);
@@ -148,6 +149,7 @@ static int cfy_line;
   urd		BEGIN(BORING); thing->func.func = conf_cmd_urd; return CF_FUNC;
   pwfile	BEGIN(BORING); thing->func.func = conf_cmd_pwfile; return CF_FUNC;
   opt4		BEGIN(BORING); thing->func.func = conf_cmd_opt4; return CF_FUNC;
+  timeout	BEGIN(BORING); thing->func.func = conf_cmd_timeout; return CF_FUNC;
   beebem	BEGIN(BORING); thing->func.func = conf_cmd_beebem; return CF_FUNC;
   info([_-]?(fmt|format))	BEGIN(BORING); thing->func.func = conf_cmd_infofmt; return CF_FUNC;
 }
@@ -351,6 +353,18 @@ conf_cmd_opt4(union cfything *thing)
 	if (cfylex(BORING, NULL) != CF_WORD)
 		errx(1, "no boot option specified");
 	default_opt4 = strtol(cfytext, &endptr, 0);
+	if (*endptr != '\0')
+		errx(1, "bad boot option");
+}
+
+static void
+conf_cmd_timeout(union cfything *thing)
+{
+	char *endptr;
+
+	if (cfylex(BORING, NULL) != CF_WORD)
+		errx(1, "no boot option specified");
+	default_timeout = strtol(cfytext, &endptr, 0);
 	if (*endptr != '\0')
 		errx(1, "bad boot option");
 }

@@ -56,6 +56,7 @@ static void aun_ack(int sock, struct aun_packet *pkt, struct sockaddr_in *from,
 
 int sock;
 unsigned char buf[65536];
+int default_timeout = 100000;
 
 union internal_addr {
 	struct aun_srcaddr srcaddr;
@@ -196,7 +197,7 @@ aun_xmit(struct aun_packet *pkt, size_t len, struct aun_srcaddr *vto)
 			struct timeval timeout;
 
 			timeout.tv_sec = 0;
-			timeout.tv_usec = 100000;
+			timeout.tv_usec = default_timeout;
 			FD_ZERO(&fdset);
 			FD_SET(sock, &fdset);
 			do {
