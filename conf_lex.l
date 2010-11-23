@@ -363,10 +363,10 @@ conf_cmd_timeout(union cfything *thing)
 	char *endptr;
 
 	if (cfylex(BORING, NULL) != CF_WORD)
-		errx(1, "no boot option specified");
+		errx(1, "no timeout specified");
 	default_timeout = strtol(cfytext, &endptr, 0);
 	if (*endptr != '\0')
-		errx(1, "bad boot option");
+		errx(1, "bad timeout");
 }
 
 static void
