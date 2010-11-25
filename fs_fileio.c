@@ -489,6 +489,11 @@ fs_load(struct fs_context *c)
 	as_command = c->req->function == EC_FS_FUNC_LOAD_COMMAND;
 	if (debug) printf("load%s [%s]\n",
 	     as_command ? " as command" : "", request->path);
+	/*
+	 * 8-bit clients tend to send the whole command line for "load
+	 * as command", so we trim it for them.
+	 */
+	request->path[strcspn(request->path, " ")] = '\0';
 	upath = fs_unixify_path(c, request->path);
 	if (upath == NULL) return;
 	path_argv[0] = upath;
