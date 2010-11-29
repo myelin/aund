@@ -522,7 +522,7 @@ fs_cmd_bye(struct fs_context *c, char *tail)
 }
 
 void
-fs_long_info(char *string, FTSENT *f)
+fs_long_info(struct fs_context *c, char *string, FTSENT *f)
 {
 	struct ec_fs_meta meta;
 	struct tm mtm, btm;
@@ -545,7 +545,7 @@ fs_long_info(char *string, FTSENT *f)
 	birthtime = fs_get_birthtime(f);
 	btm = *localtime(&birthtime);
 
-	if (infoformat == FS_INFO_SJ) {
+	if (c->client->infoformat == FS_INFO_SJ) {
 		/*
 		 * These formats for *INFO are taken from the SJ
 		 * Research file server manual.
@@ -690,7 +690,7 @@ fs_cmd_info(struct fs_context *c, char *tail)
 	}
 
 	reply = malloc(sizeof(*reply) + 100);
-	fs_long_info(reply->data, f);
+	fs_long_info(c, reply->data, f);
 	reply->command_code = EC_FS_CC_INFO;
 	reply->return_code = EC_FS_RC_OK;
 	fs_reply(c, reply, sizeof(*reply) + strlen(reply->data));

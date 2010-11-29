@@ -341,9 +341,9 @@ conf_cmd_infofmt(union cfything *thing)
 	if (cfylex(BORING, NULL) != CF_WORD)
 		errx(1, "no *INFO format keyword specified");
 	if (!strcasecmp(cfytext, "riscos"))
-		infoformat = FS_INFO_RISCOS;
+		default_infoformat = FS_INFO_RISCOS;
 	else if (!strcasecmp(cfytext, "sj"))
-		infoformat = FS_INFO_SJ;
+		default_infoformat = FS_INFO_SJ;
 }
 
 static void

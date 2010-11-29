@@ -48,7 +48,7 @@
 static int fs_examine_read(struct fs_context *, const char *, int);
 
 static int fs_examine_all(FTSENT *, struct ec_fs_reply_examine **, size_t *);
-static int fs_examine_longtxt(FTSENT *, struct ec_fs_reply_examine **,
+static int fs_examine_longtxt(struct fs_context *c, FTSENT *, struct ec_fs_reply_examine **,
     size_t *);
 static int fs_examine_name(FTSENT *, struct ec_fs_reply_examine **, size_t *);
 static int fs_examine_shorttxt(FTSENT *, struct ec_fs_reply_examine **,
@@ -123,7 +123,7 @@ fs_examine(struct fs_context *c)
 			rc = fs_examine_all(ent, &reply, &reply_size);
 			break;
 		case EC_FS_EXAMINE_LONGTXT:
-			rc = fs_examine_longtxt(ent, &reply, &reply_size);
+			rc = fs_examine_longtxt(c, ent, &reply, &reply_size);
 			break;
 		case EC_FS_EXAMINE_NAME:
 			rc = fs_examine_name(ent, &reply, &reply_size);
@@ -308,8 +308,8 @@ burn:
 }
 
 static int
-fs_examine_longtxt(FTSENT *ent, struct ec_fs_reply_examine **replyp,
-    size_t *reply_sizep)
+fs_examine_longtxt(struct fs_context *c, FTSENT *ent,
+    struct ec_fs_reply_examine **replyp, size_t *reply_sizep)
 {
 	void *new_reply;
 	char *string;
@@ -321,7 +321,7 @@ fs_examine_longtxt(FTSENT *ent, struct ec_fs_reply_examine **replyp,
 		goto burn;
 	}
 	string = (char*)(((void *)*replyp) + *reply_sizep);
-	fs_long_info(string, ent);
+	fs_long_info(c, string, ent);
 	string[strcspn(string, "\r\x80")] = '\0';
 	*reply_sizep += 1 + strlen(string); /* one byte spare to terminate */
 	return 0;
