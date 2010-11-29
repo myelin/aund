@@ -131,7 +131,7 @@ extern fs_func_impl fs_get_user_free;
 
 extern void fs_unrec(struct fs_context *);
 extern char *fs_cli_getarg(char **);
-extern void fs_long_info(struct fs_context *c, char *, FTSENT *);
+extern void fs_long_info(struct fs_context *, char *, FTSENT *);
 extern void fs_reply(struct fs_context *, struct ec_fs_reply *, size_t);
 extern void fs_cdir1(struct fs_context *, char *);
 extern void fs_delete1(struct fs_context *, char *);
