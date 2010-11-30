@@ -58,6 +58,7 @@ struct fs_cmd {
 	fs_cmd_impl	*impl;
 };
 
+static fs_cmd_impl fs_cmd_aundopt;
 static fs_cmd_impl fs_cmd_bye;
 static fs_cmd_impl fs_cmd_cat;
 static fs_cmd_impl fs_cmd_cdir;
@@ -76,6 +77,7 @@ static int fs_cli_match(char *cmdline, char **tail, const struct fs_cmd *cmd);
 static void fs_cli_unrec(struct fs_context *, char *);
 
 static const struct fs_cmd cmd_tab[] = {
+	{"AUNDOPT",	2, fs_cmd_aundopt,	},
 	{"BYE",		1, fs_cmd_bye,		},
 	{"CAT",		0, fs_cmd_cat,		},
 	{"CDIR",	2, fs_cmd_cdir,		},
@@ -780,4 +782,35 @@ fs_cmd_load(struct fs_context *c, char *tail)
 syntax:
 	free(reply);
 	fs_error(c, 0xff, "Syntax");
+}
+
+static void
+fs_cmd_aundopt(struct fs_context *c, char *tail)
+{
+	struct ec_fs_reply reply;
+	char *key, *val;
+
+	if (c->client == NULL) {
+		fs_error(c, 0xff, "Who are you?");
+		return;
+	}
+	key = fs_cli_getarg(&tail);
+	if (!*key) goto syntax;
+	if (!strcasecmp(key, "infofmt")) {
+		val = fs_cli_getarg(&tail);
+		if (!*val) goto syntax;
+		if (!strcasecmp(val, "riscos"))
+			c->client->infoformat = FS_INFO_RISCOS;
+		else if (!strcasecmp(val, "sj"))
+			c->client->infoformat = FS_INFO_SJ;
+		else
+			goto syntax;
+	} else
+		goto syntax;
+	reply.command_code = EC_FS_CC_DONE;
+	reply.return_code = EC_FS_RC_OK;
+	fs_reply(c, &reply, sizeof(reply));
+	return;
+syntax:
+	fs_error(c, 0xff,"Syntax: AUNDOPT INFOFMT RISCOS|SJ");
 }
