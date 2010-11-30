@@ -311,10 +311,10 @@ fs_cmd_pass(struct fs_context *c, char *tail)
 }
 
 /*
- * This bit of the protocol doesn't seem to be documented anyway, but
- * the System 3 NOS (at least V.IIIP) doesn't interpret *CAT itself.
- * The details here are reverse-engineered from the behaviour of an
- * old Acorn file server.
+ * This bit of the protocol doesn't seem to be documented anywhere,
+ * but the System 3 NOS (at least V.IIIP) doesn't interpret *CAT
+ * itself.  The details here are reverse-engineered from the behaviour
+ * of an old Acorn file server.
  */
 static void
 fs_cmd_cat(struct fs_context *c, char *tail)
