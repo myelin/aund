@@ -93,6 +93,102 @@ so
 .Pa TextFile,fff
 appears as a text (type 0xfff) file called
 .Pa TextFile .
+.Ss "*\ Commands"
+.Nm
+implements a selection of operating system commands (known as
+.Qq *\ commands )
+that can be used by clients.
+Many of these are shadowed by built-in commands on newer clients.
+Only the versions implemented by
+.Nm
+are documented here.
+.Bl -tag -width Ic
+.It Ic *AUNDOPT Li INFOFMT RISCOS | SJ
+Sets the format of responses to
+.Ql *INFO .
+.Ql RISCOS
+chooses the format specified by the
+.Tn RISC OS
+Programmer's Reference Manual, similar to that produced by Acorn fileservers.
+.Ql SJ
+chooses a format more akin to that produced by SJ Research fileservers.
+This setting persists for the current session.
+.It Ic *BYE
+Logs off the file server, closing all open files.
+.It Ic *CAT Op Ar directory
+Displays a catalogue listing of the specified
+.Ar directory ,
+or of the current directory if none is specified.
+.It Ic *CDIR Ar name
+Creates a directory called
+.Ar name .
+.It Ic *DELETE Ar name
+Deletes the file or directory called
+.Ar name .
+.It Ic *DIR Op Ar dir
+Sets the current directory to the specified
+.Ar directory
+or to the user root directory if none is specified.
+.It Ic *INFO Op Ar name
+Displays detailed information about the object called
+.Ar name
+or the current directory if none is specified.
+.It Ic "*I AM" Oo Ar station Oc Ar user Op Ar password
+Log onto the file server as
+.Ar user
+whose password is
+.Ar password .
+If
+.Ar password
+is not specified it is treated as empty.
+If
+.Ar station
+is specified and starts with a digit, it is ignored.
+.It Ic *LIB Op Ar library
+Sets the current library to
+.Ar library
+or to the default library if none is specified.
+.It Ic *LOAD Ar file Op Ar addr
+Load the specified
+.Ar file
+into the client's memory at
+.Ar addr .
+If
+.Ar addr
+is not specified, the load address of the file is used.
+.It Ic *LOGOFF
+A synonym for
+.Ic *BYE .
+.It Ic *PASS Ar oldpw newpw
+Change the password of the logged-on user from
+.Ar oldpw
+to
+.Ar newpw .
+.It Ic *RENAME Ar old new
+Change the name of the object currently called
+.Ar old
+to
+.Ar new .
+.It Ic *SAVE Ar file start end Op Ar exec
+Save a section of client memory to
+.Ar file .
+The memory runs from
+.Ar start
+(inclusive) to
+.Ar end
+(exclusive).
+If
+.Ar exec
+is specified, the file's execution address is set to that.
+Otherwise it is set to
+.Ar start .
+.It Ic *SDISC Ar disc
+Reset the user environment (current directory and current library) as
+though the user had logged in again.
+The argument
+.Ar disc
+is ignored.
+.El
 .Ss Security Considerations
 The Acorn fileserver protocol is inherently insecure.  It passes both 
 login and file data over the network unencrypted, so it is trivial
