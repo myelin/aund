@@ -36,6 +36,7 @@
 
 #include <dirent.h>
 #include <fts.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -86,6 +87,7 @@ struct fs_client {
 	char *login;
 	struct fs_dir_cache dir_cache;
 	enum fs_info_format infoformat;
+	bool safehandles;
 };
 
 LIST_HEAD(fs_client_head, fs_client);

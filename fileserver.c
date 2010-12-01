@@ -34,6 +34,7 @@
 #include <err.h>
 #include <errno.h>
 #include <fts.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,6 +54,7 @@ char *fixedurd = ".";		       /* default to the root dir */
 char *lib = ".";		       /* default to the root dir */
 int default_opt4 = 0;
 enum fs_info_format default_infoformat = FS_INFO_RISCOS;
+bool default_safehandles = true;
 
 struct user_funcs const * userfuncs;
 
@@ -202,6 +204,7 @@ fs_new_client(struct aun_srcaddr *from)
 	client->dir_cache.ftsp = NULL;
 	client->dir_cache.f = NULL;
 	client->infoformat = default_infoformat;
+	client->safehandles = default_safehandles;
 	LIST_INSERT_HEAD(&fs_clients, client, link);
 	if (using_syslog)
 		syslog(LOG_INFO, "login from %s", aunfuncs->ntoa(from));

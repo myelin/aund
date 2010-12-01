@@ -96,7 +96,10 @@ int fs_open_handle(struct fs_client *client, char *path, int open_flags)
 	int h, fd;
 
 	h = fs_alloc_handle(client);
-	if (h == 0) return h;
+	if (h == 0) {
+		errno = EMFILE;
+		return h;
+	}
 	if ((fd = open(path, open_flags, 0666)) == -1) {
 		fs_free_handle(client, h);
 		return 0;
@@ -165,16 +168,20 @@ fs_alloc_handle(struct fs_client *client)
 	 * Try to find a free handle first.  Handle 0 is special, so
 	 * skip it.
 	 */
-	for (h = 1; h < client->nhandles; h++) {
-		if (client->handles[h] == NULL) break;
+	if (client->safehandles) {
+		for (h = 1; h < client->nhandles; h <<= 1)
+			if (client->handles[h] == NULL) break;
+	} else {
+		for (h = 1; h < client->nhandles; h++)
+			if (client->handles[h] == NULL) break;
 	}
-	if (h == client->nhandles) {
+	if (h >= client->nhandles) {
 		/* No free handles.  See if we can extend the table. */
 		if (h < MAX_HANDLES) {
 			/* Yep */
 			int new_nhandles;
 			void *new_handles;
-			new_nhandles = client->nhandles + 1;
+			new_nhandles = h + 1;
 			if (new_nhandles > MAX_HANDLES)
 				new_nhandles = MAX_HANDLES;
 			new_handles = realloc(client->handles,
