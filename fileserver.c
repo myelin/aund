@@ -52,7 +52,7 @@ char *root = NULL;		       /* must specify this in config */
 char *fixedurd = ".";		       /* default to the root dir */
 char *lib = ".";		       /* default to the root dir */
 int default_opt4 = 0;
-enum fs_info_format infoformat = FS_INFO_RISCOS;
+enum fs_info_format default_infoformat = FS_INFO_RISCOS;
 
 struct user_funcs const * userfuncs;
 
