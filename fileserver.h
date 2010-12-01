@@ -144,8 +144,6 @@ extern void fs_check_handles(struct fs_context *);
 extern int fs_check_handle(struct fs_client *, int);
 extern int fs_open_handle(struct fs_client *, char *, int);
 extern void fs_close_handle(struct fs_client *, int);
-extern int fs_alloc_handle(struct fs_client *);
-extern void fs_free_handle(struct fs_client *, int);
 
 extern struct fs_client *fs_new_client(struct aun_srcaddr *);
 extern void fs_delete_client(struct fs_client *);

@@ -41,6 +41,9 @@
 
 #define MAX_HANDLES 256
 
+static int fs_alloc_handle(struct fs_client *);
+static void fs_free_handle(struct fs_client *, int);
+
 /*
  * Check a client context for validity.  Zero invalid handles.
  */
@@ -153,7 +156,7 @@ fs_close_handle(struct fs_client *client, int h)
 	fs_free_handle(client, h);
 }
 
-int
+static int
 fs_alloc_handle(struct fs_client *client)
 {
 	int h;
@@ -196,7 +199,7 @@ fs_alloc_handle(struct fs_client *client)
 	return h;
 }
 
-void
+static void
 fs_free_handle(struct fs_client *client, int h)
 {
 
