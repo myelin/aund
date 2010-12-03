@@ -50,7 +50,7 @@ typemap name \.sna$	ba1 # SNA
 typemap name \.z80$	ba0 # Z80
 typemap name \.fli$	b9f # FLI
 typemap name \.spt$	b8c # Split
-typemap name \.xmb$	b61 # Xbitmap
+typemap name \.xbm$	b61 # Xbitmap
 typemap name \.png$	b60 # PNG
 typemap name \.wmf$	b2f # WMF
 typemap name \.cgm$	b2b # CGM
