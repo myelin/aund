@@ -32,6 +32,7 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -41,7 +42,7 @@
 
 #define MAX_HANDLES 256
 
-static int fs_alloc_handle(struct fs_client *);
+static int fs_alloc_handle(struct fs_client *, bool);
 static void fs_free_handle(struct fs_client *, int);
 
 /*
@@ -89,13 +90,15 @@ int fs_check_handle(struct fs_client *client, int h)
  * Open a new handle for a client.  path gives the Unix path of the
  * file or directory to open.
  */
-int fs_open_handle(struct fs_client *client, char *path, int open_flags)
+int
+fs_open_handle(struct fs_client *client, char *path, int open_flags,
+    bool for_open)
 {
 	struct stat sb;
 	char *newpath;
 	int h, fd;
 
-	h = fs_alloc_handle(client);
+	h = fs_alloc_handle(client, for_open);
 	if (h == 0) {
 		errno = EMFILE;
 		return h;
@@ -159,42 +162,97 @@ fs_close_handle(struct fs_client *client, int h)
 	fs_free_handle(client, h);
 }
 
+/*
+ * Handle allocation is slightly tricksy owing to strange behaviour on
+ * the part of early 8-bit clients (up to NFS 3.60 at least).  These
+ * require that any handle on which they might do I/O be a power of
+ * two, because they keep all the sequence number flags in a single
+ * byte and mask out the correct one using the handle.  This restriction
+ * doesn't apply to handles opened using *DIR etc, since these are
+ * never used for I/O.
+ *
+ * As a result, we try to ensure that handles allocated by "open" are
+ * powers of two, and that ones allocated by other means are not (to
+ * preserve our precious stocks of power-of-two handles.  If the
+ * safehandles option is turned on, the restriction on handles
+ * allocated by "open" is enforced.
+ *
+ * Handle 255 is treated specially by NFS 3.60: it sends that handle
+ * to the server whenever it's asked for one that it knows cannot
+ * exist.  For this reason, when safehandles is enabled we avoid
+ * allocating that one, even for a directory.
+ *
+ * Newer clients (BBC Master onwards) don't have any of these
+ * restrictions, so for them the safehandles option can be turned off.
+ */
+
+/* Allocate a handle that's a power of two. */
 static int
-fs_alloc_handle(struct fs_client *client)
+fs_alloc_handle_p2(struct fs_client *client)
 {
 	int h;
 
-	/*
-	 * Try to find a free handle first.  Handle 0 is special, so
-	 * skip it.
-	 */
-	if (client->safehandles) {
-		for (h = 1; h < client->nhandles; h <<= 1)
-			if (client->handles[h] == NULL) break;
+	for (h = 1; h < MAX_HANDLES; h <<= 1)
+		if (h >= client->nhandles ||
+		    client->handles[h] == NULL) return h;
+	return 0;
+}
+
+/* Allocate a handle that's not a power of two. */
+static int
+fs_alloc_handle_np2(struct fs_client *client)
+{
+	int h;
+
+	for (h = 1; h < MAX_HANDLES; h++)
+		if ((h & (h - 1)) != 0 &&
+		    (h >= client->nhandles ||
+		     client->handles[h] == NULL)) return h;
+	return 0;
+}
+
+/* Allocate handle 255. */
+static int
+fs_alloc_handle_255(struct fs_client *client)
+{
+
+	if (255 >= client->nhandles ||
+	    client->handles[255] == NULL) return 255;
+	return 0;
+}
+
+static int
+fs_alloc_handle(struct fs_client *client, bool for_open)
+{
+	int h;
+
+	if (for_open) {
+		h = fs_alloc_handle_p2(client);
+		if (!client->safehandles) {
+			if (h == 0) h = fs_alloc_handle_np2(client);
+			if (h == 0) h = fs_alloc_handle_255(client);
+		}
 	} else {
-		for (h = 1; h < client->nhandles; h++)
-			if (client->handles[h] == NULL) break;
+		h = fs_alloc_handle_np2(client);
+		if (h == 0) h = fs_alloc_handle_p2(client);
+		if (!client->safehandles && h == 0)
+			h = fs_alloc_handle_255(client);
 	}
+	if (h == 0) return 0;
 	if (h >= client->nhandles) {
-		/* No free handles.  See if we can extend the table. */
-		if (h < MAX_HANDLES) {
-			/* Yep */
-			int new_nhandles;
-			void *new_handles;
-			new_nhandles = h + 1;
-			if (new_nhandles > MAX_HANDLES)
-				new_nhandles = MAX_HANDLES;
-			new_handles = realloc(client->handles,
-			    new_nhandles * sizeof(struct fs_handle *));
-			if (new_handles != NULL) {
-				client->handles = new_handles;
-				client->nhandles = new_nhandles;
-			} else {
-				warnx("fs_alloc_handle: realloc failed");
-				return 0;
-			}
+		/* Extend the table. */
+		int new_nhandles;
+		void *new_handles;
+		new_nhandles = h + 1;
+		if (new_nhandles > MAX_HANDLES)
+			new_nhandles = MAX_HANDLES;
+		new_handles = realloc(client->handles,
+		    new_nhandles * sizeof(struct fs_handle *));
+		if (new_handles != NULL) {
+			client->handles = new_handles;
+			client->nhandles = new_nhandles;
 		} else {
-			/* No more handles. */
+			warnx("fs_alloc_handle: realloc failed");
 			return 0;
 		}
 	}

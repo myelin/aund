@@ -39,6 +39,7 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -83,7 +84,7 @@ fs_open(struct fs_context *c)
 		openopt |= O_RDONLY;
 	else
 		openopt |= O_RDWR;
-	if ((h = fs_open_handle(c->client, upath, openopt)) == 0) {
+	if ((h = fs_open_handle(c->client, upath, openopt, true)) == 0) {
 		fs_errno(c);
 		free(upath);
 		return;

@@ -37,6 +37,7 @@
 #include <grp.h>
 #include <libgen.h>
 #include <pwd.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -282,9 +283,9 @@ fs_cmd_i_am(struct fs_context *c, char *tail)
 	 * Initial user environment.  Note that we can't use the same
 	 * handle twice.
 	 */
-	reply.urd = fs_open_handle(c->client, oururd, O_RDONLY);
-	reply.csd = fs_open_handle(c->client, oururd, O_RDONLY);
-	reply.lib = fs_open_handle(c->client, lib, O_RDONLY);
+	reply.urd = fs_open_handle(c->client, oururd, O_RDONLY, false);
+	reply.csd = fs_open_handle(c->client, oururd, O_RDONLY, false);
+	reply.lib = fs_open_handle(c->client, lib, O_RDONLY, false);
 	reply.opt4 = opt4;
 	if (debug) printf("returning: urd=%d, csd=%d, lib=%d, opt4=%d\n",
 			  reply.urd, reply.csd, reply.lib, reply.opt4);
@@ -435,9 +436,9 @@ fs_cmd_sdisc(struct fs_context *c, char *tail)
 	fs_close_handle(c->client, c->req->urd);
 	fs_close_handle(c->client, c->req->csd);
 	fs_close_handle(c->client, c->req->lib);
-	reply.urd = fs_open_handle(c->client, oururd, O_RDONLY);
-	reply.csd = fs_open_handle(c->client, oururd, O_RDONLY);
-	reply.lib = fs_open_handle(c->client, lib, O_RDONLY);
+	reply.urd = fs_open_handle(c->client, oururd, O_RDONLY, false);
+	reply.csd = fs_open_handle(c->client, oururd, O_RDONLY, false);
+	reply.lib = fs_open_handle(c->client, lib, O_RDONLY, false);
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
 }
 
@@ -456,7 +457,7 @@ fs_cmd_dir(struct fs_context *c, char *tail)
 		upath = "&";
 	if (debug) printf(" -> dir [%s]\n", upath);
 	if ((upath = fs_unixify_path(c, upath)) == NULL) return;
-	reply.new_handle = fs_open_handle(c->client, upath, O_RDONLY);
+	reply.new_handle = fs_open_handle(c->client, upath, O_RDONLY, false);
 	free(upath);
 	if (reply.new_handle == 0) {
 		fs_errno(c);
@@ -486,11 +487,13 @@ fs_cmd_lib(struct fs_context *c, char *tail)
 	upath = fs_cli_getarg(&tail);
 	if (!*upath) {
 		if (debug) printf(" -> default lib\n");
-		reply.new_handle = fs_open_handle(c->client, lib, O_RDONLY);
+		reply.new_handle =
+		    fs_open_handle(c->client, lib, O_RDONLY, false);
 	} else {
 		if (debug) printf(" -> lib [%s]\n", upath);
 		if ((upath = fs_unixify_path(c, upath)) == NULL) return;
-		reply.new_handle = fs_open_handle(c->client, upath, O_RDONLY);
+		reply.new_handle =
+		    fs_open_handle(c->client, upath, O_RDONLY, false);
 		free(upath);
 	}
 	if (reply.new_handle == 0) {

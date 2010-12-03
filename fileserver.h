@@ -144,7 +144,7 @@ extern void fs_error(struct fs_context *, uint8_t, const char *);
 
 extern void fs_check_handles(struct fs_context *);
 extern int fs_check_handle(struct fs_client *, int);
-extern int fs_open_handle(struct fs_client *, char *, int);
+extern int fs_open_handle(struct fs_client *, char *, int, bool);
 extern void fs_close_handle(struct fs_client *, int);
 
 extern struct fs_client *fs_new_client(struct aun_srcaddr *);
