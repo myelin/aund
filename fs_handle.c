@@ -241,14 +241,17 @@ fs_alloc_handle(struct fs_client *client, bool for_open)
 	if (h == 0) return 0;
 	if (h >= client->nhandles) {
 		/* Extend the table. */
-		int new_nhandles;
-		void *new_handles;
+		int new_nhandles, i;
+		struct fs_handle **new_handles;
+
 		new_nhandles = h + 1;
 		if (new_nhandles > MAX_HANDLES)
 			new_nhandles = MAX_HANDLES;
 		new_handles = realloc(client->handles,
 		    new_nhandles * sizeof(struct fs_handle *));
 		if (new_handles != NULL) {
+			for (i = client->nhandles; i < new_nhandles; i++)
+				new_handles[i] = NULL;
 			client->handles = new_handles;
 			client->nhandles = new_nhandles;
 		} else {
