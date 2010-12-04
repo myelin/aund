@@ -808,12 +808,26 @@ fs_cmd_aundopt(struct fs_context *c, char *tail)
 			c->client->infoformat = FS_INFO_SJ;
 		else
 			goto syntax;
+	} else	if (!strcasecmp(key, "safehandles")) {
+		val = fs_cli_getarg(&tail);
+		if (!*val) goto syntax;
+		if (!strcasecmp(val, "true") ||
+		    !strcasecmp(val, "on") ||
+		    !strcasecmp(val, "yes"))
+			c->client->safehandles = true;
+		else if (!strcasecmp(val, "false") ||
+		    !strcasecmp(val, "off") ||
+		    !strcasecmp(val, "no"))
+			c->client->safehandles = false;
+		else
+			goto syntax;
 	} else
+
 		goto syntax;
 	reply.command_code = EC_FS_CC_DONE;
 	reply.return_code = EC_FS_RC_OK;
 	fs_reply(c, &reply, sizeof(reply));
 	return;
 syntax:
-	fs_error(c, 0xff,"Syntax: AUNDOPT INFOFMT RISCOS|SJ");
+	fs_error(c, 0xff,"Syntax: AUNDOPT <OPTION> <VALUE>");
 }

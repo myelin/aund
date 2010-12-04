@@ -77,7 +77,8 @@ struct fs_dir_cache {
 	FTSENT *f; /* Result of fts_children on path */
 };
 
-enum fs_info_format { FS_INFO_RISCOS, FS_INFO_SJ } default_infoformat;
+extern enum fs_info_format { FS_INFO_RISCOS, FS_INFO_SJ } default_infoformat;
+extern bool default_safehandles;
 
 struct fs_client {
 	LIST_ENTRY(fs_client) link;

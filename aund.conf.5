@@ -102,6 +102,24 @@ chooses the format specified by the
 Programmer's Reference Manual, similar to that produced by Acorn fileservers.
 .Ql sj
 chooses a format more akin to that produced by SJ Research fileservers.
+.It Ic safehandles Li on | off
+Controls whether
+.Nm aund
+restricts the file handles it issues for compatibility with older 8-bit
+clients.
+Client systems up to at least NFS 3.60 require that the file server only
+issue file handles that are powers of two.  This restricts such clients
+to at most eight open files.  Later clients support more open files, but
+have no way to indicate this to the file server.  If this option is set
+to
+.Ql on ,
+.Nm aund
+will issue only handles compatible with older systems, while
+.Ql off
+will allow it to issue all possible handles.
+This option can also be controlled using the
+.Ic *AUNDOPT
+command.
 .It Ic beebem Ar config Op Li ingress | noingress
 Selects BeebEm encapsulation of Econet packets as opposed to the usual
 .Tn AUN

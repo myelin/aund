@@ -101,6 +101,7 @@ static void conf_cmd_pwfile(union cfything *);
 static void conf_cmd_lib(union cfything *);
 static void conf_cmd_beebem(union cfything *);
 static void conf_cmd_infofmt(union cfything *);
+static void conf_cmd_safehandles(union cfything *);
 static void conf_cmd_opt4(union cfything *);
 static void conf_cmd_timeout(union cfything *);
 static void conf_cmd_typemap_name(union cfything *);
@@ -153,6 +154,7 @@ static int cfy_line;
   timeout	BEGIN(BORING); thing->func.func = conf_cmd_timeout; return CF_FUNC;
   beebem	BEGIN(BORING); thing->func.func = conf_cmd_beebem; return CF_FUNC;
   info([_-]?(fmt|format))	BEGIN(BORING); thing->func.func = conf_cmd_infofmt; return CF_FUNC;
+  safe[_-]?handles	BEGIN(BORING); thing->func.func = conf_cmd_safehandles; return CF_FUNC;
 }
 <TYPEMAP>{
   name		BEGIN(BORING); thing->func.func = conf_cmd_typemap_name; return CF_FUNC;
@@ -344,6 +346,15 @@ conf_cmd_infofmt(union cfything *thing)
 		default_infoformat = FS_INFO_RISCOS;
 	else if (!strcasecmp(cfytext, "sj"))
 		default_infoformat = FS_INFO_SJ;
+}
+
+static void
+conf_cmd_safehandles(union cfything *xthing)
+{
+	union cfything thing;
+	if (cfylex(BOOLEAN, &thing) != CF_BOOLEAN)
+		errx(1, "no boolean for safehandles");
+	default_safehandles = thing.boolean;
 }
 
 static void
