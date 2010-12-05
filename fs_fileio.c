@@ -89,11 +89,27 @@ fs_open(struct fs_context *c)
 		free(upath);
 		return;
 	}
+	free(upath);
+	/*
+	 * Acorn OSes implement mandatory locking in OSFIND, delegating
+	 * that to the fileserver on Econet.  The implementation here
+	 * depends on the semantics of BSD flock(), where file locks
+	 * are per-open-file rather than per-process.  Implementing the
+	 * same thing with fcntl() would be much more annoying.
+	 */
+	if (flock(c->client->handles[h]->fd,
+		(request->read_only ? LOCK_SH : LOCK_EX) | LOCK_NB) == -1) {
+		if (errno == EAGAIN)
+			fs_err(c, EC_FS_E_OPEN);
+		else
+			fs_errno(c);
+		fs_close_handle(c->client, h);
+		return;
+	}
 	reply.std_tx.command_code = EC_FS_CC_DONE;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	reply.handle = h;
 	fs_reply(c, &(reply.std_tx), sizeof(reply));
-	free(upath);
 }
 
 void
