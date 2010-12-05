@@ -103,7 +103,8 @@ fs_open_handle(struct fs_client *client, char *path, int open_flags,
 		errno = EMFILE;
 		return h;
 	}
-	if ((fd = open(path, open_flags, 0666)) == -1) {
+	if ((fd = open(path, open_flags,
+		    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)) == -1) {
 		fs_free_handle(client, h);
 		return 0;
 	}
