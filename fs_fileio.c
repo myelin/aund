@@ -68,26 +68,9 @@ static int fs_close1(struct fs_context *c, int h);
  * Using flock() causes a problem when creating a new file, becuase
  * another client could get in after the file is created and before we
  * lock it, which shouldn't be able to happen.  This doesn't matter
- * while aund is single-threaded, but once it isn't, we might try
- * something like the following:
- *
- * retry:
- * if ((fd = open(upath, O_RDWR)) != -1) {
- *         if (flock(fd, LOCK_EX) == -1 ||
- *             ftruncate(fd, 0) == -1)
- *             goto error;
- * } else if (errno == ENOENT) {
- *         fd = mkstemp(tmp);
- *         flock(fd, LOCK_EX);
- *         if (link(tmp, upath) == -1) {
- *                 if (errno == EEXIST)
- *                         goto retry;
- *                 else
- *                         goto error;
- *         }
- *         unlink(tmp)
- * } else
- *         goto error;
+ * while aund is single-threaded, but once it isn't, the best approach
+ * is probably to flock() the containing directory while opening files
+ * in it.
  */
 
 #if defined(O_SHLOCK) && defined(O_EXLOCK)
