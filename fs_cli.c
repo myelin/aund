@@ -301,7 +301,7 @@ fs_cmd_pass(struct fs_context *c, char *tail)
 	newpw = fs_cli_getarg(&tail);
 	if (debug) printf("cli: change password\n");
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	if (userfuncs->change(c->client->login, oldpw, newpw)) {
@@ -351,7 +351,7 @@ fs_cmd_rename(struct fs_context *c, char *tail)
 	newname = fs_cli_getarg(&tail);
 	if (debug) printf(" -> rename [%s,%s]\n", oldname, newname);
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	if ((oldupath = fs_unixify_path(c, oldname)) == NULL) return;
@@ -419,7 +419,7 @@ fs_cmd_sdisc(struct fs_context *c, char *tail)
 
 	if (debug) printf(" -> sdisc\n");
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	oururd = userfuncs->urd(c->client->login);
@@ -449,7 +449,7 @@ fs_cmd_dir(struct fs_context *c, char *tail)
 	struct ec_fs_reply_dir reply;
 
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	upath = fs_cli_getarg(&tail);
@@ -481,7 +481,7 @@ fs_cmd_lib(struct fs_context *c, char *tail)
 	struct ec_fs_reply_dir reply;
 
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	upath = fs_cli_getarg(&tail);
@@ -676,7 +676,7 @@ fs_cmd_info(struct fs_context *c, char *tail)
 	FTSENT *f;
 
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	upath = fs_cli_getarg(&tail);
@@ -794,7 +794,7 @@ fs_cmd_aundopt(struct fs_context *c, char *tail)
 	char *key, *val;
 
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	key = fs_cli_getarg(&tail);

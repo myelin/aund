@@ -71,7 +71,7 @@ fs_examine(struct fs_context *c)
 		    request->arg, request->start, request->nentries,
 		    request->path);
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	switch (request->arg) {

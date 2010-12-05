@@ -473,7 +473,7 @@ fs_get_users_on(struct fs_context *c)
 	if (debug)
 		printf("users on [%d/%d]\n", request->start, request->nusers);
 	if (c->client == NULL) {
-		fs_error(c, 0xff, "Who are you?");
+		fs_err(c, EC_FS_E_WHOAREYOU);
 		return;
 	}
 	reply = malloc(sizeof(*reply) + (request->nusers * (2+11+1)));
