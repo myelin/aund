@@ -58,6 +58,42 @@ static ssize_t fs_data_send(struct fs_context *, int, size_t);
 static ssize_t fs_data_recv(struct fs_context *, int, size_t, int);
 static int fs_close1(struct fs_context *c, int h);
 
+/*
+ * Acorn OSes implement mandatory locking in OSFIND, delegating that
+ * to the fileserver on Econet.  This implementation uses BSD flock()
+ * locks to achieve the same effect.  On real BSD systems, we can use
+ * O_SHLOCK and O_EXLOCK, but Linux doesn't have these and we have to
+ * resort to calling flock() after open().
+ *
+ * Using flock() causes a problem when creating a new file, becuase
+ * another client could get in after the file is created and before we
+ * lock it, which shouldn't be able to happen.  This doesn't matter
+ * while aund is single-threaded, but once it isn't, we might try
+ * something like the following:
+ *
+ * retry:
+ * if ((fd = open(upath, O_RDWR)) != -1) {
+ *         if (flock(fd, LOCK_EX) == -1 ||
+ *             ftruncate(fd, 0) == -1)
+ *             goto error;
+ * } else if (errno == ENOENT) {
+ *         fd = mkstemp(tmp);
+ *         flock(fd, LOCK_EX);
+ *         if (link(tmp, upath) == -1) {
+ *                 if (errno == EEXIST)
+ *                         goto retry;
+ *                 else
+ *                         goto error;
+ *         }
+ *         unlink(tmp)
+ * } else
+ *         goto error;
+ */
+
+#if defined(O_SHLOCK) && defined(O_EXLOCK)
+#define HAVE_O_xxLOCK
+#endif
+
 void
 fs_open(struct fs_context *c)
 {
@@ -80,23 +116,37 @@ fs_open(struct fs_context *c)
 	if (upath == NULL) return;
 	openopt = 0;
 	if (!request->must_exist) openopt |= O_CREAT;
-	if (request->read_only)
+	if (request->read_only) {
 		openopt |= O_RDONLY;
-	else
+#ifdef HAVE_O_xxLOCK
+		openopt |= O_SHLOCK | O_NONBLOCK;
+#endif
+	} else {
 		openopt |= O_RDWR;
+#ifdef HAVE_O_xxLOCK
+		openopt |= O_EXLOCK | O_NONBLOCK;
+#endif
+	}
 	if ((h = fs_open_handle(c->client, upath, openopt, true)) == 0) {
-		fs_errno(c);
+#ifdef HAVE_O_xxLOCK
+		if (errno == EAGAIN)
+			fs_err(c, EC_FS_E_OPEN);
+		else
+#endif
+			fs_errno(c);
 		free(upath);
 		return;
 	}
 	free(upath);
-	/*
-	 * Acorn OSes implement mandatory locking in OSFIND, delegating
-	 * that to the fileserver on Econet.  The implementation here
-	 * depends on the semantics of BSD flock(), where file locks
-	 * are per-open-file rather than per-process.  Implementing the
-	 * same thing with fcntl() would be much more annoying.
-	 */
+#ifdef HAVE_O_xxLOCK
+	if ((openopt = fcntl(c->client->handles[h]->fd, F_GETFL)) == -1 ||
+	    fcntl(c->client->handles[h]->fd,
+		F_SETFL, openopt & ~O_NONBLOCK) == -1) {
+		fs_errno(c);
+		fs_close_handle(c->client, h);
+		return;
+	}
+#else
 	if (flock(c->client->handles[h]->fd,
 		(request->read_only ? LOCK_SH : LOCK_EX) | LOCK_NB) == -1) {
 		if (errno == EAGAIN)
@@ -106,6 +156,7 @@ fs_open(struct fs_context *c)
 		fs_close_handle(c->client, h);
 		return;
 	}
+#endif
 	reply.std_tx.command_code = EC_FS_CC_DONE;
 	reply.std_tx.return_code = EC_FS_RC_OK;
 	reply.handle = h;
