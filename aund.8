@@ -22,7 +22,7 @@
 .\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-.Dd April 23, 2010
+.Dd December 07, 2010
 .Dt AUND 8
 .Os
 .Sh NAME
@@ -103,33 +103,6 @@ Only the versions implemented by
 .Nm
 are documented here.
 .Bl -tag -width Ic
-.It Ic *AUNDOPT Li INFOFMT RISCOS | SJ
-Sets the format of responses to
-.Ql *INFO .
-.Ql RISCOS
-chooses the format specified by the
-.Tn RISC OS
-Programmer's Reference Manual, similar to that produced by Acorn fileservers.
-.Ql SJ
-chooses a format more akin to that produced by SJ Research fileservers.
-This setting persists for the current session.
-.It Ic *AUNDOPT Li SAFEHANDLES ON | OFF
-Controls whether
-.Nm
-restricts the file handles it issues for compatibility with older 8-bit
-clients.
-Client systems up to at least NFS 3.60 require that the file server only
-issue file handles that are powers of two.  This restricts such clients
-to at most eight open files.  Later clients support more open files, but
-have no way to indicate this to the file server.  If this option is set
-to
-.Ql ON ,
-.Nm
-will issue only handles compatible with older systems, while
-.Ql OFF
-will allow it to issue all possible handles.
-The default setting is specified in
-.Xr aund.conf 5
 .It Ic *BYE
 Logs off the file server, closing all open files.
 .It Ic *CAT Op Ar directory
@@ -146,6 +119,33 @@ Deletes the file or directory called
 Sets the current directory to the specified
 .Ar directory
 or to the user root directory if none is specified.
+.It Ic *FSOPT Li INFOFMT RISCOS | SJ
+Sets the format of responses to
+.Ql *INFO .
+.Ql RISCOS
+chooses the format specified by the
+.Tn RISC OS
+Programmer's Reference Manual, similar to that produced by Acorn fileservers.
+.Ql SJ
+chooses a format more akin to that produced by SJ Research fileservers.
+This setting persists for the current session.
+.It Ic *FSOPT Li SAFEHANDLES ON | OFF
+Controls whether
+.Nm
+restricts the file handles it issues for compatibility with older 8-bit
+clients.
+Client systems up to at least NFS 3.60 require that the file server only
+issue file handles that are powers of two.  This restricts such clients
+to at most eight open files.  Later clients support more open files, but
+have no way to indicate this to the file server.  If this option is set
+to
+.Ql ON ,
+.Nm
+will issue only handles compatible with older systems, while
+.Ql OFF
+will allow it to issue all possible handles.
+The default setting is specified in
+.Xr aund.conf 5
 .It Ic *INFO Op Ar name
 Displays detailed information about the object called
 .Ar name

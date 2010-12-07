@@ -59,12 +59,12 @@ struct fs_cmd {
 	fs_cmd_impl	*impl;
 };
 
-static fs_cmd_impl fs_cmd_aundopt;
 static fs_cmd_impl fs_cmd_bye;
 static fs_cmd_impl fs_cmd_cat;
 static fs_cmd_impl fs_cmd_cdir;
 static fs_cmd_impl fs_cmd_delete;
 static fs_cmd_impl fs_cmd_dir;
+static fs_cmd_impl fs_cmd_fsopt;
 static fs_cmd_impl fs_cmd_i_am;
 static fs_cmd_impl fs_cmd_info;
 static fs_cmd_impl fs_cmd_lib;
@@ -78,12 +78,12 @@ static int fs_cli_match(char *cmdline, char **tail, const struct fs_cmd *cmd);
 static void fs_cli_unrec(struct fs_context *, char *);
 
 static const struct fs_cmd cmd_tab[] = {
-	{"AUNDOPT",	2, fs_cmd_aundopt,	},
 	{"BYE",		1, fs_cmd_bye,		},
 	{"CAT",		0, fs_cmd_cat,		},
 	{"CDIR",	2, fs_cmd_cdir,		},
 	{"DELETE",	3, fs_cmd_delete,	},
 	{"DIR", 	3, fs_cmd_dir,		},
+	{"FSOPT",	2, fs_cmd_fsopt,	},
 	{"INFO",	1, fs_cmd_info,		},
 	{"I AM", 	2, fs_cmd_i_am,		},
 	{"LIB",		3, fs_cmd_lib,		},
@@ -788,7 +788,7 @@ syntax:
 }
 
 static void
-fs_cmd_aundopt(struct fs_context *c, char *tail)
+fs_cmd_fsopt(struct fs_context *c, char *tail)
 {
 	struct ec_fs_reply reply;
 	char *key, *val;
@@ -829,5 +829,5 @@ fs_cmd_aundopt(struct fs_context *c, char *tail)
 	fs_reply(c, &reply, sizeof(reply));
 	return;
 syntax:
-	fs_error(c, 0xff,"Syntax: AUNDOPT <OPTION> <VALUE>");
+	fs_error(c, 0xff,"Syntax: FSOPT <OPTION> <VALUE>");
 }
