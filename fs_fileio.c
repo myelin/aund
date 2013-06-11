@@ -672,7 +672,7 @@ fs_create(struct fs_context *c)
 	struct ec_fs_req_create *request;
 	struct ec_fs_meta meta;
 	char *upath, *path_argv[2];
-	int fd, ackport, replyport;
+	int fd, replyport;
 	size_t size;
 	FTS *ftsp;
 	FTSENT *f;
@@ -684,7 +684,6 @@ fs_create(struct fs_context *c)
 	request = (struct ec_fs_req_create *)(c->req);
 	request->path[strcspn(request->path, "\r")] = '\0';
 	replyport = c->req->reply_port;
-	ackport = c->req->urd;
 	if (debug) printf("create [%s]\n", request->path);
 	size = fs_read_val(request->size, sizeof(request->size));
 	upath = fs_unixify_path(c, request->path);

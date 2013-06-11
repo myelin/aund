@@ -204,7 +204,7 @@ aun_xmit(struct aun_packet *pkt, size_t len, struct aun_srcaddr *vto)
 				nready = select(FD_SETSIZE, &fdset, NULL, NULL,
 				    &timeout);
 				if (FD_ISSET(sock, &fdset)) {
-					recvfrom(sock, &buf, 64, 0,
+					recvfrom(sock, &buf, sizeof(buf), 0,
 					    (struct sockaddr *)&from, &fromlen);
 					/*
 					 * Is this an ack of the right
