@@ -783,7 +783,6 @@ fs_cmd_load(struct fs_context *c, char *tail)
 	free(reply);
 	return;
 syntax:
-	free(reply);
 	fs_error(c, 0xff, "Syntax");
 }
 
